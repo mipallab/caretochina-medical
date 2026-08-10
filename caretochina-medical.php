@@ -3,7 +3,7 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, and Coordinator Portal.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: SM Mart
  * Text Domain: caretochina-medical
  * Domain Path: /languages
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '1.3.0');
+define('CARETOCHINA_MEDICAL_VERSION', '1.4.0');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
 
@@ -75,3 +75,50 @@ add_action('admin_footer-plugins.php', function() {
     </script>
     <?php
 });
+
+// System-wide Dark/Light Mode Engine
+add_action('wp_head', function() {
+    ?>
+    <script type="text/javascript">
+    (function() {
+        var theme = localStorage.getItem('caretochina_theme');
+        if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+            document.addEventListener('DOMContentLoaded', function() {
+                document.body.classList.add('dark-theme');
+            });
+        }
+        
+        window.appToggleTheme = function() {
+            var current = document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light';
+            var next = current === 'dark' ? 'light' : 'dark';
+            
+            if (next === 'dark') {
+                document.documentElement.classList.add('dark-theme');
+                document.body.classList.add('dark-theme');
+            } else {
+                document.documentElement.classList.remove('dark-theme');
+                document.body.classList.remove('dark-theme');
+            }
+            localStorage.setItem('caretochina_theme', next);
+        };
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            if (!localStorage.getItem('caretochina_theme')) {
+                var next = e.matches ? 'dark' : 'light';
+                if (next === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                    document.body.classList.remove('dark-theme');
+                }
+            }
+        });
+    })();
+    </script>
+    <?php
+}, 1);

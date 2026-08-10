@@ -247,19 +247,102 @@ window.appStaff = {
     }, function(res) {
       if (res.success) {
         alert(res.data.message || 'Deleted successfully.');
-        jQuery.post(apiObj.ajax_url, {
-          action: 'caretochina_staff_get_bookings',
-          nonce: apiObj.nonce
-        }, function(res) {
-          if (res.success && res.data.html) {
-            jQuery('#staff-bookings-tbody').html(res.data.html);
-          }
-        });
+        appStaff.fetchBookings(1);
         if (appStaff.staffBookingId === bookingId) {
           setTimeout(function() { window.location.reload(); }, 1000);
         }
       } else {
         alert(res.data.message || 'Failed to delete patient data.');
+      }
+    });
+  },
+
+  fetchBookings(page, search) {
+    var apiObj = getStaffObj();
+    var paged = page || 1;
+    var searchQuery = (typeof search !== 'undefined') ? search : (jQuery('#staff-booking-search').val() || '');
+    
+    jQuery.post(apiObj.ajax_url, {
+      action: 'caretochina_staff_get_bookings',
+      paged: paged,
+      search: searchQuery,
+      nonce: apiObj.nonce
+    }, function(res) {
+      if (res.success) {
+        jQuery('#staff-bookings-tbody').html(res.data.html);
+        jQuery('#staff-bookings-pagination').html(res.data.pagination);
+      }
+    });
+  },
+
+  changeBookingsPage(page) {
+    this.fetchBookings(page);
+  },
+
+  searchBookings(query) {
+    this.fetchBookings(1, query);
+  },
+
+  viewBookingDetails(bookingId) {
+    var apiObj = getStaffObj();
+    jQuery.post(apiObj.ajax_url, {
+      action: 'caretochina_staff_get_booking_details',
+      booking_id: bookingId,
+      nonce: apiObj.nonce
+    }, function(res) {
+      if (res.success) {
+        var data = res.data;
+        jQuery('#view-modal-code').text('#' + data.code);
+        
+        var detailsHtml = `
+          <div><strong>Name:</strong> ${data.name}</div>
+          <div><strong>Email:</strong> ${data.email}</div>
+          <div><strong>Phone:</strong> ${data.phone}</div>
+          <div><strong>Age / Gender:</strong> ${data.age} / ${data.gender}</div>
+          <div><strong>Country:</strong> ${data.country}</div>
+          <div><strong>Hospital:</strong> ${data.hospital}</div>
+          <div><strong>Specialty:</strong> ${data.specialty}</div>
+          <div><strong>Treatment Timing:</strong> ${data.timing}</div>
+          <div style="grid-column: span 2;"><strong>Social IDs:</strong> WhatsApp: ${data.whatsapp} | WeChat: ${data.wechat} | Messenger: ${data.messenger} | LinkedIn: ${data.linkedin}</div>
+          <div style="grid-column: span 2; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; margin-top:8px;"><strong>Medical Quote/Details:</strong><p style="margin:4px 0 0 0; white-space:pre-wrap;">${data.quote}</p></div>
+          <div><strong>Current Status:</strong> <span style="font-weight:700; color:#0F766E;">${data.status}</span></div>
+          <div><strong>Invoice Status:</strong> ${data.invoice}</div>
+        `;
+        
+        jQuery('#view-modal-content').html(detailsHtml);
+        jQuery('#staff-view-booking-modal').css('display', 'flex');
+      } else {
+        alert(res.data.message || 'Failed to fetch details.');
+      }
+    });
+  },
+
+  toggleRestrictPatient(bookingId, patientId) {
+    var btn = jQuery('tr[data-row-booking-id="' + bookingId + '"] .btn-action-restrict');
+    var isRestricted = btn.css('background-color') === 'rgb(239, 68, 68)' || btn.css('background-color') === '#EF4444' || btn.attr('title').indexOf('Unrestrict') !== -1;
+    
+    var reason = '';
+    if (!isRestricted) {
+      reason = prompt("Enter the reason for restricting this patient's chat feature:");
+      if (reason === null) return; // Cancelled
+    } else {
+      if (!confirm("Are you sure you want to remove the chat restriction for this patient?")) {
+        return;
+      }
+    }
+    
+    var apiObj = getStaffObj();
+    jQuery.post(apiObj.ajax_url, {
+      action: 'caretochina_staff_toggle_restrict',
+      patient_id: patientId,
+      reason: reason,
+      nonce: apiObj.nonce
+    }, function(res) {
+      if (res.success) {
+        alert(res.data.message);
+        appStaff.fetchBookings(1);
+      } else {
+        alert(res.data.message || 'Operation failed.');
       }
     });
   }
@@ -273,6 +356,9 @@ jQuery(document).ready(function($) {
   appStaff.staffBookingId = portalWrapper.data('booking-id') || 1;
   appStaff.bookingCount = parseInt(portalWrapper.data('booking-count')) || 0;
   appStaff.latestMessageId = 0;
+  
+  // Initial bookings fetch for search & pagination
+  appStaff.fetchBookings(1);
   
   // Initial chat load
   if ($('#staff-chat-box').length) {

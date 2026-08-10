@@ -108,6 +108,10 @@ class CareToChina_Patient_Dashboard {
                     </div>
                 </div>
                 <div class="ctc-dash-banner-actions">
+                    <!-- Theme Toggle Button -->
+                    <button type="button" class="ctc-hdr-btn ctc-hdr-btn-glass" onclick="window.appToggleTheme()" style="width:42px; height:42px; border-radius:50%; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;" title="<?php _e('Toggle Dark/Light Mode', 'caretochina-booking'); ?>">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
                     <?php if ($active_booking) : ?>
                         <button type="button" class="ctc-hdr-btn ctc-hdr-btn-glass" onclick="appDash.switchTabDirect('messages')">
                             <i class="fa-solid fa-headset"></i> <?php _e('Care Coordinator Chat', 'caretochina-booking'); ?>
@@ -441,13 +445,28 @@ class CareToChina_Patient_Dashboard {
                                 </div>
                                 <div id="patient-chat-typing-indicator" style="padding:0 16px 8px 16px; font-size:12px; color:#64748B; font-style:italic; display:none;"></div>
 
-                                <form id="patient-message-form">
-                                    <input type="hidden" name="booking_id" value="<?php echo esc_attr($active_booking->id); ?>">
-                                    <div class="ctc-chat-input-group">
-                                        <input type="text" name="message" id="patient_msg_input" class="ctc-field-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" required autocomplete="off">
-                                        <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary"><i class="fa-solid fa-paper-plane"></i> <?php _e('Send', 'caretochina-booking'); ?></button>
+                                <?php
+                                $is_restricted = get_user_meta($user_id, 'patient_restricted', true) ? true : false;
+                                $restriction_reason = get_user_meta($user_id, 'patient_restriction_reason', true);
+                                ?>
+
+                                <?php if ($is_restricted) : ?>
+                                    <div style="padding:20px; background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5; border-radius:12px; text-align:center; font-size:14px; font-weight:600; line-height:1.5;">
+                                        <i class="fa-solid fa-ban" style="font-size:24px; margin-bottom:8px; display:block; color:#EF4444;"></i>
+                                        <?php printf(__('Your live chat feature has been restricted by the administrator. Reason: %s', 'caretochina-booking'), '<em>' . esc_html($restriction_reason ?: __('Violation of portal guidelines.', 'caretochina-booking')) . '</em>'); ?><br>
+                                        <span style="font-size:12px; font-weight:500; display:block; margin-top:8px; color:#7F1D1D;">
+                                            <?php printf(__('Please contact us at %s to resolve this issue and restore your chat access.', 'caretochina-booking'), '<strong>' . esc_html(get_option('admin_email')) . '</strong>'); ?>
+                                        </span>
                                     </div>
-                                </form>
+                                <?php else : ?>
+                                    <form id="patient-message-form">
+                                        <input type="hidden" name="booking_id" value="<?php echo esc_attr($active_booking->id); ?>">
+                                        <div class="ctc-chat-input-group">
+                                            <input type="text" name="message" id="patient_msg_input" class="ctc-field-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" required autocomplete="off">
+                                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary"><i class="fa-solid fa-paper-plane"></i> <?php _e('Send', 'caretochina-booking'); ?></button>
+                                        </div>
+                                    </form>
+                                <?php endif; ?>
                             <?php else : ?>
                                 <div class="text-center" style="text-align:center; margin-top: 30px; padding:40px 20px; background: var(--cymb-white); border:1px dashed var(--cymb-border-color); border-radius:16px;">
                                     <i class="fa-solid fa-comments" style="font-size:32px; color:#94A3B8; margin-bottom:12px; display:inline-block;"></i>
@@ -599,6 +618,11 @@ class CareToChina_Patient_Dashboard {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
         }
 
+        $user_id = get_current_user_id();
+        if (get_user_meta($user_id, 'patient_restricted', true)) {
+            wp_send_json_error(['message' => __('You have been restricted from sending messages. Please contact support.', 'caretochina-booking')]);
+        }
+
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $booking_id = intval($_POST['booking_id'] ?? 0);
@@ -633,6 +657,11 @@ class CareToChina_Patient_Dashboard {
         $nonce = $_POST['nonce'] ?? '';
         if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
+        }
+
+        $user_id = get_current_user_id();
+        if (get_user_meta($user_id, 'patient_restricted', true)) {
+            wp_send_json_error(['message' => __('Restricted.', 'caretochina-booking')]);
         }
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';

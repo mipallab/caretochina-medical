@@ -18,6 +18,7 @@ class CareToChina_Staff_Portal {
         add_shortcode('careyou_staff_portal', [$this, 'render_staff_portal']); // Backward compatibility alias
 
         add_action('admin_menu', [$this, 'register_admin_menu']);
+        add_action('admin_init', [$this, 'restrict_staff_admin_access']);
         add_action('admin_bar_menu', [$this, 'add_admin_bar_notification_node'], 99);
 
         // AJAX Action Handlers
@@ -29,6 +30,8 @@ class CareToChina_Staff_Portal {
         add_action('wp_ajax_caretochina_admin_create_staff', [$this, 'handle_create_staff_account']);
         add_action('wp_ajax_caretochina_staff_login', [$this, 'handle_staff_login']);
         add_action('wp_ajax_nopriv_caretochina_staff_login', [$this, 'handle_staff_login']);
+        add_action('wp_ajax_caretochina_staff_get_booking_details', [$this, 'handle_get_booking_details']);
+        add_action('wp_ajax_caretochina_staff_toggle_restrict', [$this, 'handle_toggle_restrict']);
 
         // Real-Time dashboard updates & Typing indicators
         add_action('wp_ajax_caretochina_staff_get_bookings', [$this, 'handle_get_bookings']);
@@ -274,7 +277,7 @@ class CareToChina_Staff_Portal {
             $unread_messages_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_messages WHERE sender_type = 'patient' AND is_read = 0"));
         }
 
-        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings ORDER BY id DESC");
+        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings ORDER BY id DESC LIMIT 10");
 
         if (empty($bookings)) {
             $bookings = [
@@ -317,6 +320,10 @@ class CareToChina_Staff_Portal {
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:16px;">
+                    <!-- Theme Toggle Button -->
+                    <button type="button" class="staff-theme-toggle-btn" onclick="window.appToggleTheme()" style="background:rgba(255,255,255,0.15); border:none; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#FFF; font-size:18px; transition:all 0.2s;" title="<?php _e('Toggle Dark/Light Mode', 'caretochina-staff'); ?>">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
                     <div id="staff-header-bell" style="position:relative; width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; color:#FFF; cursor:pointer; transition:all 0.2s;" onclick="appStaff.handleNotificationClick(event)">
                         <i class="fa-solid fa-bell"></i>
                         <span id="staff-header-bell-badge" style="position:absolute; top:-4px; right:-4px; background:#EF4444; color:#FFF; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:2px solid #0F766E; <?php echo (($pending_bookings_count + $unread_messages_count) === 0) ? 'display:none;' : ''; ?>"><?php echo ($pending_bookings_count + $unread_messages_count); ?></span>
@@ -364,7 +371,13 @@ class CareToChina_Staff_Portal {
                     <!-- TAB 1: BOOKING MANAGEMENT -->
                     <div class="staff-panel active" id="staff-panel-bookings">
                         <div class="glass-card">
-                            <h3 style="margin:0 0 24px 0; font-family:'Manrope', sans-serif; color:#0F172A; font-size:22px; font-weight:700;"><?php _e('Patient Booking Approvals & Status', 'caretochina-staff'); ?></h3>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; gap:15px; flex-wrap:wrap;">
+                                <h3 style="margin:0; font-family:'Manrope', sans-serif; color:#0F172A; font-size:22px; font-weight:700;"><?php _e('Patient Booking Approvals & Status', 'caretochina-staff'); ?></h3>
+                                <div style="display:flex; align-items:center; gap:8px; background:#FFF; border:1px solid #cbd5e1; border-radius:8px; padding:6px 12px; width:300px; max-width:100%; box-sizing:border-box;">
+                                    <i class="fa-solid fa-magnifying-glass" style="color:#64748B; font-size:14px;"></i>
+                                    <input type="text" id="staff-booking-search" placeholder="<?php _e('Search patients...', 'caretochina-staff'); ?>" style="border:none; outline:none; font-size:13px; width:100%; color:#0F172A; font-family:'Inter',sans-serif;" onkeyup="appStaff.searchBookings(this.value)">
+                                </div>
+                            </div>
                             
                             <div style="overflow-x:auto; width:100%;">
                                 <table style="width:100%; border-collapse:collapse; text-align:left; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
@@ -375,13 +388,33 @@ class CareToChina_Staff_Portal {
                                             <th style="padding:14px;"><?php _e('Contact & Socials', 'caretochina-staff'); ?></th>
                                             <th style="padding:14px;"><?php _e('Quote & Request details', 'caretochina-staff'); ?></th>
                                             <th style="padding:14px;"><?php _e('Current Status', 'caretochina-staff'); ?></th>
-                                            <th style="padding:14px; width:220px;"><?php _e('Staff Actions', 'caretochina-staff'); ?></th>
+                                            <th style="padding:14px; width:180px; text-align:right;"><?php _e('Staff Actions', 'caretochina-staff'); ?></th>
                                         </tr>
                                     </thead>
                                     <tbody id="staff-bookings-tbody">
                                         <?php echo $this->generate_bookings_table_rows($bookings); ?>
                                     </tbody>
                                 </table>
+                            </div>
+                            
+                            <div id="staff-bookings-pagination" style="margin-top:20px;">
+                                <!-- Rendered dynamically by AJAX -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VIEW DETAILS POPUP MODAL -->
+                    <div id="staff-view-booking-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(6px); z-index:100000; align-items:center; justify-content:center;">
+                        <div style="background:#FFFFFF; border-radius:24px; width:620px; max-width:90%; padding:32px; box-shadow:0 20px 40px rgba(0,0,0,0.3); font-family:'Inter', sans-serif; max-height:90vh; overflow-y:auto; box-sizing:border-box;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
+                                <h2 style="margin:0; font-family:'Manrope'; color:#0F172A; font-size:22px;"><i class="fa-solid fa-eye" style="color:#3B82F6;"></i> <?php _e('Case Details', 'caretochina-staff'); ?> <span id="view-modal-code" style="color:#0F766E;"></span></h2>
+                                <button type="button" onclick="jQuery('#staff-view-booking-modal').hide()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748B;">&times;</button>
+                            </div>
+                            <div id="view-modal-content" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px; color:#334155; line-height:1.5;">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                            <div style="display:flex; justify-content:flex-end; margin-top:24px; border-top:1px solid #E2E8F0; padding-top:16px;">
+                                <button type="button" class="button button-secondary" onclick="jQuery('#staff-view-booking-modal').hide()"><?php _e('Close Window', 'caretochina-staff'); ?></button>
                             </div>
                         </div>
                     </div>
@@ -558,10 +591,28 @@ class CareToChina_Staff_Portal {
             $delete_btn = '';
             if (current_user_can('manage_options')) {
                 $delete_btn = sprintf(
-                    '<button type="button" class="btn-action-delete" onclick="appStaff.deletePatientData(%d)" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:11px; margin-top:4px;"><i class="fa-solid fa-trash-can"></i> %s</button>',
+                    '<button type="button" class="btn-action-delete" onclick="appStaff.deletePatientData(%d)" style="background:#EF4444; color:#FFF; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="%s"><i class="fa-solid fa-trash-can"></i></button>',
                     $b->id,
                     __('Delete Case', 'caretochina-staff')
                 );
+            }
+
+            $is_restricted = false;
+            if ($b->patient_id > 0) {
+                $is_restricted = get_user_meta($b->patient_id, 'patient_restricted', true) ? true : false;
+            }
+
+            $restrict_btn = '';
+            if ($b->patient_id > 0) {
+                $restrict_btn = sprintf(
+                    '<button type="button" class="btn-action-restrict" onclick="appStaff.toggleRestrictPatient(%d, %d)" style="background:%s; color:#FFF; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="%s"><i class="fa-solid fa-ban"></i></button>',
+                    $b->id,
+                    $b->patient_id,
+                    $is_restricted ? '#EF4444' : '#F59E0B',
+                    $is_restricted ? __('Unrestrict Patient Chat', 'caretochina-staff') : __('Restrict Patient Chat', 'caretochina-staff')
+                );
+            } else {
+                $restrict_btn = '<button type="button" style="background:#E2E8F0; color:#94A3B8; border:none; width:32px; height:32px; border-radius:6px; cursor:not-allowed; display:flex; align-items:center; justify-content:center;" title="' . esc_attr(__('Guest users cannot be restricted', 'caretochina-staff')) . '" disabled><i class="fa-solid fa-ban"></i></button>';
             }
 
             $html .= sprintf('
@@ -589,11 +640,10 @@ class CareToChina_Staff_Portal {
                         </span>
                     </td>
                     <td style="padding:14px; text-align:right;">
-                        <div style="display:flex; flex-direction:column; gap:6px;">
-                            <button type="button" class="btn-action-verify" onclick="appStaff.verifyBooking(%d, \'%s\', \'%s\')" style="background:#0F766E; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:11px;"><i class="fa-solid fa-user-check"></i> %s</button>
-                            <button type="button" class="btn-action-accept" onclick="appStaff.updateBookingStatus(%d, \'confirmed\')" style="background:#14B8A6; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:11px;"><i class="fa-solid fa-check"></i> %s</button>
-                            <button type="button" class="btn-action-waiting" onclick="appStaff.updateBookingStatus(%d, \'waiting\')" style="background:#F59E0B; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:11px;"><i class="fa-solid fa-clock"></i> %s</button>
-                            <button type="button" class="btn-action-reject" onclick="appStaff.updateBookingStatus(%d, \'cancelled\')" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:11px;"><i class="fa-solid fa-xmark"></i> %s</button>
+                        <div style="display:flex; gap:6px; justify-content:flex-end; align-items:center;">
+                            <button type="button" class="btn-action-verify" onclick="appStaff.verifyBooking(%d, \'%s\', \'%s\')" style="background:#0F766E; color:#FFF; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="%s"><i class="fa-solid fa-user-check"></i></button>
+                            <button type="button" class="btn-action-view" onclick="appStaff.viewBookingDetails(%d)" style="background:#3B82F6; color:#FFF; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="%s"><i class="fa-solid fa-eye"></i></button>
+                            %s
                             %s
                         </div>
                     </td>
@@ -614,9 +664,8 @@ class CareToChina_Staff_Portal {
                 $status_style,
                 strtoupper(esc_html($b->status)),
                 $b->id, esc_js($b->full_name), esc_js($b->booking_code), __('Verify & Chat', 'caretochina-staff'),
-                $b->id, __('Accept', 'caretochina-staff'),
-                $b->id, __('Waiting', 'caretochina-staff'),
-                $b->id, __('Reject', 'caretochina-staff'),
+                $b->id, __('View Details', 'caretochina-staff'),
+                $restrict_btn,
                 $delete_btn
             );
         }
@@ -641,10 +690,45 @@ class CareToChina_Staff_Portal {
         $this->check_staff_capability();
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings ORDER BY id DESC");
+        
+        $search = sanitize_text_field($_POST['search'] ?? '');
+        $paged = intval($_POST['paged'] ?? 1);
+        $limit = 10;
+        $offset = ($paged - 1) * $limit;
+
+        $where = ' WHERE 1=1 ';
+        if (!empty($search)) {
+            $where .= $wpdb->prepare(
+                " AND (full_name LIKE %s OR email LIKE %s OR phone LIKE %s OR country LIKE %s OR booking_code LIKE %s) ",
+                "%$search%", "%$search%", "%$search%", "%$search%", "%$search%"
+            );
+        }
+
+        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM $table_bookings $where");
+        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings $where ORDER BY id DESC LIMIT $limit OFFSET $offset");
         
         $html = $this->generate_bookings_table_rows($bookings);
-        wp_send_json_success(['html' => $html]);
+        
+        // Generate pagination HTML
+        $total_pages = ceil($total_items / $limit);
+        $pagination_html = '';
+        if ($total_pages > 1) {
+            $pagination_html .= '<div class="ctc-pagination" style="display:flex; justify-content:center; gap:8px; margin-top:20px;">';
+            for ($i = 1; $i <= $total_pages; $i++) {
+                $active_style = ($i === $paged) ? 'background:#0F766E; color:#FFF; border-color:#0F766E;' : 'background:#FFF; color:#0F172A; border-color:#cbd5e1;';
+                $pagination_html .= sprintf(
+                    '<button type="button" class="ctc-page-num" onclick="appStaff.changeBookingsPage(%d)" style="padding:6px 12px; border-radius:6px; border:1px solid; cursor:pointer; font-weight:600; font-size:13px; transition:all 0.2s; %s">%d</button>',
+                    $i, $active_style, $i
+                );
+            }
+            $pagination_html .= '</div>';
+        }
+
+        wp_send_json_success([
+            'html' => $html,
+            'pagination' => $pagination_html,
+            'total_items' => $total_items
+        ]);
     }
 
     public function handle_check_new_bookings() {
@@ -1206,5 +1290,81 @@ class CareToChina_Staff_Portal {
                 }
             }
         }
+    }
+
+    public function restrict_staff_admin_access() {
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            return;
+        }
+
+        if (is_user_logged_in()) {
+            $current_user = wp_get_current_user();
+            $is_staff = (current_user_can('edit_posts') || in_array('medical_staff', (array)$current_user->roles));
+            if ($is_staff && !current_user_can('manage_options')) {
+                wp_redirect(home_url('/staff-portal/'));
+                exit;
+            }
+        }
+    }
+
+    public function handle_get_booking_details() {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+            wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
+        }
+        $this->check_staff_capability();
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        
+        $id = intval($_POST['booking_id'] ?? 0);
+        if ($id > 0) {
+            $b = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $id));
+            if ($b) {
+                wp_send_json_success([
+                    'code' => $b->booking_code,
+                    'name' => $b->full_name,
+                    'email' => $b->email,
+                    'phone' => $b->phone,
+                    'age' => $b->age ? $b->age . ' yrs' : 'N/A',
+                    'gender' => $b->gender ?: 'N/A',
+                    'country' => $b->country ?: 'N/A',
+                    'whatsapp' => $b->whatsapp ?: 'N/A',
+                    'wechat' => $b->wechat ?: 'N/A',
+                    'messenger' => $b->messenger ?: 'N/A',
+                    'linkedin' => $b->linkedin ?: 'N/A',
+                    'hospital' => $b->hospital_name,
+                    'specialty' => $b->specialty,
+                    'timing' => $b->treatment_timing,
+                    'quote' => esc_html($b->quote_details),
+                    'status' => strtoupper($b->status),
+                    'invoice' => $b->invoice_status ?: 'Pending'
+                ]);
+            }
+        }
+        wp_send_json_error(['message' => __('Booking details not found.', 'caretochina-staff')]);
+    }
+
+    public function handle_toggle_restrict() {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+            wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
+        }
+        $this->check_staff_capability();
+        $patient_id = intval($_POST['patient_id'] ?? 0);
+        $reason = sanitize_text_field($_POST['reason'] ?? '');
+        
+        if ($patient_id > 0) {
+            $currently_restricted = get_user_meta($patient_id, 'patient_restricted', true) ? true : false;
+            if ($currently_restricted) {
+                delete_user_meta($patient_id, 'patient_restricted');
+                delete_user_meta($patient_id, 'patient_restriction_reason');
+                wp_send_json_success(['message' => __('Patient chat restriction has been removed.', 'caretochina-staff')]);
+            } else {
+                update_user_meta($patient_id, 'patient_restricted', 1);
+                update_user_meta($patient_id, 'patient_restriction_reason', $reason ?: __('Violation of terms of service.', 'caretochina-staff'));
+                wp_send_json_success(['message' => __('Patient has been restricted from live chat.', 'caretochina-staff')]);
+            }
+        }
+        wp_send_json_error(['message' => __('Invalid patient ID.', 'caretochina-staff')]);
     }
 }
