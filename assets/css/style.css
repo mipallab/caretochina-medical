@@ -1,0 +1,1204 @@
+/* ==========================================================================
+   CARETOCHINA MEDICAL BOOKING PLUGIN - STRICTLY SCOPED CSS SYSTEM
+   ========================================================================== */
+
+/* GLOBAL SCOPED BOX-SIZING RESET */
+.careyou-booking-wizard-container,
+.caretochina-booking-wizard-container,
+.careyou-booking-wizard-container *,
+.caretochina-booking-wizard-container *,
+.careyou-dashboard-wrapper,
+.caretochina-dashboard-wrapper,
+.careyou-dashboard-wrapper *,
+.caretochina-dashboard-wrapper *,
+.careyou-auth-container,
+.caretochina-auth-container,
+.careyou-auth-container *,
+.caretochina-auth-container * {
+  box-sizing: border-box !important;
+}
+
+/* SCOPED DESIGN TOKENS (LIGHT MODE DEFAULTS) */
+.careyou-booking-wizard-container,
+.caretochina-booking-wizard-container,
+.careyou-dashboard-wrapper,
+.caretochina-dashboard-wrapper,
+.careyou-auth-container,
+.caretochina-auth-container {
+  --cymb-primary: #0F766E;
+  --cymb-primary-hover: #0D645C;
+  --cymb-secondary: #14B8A6;
+  --cymb-secondary-light: #CCFBF1;
+  --cymb-accent: #F59E0B;
+  --cymb-accent-light: #FEF3C7;
+  --cymb-bg-light: #F8FAFC;
+  --cymb-bg-card: #FFFFFF;
+  --cymb-text-dark: #0F172A;
+  --cymb-text-light: #64748B;
+  --cymb-border-color: #E2E8F0;
+  --cymb-success: #10B981;
+  --cymb-success-bg: #D1FAE5;
+  --cymb-danger: #EF4444;
+  --cymb-shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --cymb-shadow-md: 0 10px 25px -5px rgba(15, 118, 110, 0.08);
+  --cymb-shadow-lg: 0 20px 40px -15px rgba(15, 118, 110, 0.15);
+  --cymb-radius-card: 24px;
+  --cymb-radius-btn: 999px;
+  --cymb-radius-sm: 14px;
+  --cymb-font-heading: 'Manrope', sans-serif;
+  --cymb-font-body: 'Inter', sans-serif;
+  --cymb-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 40px auto !important;
+  padding: 0 24px !important;
+  font-family: var(--cymb-font-body) !important;
+  color: var(--cymb-text-dark) !important;
+}
+
+/* ==========================================================================
+   PATIENT DASHBOARD BANNER & LAYOUT STYLING
+   ========================================================================== */
+.ctc-dash-banner {
+  width: 100% !important;
+  background: linear-gradient(135deg, #0F766E 0%, #0F172A 100%) !important;
+  color: #FFFFFF !important;
+  padding: 32px !important;
+  border-radius: 20px !important;
+  margin-bottom: 28px !important;
+  box-shadow: 0 10px 30px -5px rgba(15, 118, 110, 0.25) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 20px !important;
+}
+
+.ctc-dash-banner-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+.ctc-dash-avatar {
+  width: 72px !important;
+  height: 72px !important;
+  min-width: 72px !important;
+  min-height: 72px !important;
+  border-radius: 50% !important;
+  border: 3px solid #14B8A6 !important;
+  object-fit: cover !important;
+}
+
+.ctc-dash-welcome-text {
+  color: #FFFFFF !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  margin: 0 0 6px 0 !important;
+}
+
+.ctc-dash-subtitle-text {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+.ctc-status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #10B981 !important;
+  display: inline-block !important;
+}
+
+.ctc-dash-banner-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.ctc-hdr-btn-glass {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 999px !important;
+  padding: 10px 20px !important;
+  text-decoration: none !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.ctc-hdr-btn-glass:hover {
+  background: #FFFFFF !important;
+  color: #0F766E !important;
+  border-color: #FFFFFF !important;
+  transform: translateY(-2px) !important;
+}
+
+/* DASHBOARD GRID & SIDEBAR */
+.ctc-dash-grid {
+  display: grid !important;
+  grid-template-columns: 260px 1fr !important;
+  gap: 28px !important;
+  width: 100% !important;
+  align-items: start !important;
+}
+
+.ctc-dash-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.ctc-sidebar-tab {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 14px 18px !important;
+  border-radius: 12px !important;
+  background: var(--cymb-bg-card) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: var(--cymb-text-dark) !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+}
+
+.ctc-sidebar-tab.active,
+.ctc-sidebar-tab:hover {
+  background: #0F766E !important;
+  color: #FFFFFF !important;
+  border-color: #0F766E !important;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2) !important;
+}
+
+.ctc-sidebar-tab.tab-logout-item:hover {
+  background: #EF4444 !important;
+  border-color: #EF4444 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3) !important;
+}
+
+.ctc-dash-content {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.ctc-dash-panel {
+  display: none;
+  width: 100% !important;
+}
+
+.ctc-dash-panel.active {
+  display: block !important;
+  animation: cymbFade 0.25s ease !important;
+}
+
+@keyframes cymbFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* CARDS & PANELS */
+.ctc-panel-card {
+  background: var(--cymb-bg-card) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  border-radius: 20px !important;
+  padding: 32px !important;
+  box-shadow: var(--cymb-shadow-md) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+.ctc-card-title {
+  margin: 0 !important;
+  font-family: var(--cymb-font-heading) !important;
+  color: var(--cymb-text-dark) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+.ctc-card-header-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+.ctc-progress-pct {
+  color: #0F766E !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+
+/* STAT CARDS GRID */
+.ctc-stat-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+.ctc-stat-card {
+  background: var(--cymb-bg-card) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  border-radius: 16px !important;
+  padding: 22px 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  box-sizing: border-box !important;
+}
+
+.ctc-stat-icon {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+}
+
+.ctc-stat-icon.icon-teal {
+  background: #CCFBF1 !important;
+  color: #0F766E !important;
+}
+
+.ctc-stat-icon.icon-green {
+  background: #D1FAE5 !important;
+  color: #10B981 !important;
+}
+
+.ctc-stat-icon.icon-amber {
+  background: #FEF3C7 !important;
+  color: #F59E0B !important;
+}
+
+.ctc-stat-val {
+  margin: 0 0 2px 0 !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--cymb-text-dark) !important;
+}
+
+.ctc-stat-val.text-teal-accent {
+  color: #0F766E !important;
+}
+
+.ctc-stat-lbl {
+  font-size: 13px !important;
+  color: var(--cymb-text-light) !important;
+}
+
+/* PROGRESS BAR */
+.ctc-progress-track {
+  width: 100% !important;
+  height: 12px !important;
+  background: var(--cymb-border-color) !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  margin-top: 12px !important;
+}
+
+.ctc-progress-bar-fill {
+  height: 100% !important;
+  background: linear-gradient(90deg, #14B8A6 0%, #0F766E 100%) !important;
+  border-radius: 999px !important;
+  transition: width 0.5s ease !important;
+}
+
+/* TABLES */
+.ctc-table-responsive {
+  overflow-x: auto !important;
+  width: 100% !important;
+}
+
+.ctc-custom-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  text-align: left !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+
+.ctc-custom-table th {
+  padding: 14px 20px !important;
+  background: var(--cymb-bg-light) !important;
+  color: var(--cymb-text-light) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  border-bottom: 1px solid var(--cymb-border-color) !important;
+}
+
+.ctc-custom-table td {
+  padding: 16px 20px !important;
+  border-bottom: 1px solid var(--cymb-border-color) !important;
+  color: var(--cymb-text-dark) !important;
+  font-size: 14px !important;
+}
+
+.ctc-td-code {
+  font-weight: 700 !important;
+  color: #0F766E !important;
+}
+
+.ctc-td-bold {
+  font-weight: 700 !important;
+}
+
+/* BADGES */
+.ctc-badge-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.ctc-badge-pill.badge-success {
+  background: #D1FAE5 !important;
+  color: #065F46 !important;
+}
+
+.ctc-badge-pill.badge-warning {
+  background: #FEF3C7 !important;
+  color: #92400E !important;
+}
+
+/* SUMMARY BOXES IN PAYMENT TAB */
+.ctc-summary-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 20px !important;
+}
+
+.ctc-summary-box {
+  background: var(--cymb-bg-light) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  padding: 20px 24px !important;
+  border-radius: 16px !important;
+}
+
+.ctc-box-lbl {
+  font-size: 13px !important;
+  color: var(--cymb-text-light) !important;
+}
+
+.ctc-box-val {
+  margin: 6px 0 0 0 !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: var(--cymb-text-dark) !important;
+}
+
+/* FORM FIELDS & BUTTONS */
+.ctc-form-field {
+  width: 100% !important;
+}
+
+.ctc-field-label,
+.form-label {
+  display: block !important;
+  font-weight: 600 !important;
+  font-family: var(--cymb-font-heading) !important;
+  color: var(--cymb-text-dark) !important;
+  font-size: 14px !important;
+  margin-bottom: 14px !important;
+}
+
+.ctc-field-input,
+.ctc-field-select,
+.form-input,
+.form-select {
+  width: 100% !important;
+  padding: 13px 18px !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  background: var(--cymb-bg-card) !important;
+  color: var(--cymb-text-dark) !important;
+  font-family: var(--cymb-font-body) !important;
+  font-size: 15px !important;
+  outline: none !important;
+  transition: all 0.3s ease !important;
+  box-sizing: border-box !important;
+}
+
+.ctc-field-input:focus,
+.ctc-field-select:focus,
+.form-input:focus,
+.form-select:focus {
+  border-color: #0F766E !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+}
+
+.form-group {
+  margin-bottom: 20px !important;
+}
+
+.ctc-solid-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 14px 28px !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+}
+
+.ctc-solid-btn.btn-teal-primary {
+  background-color: #0F766E !important;
+  background: #0F766E !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3) !important;
+}
+
+.ctc-solid-btn.btn-teal-primary:hover {
+  background-color: #0D645C !important;
+  background: #0D645C !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4) !important;
+}
+
+.ctc-solid-btn.btn-danger-solid {
+  background-color: #EF4444 !important;
+  background: #EF4444 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3) !important;
+}
+
+.ctc-solid-btn.btn-danger-solid:hover {
+  background-color: #DC2626 !important;
+  background: #DC2626 !important;
+  transform: translateY(-2px) !important;
+}
+
+/* TIMELINE VERTICAL */
+.ctc-timeline-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.ctc-timeline-step {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+}
+
+.ctc-timeline-icon {
+  font-size: 22px !important;
+  color: var(--cymb-text-light) !important;
+  margin-top: 2px !important;
+}
+
+.ctc-timeline-step.is-complete .ctc-timeline-icon {
+  color: #10B981 !important;
+}
+
+.ctc-timeline-step.is-active .ctc-timeline-icon {
+  color: #0F766E !important;
+}
+
+.ctc-timeline-heading {
+  font-family: var(--cymb-font-heading) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--cymb-text-dark) !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.ctc-timeline-desc {
+  font-size: 14px !important;
+  color: var(--cymb-text-light) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* CHAT VIEWPORT */
+.ctc-chat-viewport {
+  background: var(--cymb-bg-light) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  min-height: 200px !important;
+}
+
+.ctc-chat-input-group {
+  display: flex !important;
+  gap: 12px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+}
+
+/* LOGOUT CARD */
+.ctc-logout-card {
+  text-align: center !important;
+  padding: 48px 24px !important;
+}
+
+.ctc-logout-icon-wrap {
+  width: 70px !important;
+  height: 70px !important;
+  border-radius: 50% !important;
+  background: #FEE2E2 !important;
+  color: #EF4444 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 30px !important;
+  margin-bottom: 16px !important;
+}
+
+.ctc-logout-desc {
+  color: var(--cymb-text-light) !important;
+  font-size: 15px !important;
+  max-width: 420px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* ==========================================================================
+   AUTHENTICATION PORTAL SYSTEM
+   ========================================================================== */
+.careyou-auth-container,
+.caretochina-auth-container {
+  max-width: 600px !important;
+}
+
+.ctc-auth-card {
+  background: var(--cymb-bg-card) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  border-radius: 24px !important;
+  padding: 40px !important;
+  box-shadow: var(--cymb-shadow-lg) !important;
+  transition: var(--cymb-transition) !important;
+}
+
+.auth-tab-bar {
+  display: flex !important;
+  background: var(--cymb-bg-light) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  padding: 6px !important;
+  border-radius: 14px !important;
+  margin-bottom: 28px !important;
+}
+
+.auth-tab-btn {
+  flex: 1 !important;
+  padding: 12px !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: var(--cymb-transition) !important;
+  background: transparent !important;
+  color: var(--cymb-text-light) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.auth-tab-btn.active {
+  background: var(--cymb-primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
+}
+
+.auth-tab-btn:not(.active):hover {
+  color: var(--cymb-text-dark) !important;
+}
+
+.auth-header {
+  text-align: center !important;
+  margin-bottom: 24px !important;
+}
+
+.auth-icon-badge {
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 50% !important;
+  background: var(--cymb-secondary-light) !important;
+  color: var(--cymb-primary) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 26px !important;
+  margin-bottom: 12px !important;
+}
+
+.auth-title {
+  font-family: var(--cymb-font-heading) !important;
+  color: var(--cymb-text-dark) !important;
+  margin: 0 0 6px 0 !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+
+.auth-subtitle {
+  color: var(--cymb-text-light) !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+
+.auth-submit-btn {
+  width: 100% !important;
+  padding: 16px !important;
+  border-radius: 999px !important;
+  background: var(--cymb-primary) !important;
+  color: #FFFFFF !important;
+  font-family: var(--cymb-font-heading) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.auth-submit-btn:hover {
+  background: var(--cymb-primary-hover) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* DARK THEME SPECIFIC OVERRIDES */
+html.dark-theme .caretochina-dashboard-wrapper,
+body.dark-theme .caretochina-dashboard-wrapper,
+html.dark-theme .caretochina-auth-container,
+body.dark-theme .caretochina-auth-container,
+html.dark-theme .caretochina-booking-wizard-container,
+body.dark-theme .caretochina-booking-wizard-container,
+html.dark-theme .careyou-booking-wizard-container,
+body.dark-theme .careyou-booking-wizard-container {
+  --cymb-bg-light: #0B132B !important;
+  --cymb-bg-card: #1C2541 !important;
+  --cymb-text-dark: #F8FAFC !important;
+  --cymb-text-light: #94A3B8 !important;
+  --cymb-border-color: #2D3748 !important;
+  --cymb-secondary-light: rgba(20, 184, 166, 0.2) !important;
+}
+
+html.dark-theme .ctc-panel-card,
+body.dark-theme .ctc-panel-card,
+html.dark-theme .ctc-stat-card,
+body.dark-theme .ctc-stat-card,
+html.dark-theme .ctc-auth-card,
+body.dark-theme .ctc-auth-card {
+  background-color: #1C2541 !important;
+  border-color: #2D3748 !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark-theme .ctc-sidebar-tab:not(.active),
+body.dark-theme .ctc-sidebar-tab:not(.active) {
+  background-color: #1C2541 !important;
+  border-color: #2D3748 !important;
+  color: #94A3B8 !important;
+}
+
+html.dark-theme .ctc-field-input,
+body.dark-theme .ctc-field-input,
+html.dark-theme .ctc-field-select,
+body.dark-theme .ctc-field-select {
+  background-color: #0F172A !important;
+  border-color: #2D3748 !important;
+  color: #F8FAFC !important;
+}
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 991px) {
+  .ctc-dash-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ctc-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ctc-dash-banner {
+    padding: 24px !important;
+  }
+}
+
+/* ACCOUNT SETTINGS FORM UPGRADE */
+.ctc-profile-card {
+  padding: 40px !important;
+}
+
+.ctc-profile-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin-bottom: 40px !important;
+}
+
+.ctc-profile-badge-avatar {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  border-radius: 16px !important;
+  background: #CCFBF1 !important;
+  color: #0F766E !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 24px !important;
+}
+
+.ctc-card-subtitle {
+  margin: 4px 0 0 0 !important;
+  color: var(--cymb-text-light) !important;
+  font-size: 14px !important;
+}
+
+.ctc-form-grid-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 20px !important;
+}
+
+@media (max-width: 768px) {
+  .ctc-form-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ==========================================================================
+   BOOKING MODAL WIZARD CUSTOM STYLING
+   ========================================================================== */
+.ctc-booking-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  z-index: 99999 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ctc-booking-modal-overlay.show {
+  display: flex !important;
+}
+
+.ctc-booking-modal-container {
+  background-color: #FFFFFF !important;
+  background: var(--cymb-bg-card) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  border-radius: 24px !important;
+  width: 720px !important;
+  max-width: 90% !important;
+  padding: 32px !important;
+  box-shadow: var(--cymb-shadow-lg) !important;
+  position: relative !important;
+  animation: cymbFade 0.3s ease !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+.ctc-booking-modal-close {
+  position: absolute !important;
+  top: 20px !important;
+  right: 24px !important;
+  background: none !important;
+  border: none !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: var(--cymb-text-light) !important;
+  cursor: pointer !important;
+  transition: var(--cymb-transition) !important;
+}
+
+.ctc-booking-modal-close:hover {
+  color: var(--cymb-danger) !important;
+}
+
+/* HOSPITAL SELECT CARD STYLING */
+.hospital-select-card {
+  transition: all 0.2s ease !important;
+}
+
+.hospital-select-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--cymb-shadow-sm) !important;
+  border-color: var(--cymb-primary) !important;
+}
+
+.hospital-select-card.selected {
+  border-color: var(--cymb-primary) !important;
+  background: var(--cymb-secondary-light) !important;
+  box-shadow: 0 0 0 2px var(--cymb-primary) !important;
+}
+
+/* TIMING BUTTONS STYLING */
+.timing-tag-btn {
+  background: var(--cymb-bg-light) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  color: var(--cymb-text-dark) !important;
+  padding: 12px 6px !important;
+  border-radius: 10px !important;
+  font-family: var(--cymb-font-body) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+}
+
+.timing-tag-btn:hover {
+  border-color: var(--cymb-primary) !important;
+  color: var(--cymb-primary) !important;
+}
+
+.timing-tag-btn.active {
+  background: var(--cymb-primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--cymb-primary) !important;
+  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25) !important;
+}
+
+/* SPECIALTY CHECKBOX CONTAINER */
+.specialty-check-item {
+  transition: all 0.2s ease !important;
+}
+
+.specialty-check-item:hover {
+  border-color: var(--cymb-primary) !important;
+}
+
+.specialty-check-item input:checked+span {
+  color: var(--cymb-primary) !important;
+  font-weight: 700 !important;
+}
+
+/* DARK MODE OVERRIDES */
+html.dark-theme .ctc-booking-modal-container,
+body.dark-theme .ctc-booking-modal-container {
+  background-color: #1C2541 !important;
+  border-color: #2D3748 !important;
+}
+
+html.dark-theme .hospital-select-card,
+body.dark-theme .hospital-select-card {
+  background-color: #0F172A !important;
+  border-color: #2D3748 !important;
+}
+
+html.dark-theme .hospital-select-card h4,
+body.dark-theme .hospital-select-card h4 {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .hospital-select-card.selected,
+body.dark-theme .hospital-select-card.selected {
+  background: rgba(20, 184, 166, 0.15) !important;
+  border-color: #14B8A6 !important;
+  box-shadow: 0 0 0 2px #14B8A6 !important;
+}
+
+html.dark-theme .timing-tag-btn,
+body.dark-theme .timing-tag-btn {
+  background-color: #0F172A !important;
+  border-color: #2D3748 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .timing-tag-btn.active,
+body.dark-theme .timing-tag-btn.active {
+  background: #14B8A6 !important;
+  color: #0F172A !important;
+  border-color: #14B8A6 !important;
+  box-shadow: 0 4px 10px rgba(20, 184, 166, 0.3) !important;
+}
+
+html.dark-theme .specialty-check-item,
+body.dark-theme .specialty-check-item {
+  background-color: #0F172A !important;
+  border-color: #2D3748 !important;
+}
+
+html.dark-theme .specialty-check-item span,
+body.dark-theme .specialty-check-item span {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .specialty-check-item input:checked+span,
+body.dark-theme .specialty-check-item input:checked+span {
+  color: #14B8A6 !important;
+}
+
+/* WIZARD PROGRESS STEPS STYLING */
+.wiz-step {
+  color: var(--cymb-text-light) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.wiz-step.active {
+  color: var(--cymb-primary) !important;
+  font-weight: 700 !important;
+}
+
+html.dark-theme .wiz-step,
+body.dark-theme .wiz-step {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme .wiz-step.active,
+body.dark-theme .wiz-step.active {
+  color: #14B8A6 !important;
+}
+
+/* WIZARD RESPONSIVENESS (MOBILE & TABLET) */
+@media (max-width: 768px) {
+  .ctc-booking-modal-container {
+    padding: 20px 16px !important;
+    width: 95% !important;
+    max-width: 440px !important;
+    border-radius: 16px !important;
+  }
+
+  .ctc-booking-modal-close {
+    top: 14px !important;
+    right: 16px !important;
+    font-size: 24px !important;
+  }
+
+  /* Step Header Subtitle */
+  .wiz-header {
+    margin-bottom: 16px !important;
+  }
+
+  .wiz-header h2 {
+    font-size: 18px !important;
+  }
+
+  .wiz-header p {
+    font-size: 12px !important;
+  }
+
+  /* Step Indicators: wrap them or make them compact */
+  .wizard-steps-indicator {
+    margin-bottom: 20px !important;
+    padding-bottom: 8px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    justify-content: center !important;
+  }
+
+  .wiz-step {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    background: var(--cymb-bg-light) !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--cymb-border-color) !important;
+  }
+
+  html.dark-theme .wiz-step,
+  body.dark-theme .wiz-step {
+    background: #0F172A !important;
+    border-color: #2D3748 !important;
+  }
+
+  .wiz-step.active {
+    background: var(--cymb-secondary-light) !important;
+    border-color: var(--cymb-primary) !important;
+  }
+
+  /* Hospital list grid -> 1 column */
+  .wiz-hospital-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    max-height: 240px !important;
+  }
+
+  /* Timing buttons grid -> 2 columns */
+  .timing-tags-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Specialties list grid -> 1 column */
+  .specialty-checkbox-list {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    max-height: 140px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Smaller screens like 380px */
+  .ctc-booking-modal-container {
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  .wiz-step {
+    font-size: 10px !important;
+    padding: 3px 6px !important;
+  }
+
+  .wiz-step-filters {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+}
+
+/* WIZARD SUMMARY CARD THEME PROGRESSION */
+.wiz-summary-card {
+  background-color: var(--cymb-bg-light) !important;
+  border: 1px solid var(--cymb-border-color) !important;
+}
+
+html.dark-theme .wiz-summary-card,
+body.dark-theme .wiz-summary-card {
+  background-color: #0F172A !important;
+  border-color: #2D3748 !important;
+}
+
+/* PATIENT DASHBOARD SIDEBAR COLLAPSE SYSTEM */
+.ctc-dash-grid {
+  transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.ctc-dash-sidebar {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+}
+
+.ctc-sidebar-toggle-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--cymb-border-color) !important;
+  background: var(--cymb-bg-card) !important;
+  color: var(--cymb-text-light) !important;
+  cursor: pointer !important;
+  margin-bottom: 16px !important;
+  align-self: flex-start !important;
+  transition: all 0.2s ease !important;
+}
+
+.ctc-sidebar-toggle-btn:hover {
+  background: var(--cymb-bg-light) !important;
+  color: var(--cymb-primary) !important;
+}
+
+/* Collapsed classes */
+.ctc-dash-grid.sidebar-collapsed {
+  grid-template-columns: 88px 1fr !important;
+}
+
+.ctc-dash-sidebar.collapsed {
+  width: 88px !important;
+  padding: 20px 12px !important;
+  align-items: center !important;
+}
+
+.ctc-dash-sidebar.collapsed .ctc-sidebar-toggle-btn {
+  align-self: center !important;
+}
+
+.ctc-dash-sidebar.collapsed .ctc-sidebar-tab {
+  justify-content: center !important;
+  padding: 14px 0 !important;
+  width: 48px !important;
+}
+
+.ctc-dash-sidebar.collapsed .ctc-sidebar-tab span {
+  display: none !important;
+}
+
+.ctc-dash-sidebar.collapsed .ctc-sidebar-tab i {
+  margin: 0 !important;
+  font-size: 18px !important;
+}
+
+/* PATIENT PROFILE PICTURE UPLOADER SYSTEM */
+.ctc-profile-badge-avatar {
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+.ctc-profile-badge-avatar:hover .ctc-avatar-upload-overlay {
+  opacity: 1 !important;
+}
+
+.ctc-avatar-upload-overlay i {
+  animation: cymbCameraPulse 2s infinite ease-in-out;
+}
+
+@keyframes cymbCameraPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
