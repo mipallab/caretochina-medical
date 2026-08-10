@@ -20,6 +20,7 @@ class CareToChina_Staff_Portal {
         add_action('admin_menu', [$this, 'register_admin_menu']);
         add_action('admin_init', [$this, 'restrict_staff_admin_access']);
         add_action('admin_bar_menu', [$this, 'add_admin_bar_notification_node'], 99);
+        add_filter('show_admin_bar', [$this, 'hide_admin_bar_on_staff_portal'], 999);
 
         // AJAX Action Handlers
         add_action('wp_ajax_caretochina_staff_update_booking_status', [$this, 'handle_update_booking_status']);
@@ -1290,6 +1291,27 @@ class CareToChina_Staff_Portal {
                 }
             }
         }
+    }
+
+    public function hide_admin_bar_on_staff_portal($show) {
+        if (is_admin()) {
+            return $show;
+        }
+
+        // Check if current page URI contains staff-portal
+        if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/staff-portal/') !== false) {
+            return false;
+        }
+
+        // Check if the current post has the shortcode
+        global $post;
+        if (is_a($post, 'WP_Post')) {
+            if (has_shortcode($post->post_content, 'caretochina_staff_portal') || has_shortcode($post->post_content, 'careyou_staff_portal')) {
+                return false;
+            }
+        }
+
+        return $show;
     }
 
     public function restrict_staff_admin_access() {
