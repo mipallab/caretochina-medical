@@ -146,8 +146,8 @@ class CareToChina_Booking_Wizard {
                 
                 <div class="wiz-header text-center" style="text-align:center; margin-bottom: 24px;">
                     <span class="badge-pill" style="background:#CCFBF1; color:#0F766E; padding:6px 14px; font-weight:700; font-size:12px; border-radius:999px;"><i class="fa-solid fa-wand-magic-sparkles"></i> <?php _e('CareToChina Consultation Wizard', 'caretochina-booking'); ?></span>
-                    <h2 class="section-title" style="font-family:var(--cymb-font-heading); color:var(--cymb-text-dark); margin:12px 0 6px 0; font-size:22px; font-weight:800;"><?php _e('Instant Medical Travel Booking', 'caretochina-booking'); ?></h2>
-                    <p class="section-subtitle text-muted" style="margin:0; font-size:14px; color:#64748B;"><?php _e('Lock in guaranteed treatment packages in 4 easy steps.', 'caretochina-booking'); ?></p>
+                    <h2 class="section-title" style="font-family:var(--cymb-font-heading); color:var(--cymb-text-dark); margin: 34px 0 20px 0; font-size:26px; font-weight:800;"><?php _e('Instant Medical Travel Booking', 'caretochina-booking'); ?></h2>
+                    <p class="section-subtitle text-muted" style="margin-bottom:40px; font-size:16px; color:#64748B;"><?php _e('Lock in guaranteed treatment packages in 4 easy steps.', 'caretochina-booking'); ?></p>
                 </div>
 
                 <!-- STEP INDICATORS -->
@@ -176,9 +176,9 @@ class CareToChina_Booking_Wizard {
                             <!-- Populated Dynamically via JS -->
                         </div>
                         
-                        <div style="display:flex; justify-content:space-between; align-items:center;  border:1px solid transparent; border-top:1px solid var(--cymb-border-color); padding-top:16px;">
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" style="background:#CCFBF1; color:#0F766E; box-shadow:none;" onclick="appWizard.skipHospital()"><?php _e('Skip Hospital & Continue', 'caretochina-booking'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" onclick="appWizard.nextStep(2)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
+                        <div class="wiz-action-footer">
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.skipHospital()"><?php _e('Skip Hospital & Continue', 'caretochina-booking'); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(2)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
 
@@ -202,9 +202,9 @@ class CareToChina_Booking_Wizard {
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; margin-top:20px; border:1px solid transparent; border-top:1px solid var(--cymb-border-color); padding-top:16px;">
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" style="background:#E2E8F0; color:#0F172A; box-shadow:none;" id="wiz-back-btn-step-2" onclick="appWizard.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" onclick="appWizard.nextStep(3)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
+                        <div class="wiz-action-footer">
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" id="wiz-back-btn-step-2" onclick="appWizard.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(3)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
 
@@ -241,9 +241,9 @@ class CareToChina_Booking_Wizard {
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; margin-top:20px; border:1px solid transparent; border-top:1px solid var(--cymb-border-color); padding-top:16px;">
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" style="background:#E2E8F0; color:#0F172A; box-shadow:none;" onclick="appWizard.nextStep(2)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" onclick="appWizard.nextStep(4)"><?php _e('Review & Submit', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
+                        <div class="wiz-action-footer">
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(2)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(4)"><?php _e('Review & Submit', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
 
@@ -305,9 +305,9 @@ class CareToChina_Booking_Wizard {
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <button type="button" class="ctc-solid-btn btn-teal-primary" style="background:#E2E8F0; color:#0F172A; box-shadow:none;" onclick="appWizard.nextStep(3)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary" style="padding:14px 40px;"><i class="fa-solid fa-check-circle"></i> <?php _e('Confirm & Send Request', 'caretochina-booking'); ?></button>
+                        <div class="wiz-action-footer">
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(3)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
+                            <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fa-solid fa-check-circle"></i> <?php _e('Confirm & Send Request', 'caretochina-booking'); ?></button>
                         </div>
                     </div>
                 </form>

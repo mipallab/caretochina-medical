@@ -814,6 +814,14 @@ body.dark-theme .ctc-field-select {
 /* ==========================================================================
    BOOKING MODAL WIZARD CUSTOM STYLING
    ========================================================================== */
+html.ctc-modal-open,
+body.ctc-modal-open {
+  overflow: hidden !important;
+  height: 100% !important;
+  touch-action: none !important;
+  overscroll-behavior: contain !important;
+}
+
 .ctc-booking-modal-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -822,13 +830,17 @@ body.dark-theme .ctc-field-select {
   height: 100vh !important;
   max-width: none !important;
   margin: 0 !important;
-  padding: 0 !important;
-  background: rgba(15, 23, 42, 0.6) !important;
+  padding: 16px !important;
+  background: rgba(15, 23, 42, 0.75) !important;
   backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
   z-index: 99999 !important;
   display: none !important;
   align-items: center !important;
   justify-content: center !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
 }
 
 .ctc-booking-modal-overlay.show {
@@ -841,35 +853,48 @@ body.dark-theme .ctc-field-select {
   border: 1px solid var(--cymb-border-color) !important;
   border-radius: 24px !important;
   width: 720px !important;
-  max-width: 90% !important;
+  max-width: 92% !important;
   padding: 32px !important;
-  box-shadow: var(--cymb-shadow-lg) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
   position: relative !important;
   animation: cymbFade 0.3s ease !important;
   max-height: 90vh !important;
   overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: contain !important;
+  box-sizing: border-box !important;
 }
 
 .ctc-booking-modal-close {
   position: absolute !important;
-  top: 20px !important;
-  right: 24px !important;
-  background: none !important;
+  top: 18px !important;
+  right: 20px !important;
+  background: rgba(148, 163, 184, 0.12) !important;
   border: none !important;
-  font-size: 28px !important;
+  font-size: 24px !important;
   font-weight: 700 !important;
-  color: var(--cymb-text-light) !important;
+  color: var(--cymb-text-dark) !important;
   cursor: pointer !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
   transition: var(--cymb-transition) !important;
 }
 
 .ctc-booking-modal-close:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
   color: var(--cymb-danger) !important;
 }
 
 /* HOSPITAL SELECT CARD STYLING */
 .hospital-select-card {
   transition: all 0.2s ease !important;
+  user-select: none !important;
 }
 
 .hospital-select-card:hover {
@@ -889,13 +914,17 @@ body.dark-theme .ctc-field-select {
   background: var(--cymb-bg-light) !important;
   border: 1px solid var(--cymb-border-color) !important;
   color: var(--cymb-text-dark) !important;
-  padding: 12px 6px !important;
+  padding: 12px 8px !important;
   border-radius: 10px !important;
   font-family: var(--cymb-font-body) !important;
   font-weight: 600 !important;
   font-size: 13px !important;
   cursor: pointer !important;
   transition: all 0.25s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
 }
 
 .timing-tag-btn:hover {
@@ -904,15 +933,16 @@ body.dark-theme .ctc-field-select {
 }
 
 .timing-tag-btn.active {
-  background: var(--cymb-primary) !important;
+  background: #0F766E !important;
   color: #FFFFFF !important;
-  border-color: var(--cymb-primary) !important;
+  border-color: #0F766E !important;
   box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25) !important;
 }
 
 /* SPECIALTY CHECKBOX CONTAINER */
 .specialty-check-item {
   transition: all 0.2s ease !important;
+  user-select: none !important;
 }
 
 .specialty-check-item:hover {
@@ -922,6 +952,40 @@ body.dark-theme .ctc-field-select {
 .specialty-check-item input:checked+span {
   color: var(--cymb-primary) !important;
   font-weight: 700 !important;
+}
+
+/* WIZARD ACTION FOOTER SYSTEM */
+.wiz-action-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-top: 20px !important;
+  border-top: 1px solid var(--cymb-border-color) !important;
+  padding-top: 16px !important;
+}
+
+.btn-wiz-primary {
+  background: #0F766E !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 700 !important;
+}
+
+.btn-wiz-primary:hover {
+  background: #0D6962 !important;
+}
+
+.btn-wiz-secondary {
+  background: #CCFBF1 !important;
+  color: #0F766E !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+
+.btn-wiz-secondary:hover {
+  background: #99F6E4 !important;
 }
 
 /* DARK MODE OVERRIDES */
@@ -980,6 +1044,12 @@ body.dark-theme .specialty-check-item input:checked+span {
   color: #14B8A6 !important;
 }
 
+html.dark-theme .btn-wiz-secondary,
+body.dark-theme .btn-wiz-secondary {
+  background: #001639 !important;
+  color: #14B8A6 !important;
+}
+
 /* WIZARD PROGRESS STEPS STYLING */
 .wiz-step {
   color: var(--cymb-text-light) !important;
@@ -1003,98 +1073,193 @@ body.dark-theme .wiz-step.active {
 }
 
 /* WIZARD RESPONSIVENESS (MOBILE & TABLET) */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
+
+  .ctc-booking-modal-overlay,
+  .caretochina-booking-wizard-container {
+    padding: 0 !important;
+  }
+
   .ctc-booking-modal-container {
-    padding: 20px 16px !important;
-    width: 95% !important;
-    max-width: 440px !important;
-    border-radius: 16px !important;
+    padding: 66px 26px 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0px !important;
+    max-height: 100vh !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important;
   }
 
   .ctc-booking-modal-close {
     top: 14px !important;
-    right: 16px !important;
-    font-size: 24px !important;
+    right: 14px !important;
+    font-size: 22px !important;
+    width: 36px !important;
+    height: 36px !important;
   }
 
-  /* Step Header Subtitle */
   .wiz-header {
-    margin-bottom: 16px !important;
+    margin-bottom: 14px !important;
+    padding-right: 32px !important;
   }
 
   .wiz-header h2 {
-    font-size: 18px !important;
+    font-size: 25px !important;
+    line-height: 1.3 !important;
+    margin: 25px 0 20px 0 !important;
   }
 
   .wiz-header p {
-    font-size: 12px !important;
+    font-size: 15px !important;
+    line-height: 1.4 !important;
   }
 
-  /* Step Indicators: wrap them or make them compact */
+  /* Mobile Step Indicators: scrollable pill layout */
   .wizard-steps-indicator {
-    margin-bottom: 20px !important;
-    padding-bottom: 8px !important;
-    flex-wrap: wrap !important;
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
     gap: 6px !important;
-    justify-content: center !important;
+    margin-bottom: 18px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid var(--cymb-border-color) !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .wizard-steps-indicator::-webkit-scrollbar {
+    display: none !important;
   }
 
   .wiz-step {
-    font-size: 11px !important;
-    padding: 4px 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
     background: var(--cymb-bg-light) !important;
-    border-radius: 6px !important;
     border: 1px solid var(--cymb-border-color) !important;
-  }
-
-  html.dark-theme .wiz-step,
-  body.dark-theme .wiz-step {
-    background: #0F172A !important;
-    border-color: #2D3748 !important;
+    color: var(--cymb-text-light) !important;
   }
 
   .wiz-step.active {
-    background: var(--cymb-secondary-light) !important;
-    border-color: var(--cymb-primary) !important;
+    background: #0F766E !important;
+    color: #FFFFFF !important;
+    border-color: #0F766E !important;
+    font-weight: 700 !important;
   }
 
-  /* Hospital list grid -> 1 column */
+  html.dark-theme .wiz-step.active,
+  body.dark-theme .wiz-step.active {
+    background: #14B8A6 !important;
+    color: #0F172A !important;
+    border-color: #14B8A6 !important;
+  }
+
+  /* Form Labels & Inputs for Mobile */
+  .form-label {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .form-input,
+  .form-select,
+  textarea.form-input {
+    font-size: 16px !important;
+    /* Prevents auto-zoom on iOS mobile */
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Filter Inputs on Mobile */
+  .wiz-step-filters {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* Hospital Cards Grid on Mobile */
   .wiz-hospital-grid {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
-    max-height: 240px !important;
+    gap: 10px !important;
+    max-height: 260px !important;
   }
 
-  /* Timing buttons grid -> 2 columns */
+  .hospital-select-card {
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .hospital-select-card h4 {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+  }
+
+  .hospital-select-card div {
+    font-size: 12px !important;
+  }
+
+  /* Timing Tags Grid on Mobile */
   .timing-tags-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
   }
 
-  /* Specialties list grid -> 1 column */
+  .timing-tag-btn {
+    font-size: 13px !important;
+    padding: 12px 8px !important;
+    min-height: 48px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Specialty List Grid on Mobile */
   .specialty-checkbox-list {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
-    max-height: 140px !important;
-  }
-}
-
-@media (max-width: 480px) {
-
-  /* Smaller screens like 380px */
-  .ctc-booking-modal-container {
-    max-height: 90vh !important;
-    overflow-y: auto !important;
+    max-height: 180px !important;
   }
 
-  .wiz-step {
-    font-size: 10px !important;
-    padding: 3px 6px !important;
+  .specialty-check-item {
+    font-size: 14px !important;
+    padding: 12px 14px !important;
+    min-height: 46px !important;
+    border-radius: 10px !important;
   }
 
-  .wiz-step-filters {
-    flex-direction: column !important;
+  .wiz-summary-card {
+    padding: 16px !important;
+  }
+
+  .wiz-summary-card div {
+    grid-template-columns: 1fr !important;
     gap: 8px !important;
+    font-size: 13.5px !important;
+  }
+
+  /* Mobile Action Footer: Stacked column-reverse layout prevents any overlap */
+  .wiz-action-footer {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    padding-top: 14px !important;
+    margin-top: 16px !important;
+  }
+
+  .wiz-action-footer button,
+  .wiz-action-footer .ctc-solid-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 14px 16px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    text-align: center !important;
+    min-height: 48px !important;
   }
 }
 

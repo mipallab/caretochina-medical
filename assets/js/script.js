@@ -38,6 +38,7 @@ window.appWizard = {
     jQuery('.wizard-steps-indicator').show();
     jQuery('#ctc-wizard-status').hide().empty();
     
+    jQuery('html, body').addClass('ctc-modal-open');
     jQuery('#ctc-booking-modal').addClass('show');
   },
 
@@ -66,10 +67,12 @@ window.appWizard = {
     jQuery('.wizard-steps-indicator').show();
     jQuery('#ctc-wizard-status').hide().empty();
 
+    jQuery('html, body').addClass('ctc-modal-open');
     jQuery('#ctc-booking-modal').addClass('show');
   },
 
   closeModal() {
+    jQuery('html, body').removeClass('ctc-modal-open');
     jQuery('#ctc-booking-modal').removeClass('show');
   },
 
@@ -151,10 +154,11 @@ window.appWizard = {
     this.selectedHospitalName = 'Skipped (General Enquiry)';
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
+    jQuery('.hospital-select-card').removeClass('selected');
     
     // Load all specialties
     this.renderSpecialtyCheckboxes(getBookingObj().all_specialties);
-    this.nextStep(2);
+    this.showStep(2);
   },
 
   selectHospitalCard(element, id, name) {
@@ -219,8 +223,8 @@ window.appWizard = {
 
     checkList.empty();
     
-    if (specialties.length === 0) {
-      specialties = caretochina_obj.all_specialties;
+    if (!specialties || specialties.length === 0) {
+      specialties = getBookingObj().all_specialties;
     }
 
     specialties.forEach(s => {
@@ -297,6 +301,20 @@ jQuery(document).ready(function($) {
       appWizard.openScenario2(apiObj.current_hospital);
     } else {
       appWizard.openScenario1();
+    }
+  });
+
+  // Close modal on backdrop click
+  $(document).on('click', '#ctc-booking-modal', function(e) {
+    if ($(e.target).is('#ctc-booking-modal')) {
+      appWizard.closeModal();
+    }
+  });
+
+  // Close modal on Escape key
+  $(document).on('keyup', function(e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      appWizard.closeModal();
     }
   });
 
