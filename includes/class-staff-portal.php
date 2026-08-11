@@ -1297,21 +1297,7 @@ class CareToChina_Staff_Portal {
         if (is_admin()) {
             return $show;
         }
-
-        // Check if current page URI contains staff-portal
-        if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/staff-portal/') !== false) {
-            return false;
-        }
-
-        // Check if the current post has the shortcode
-        global $post;
-        if (is_a($post, 'WP_Post')) {
-            if (has_shortcode($post->post_content, 'caretochina_staff_portal') || has_shortcode($post->post_content, 'careyou_staff_portal')) {
-                return false;
-            }
-        }
-
-        return $show;
+        return false;
     }
 
     public function restrict_staff_admin_access() {
