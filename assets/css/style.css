@@ -1081,36 +1081,41 @@ body.dark-theme .wiz-step.active {
   }
 
   .ctc-booking-modal-container {
-    padding: 66px 26px 50px !important;
+    padding: 45px 16px 14px !important;
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 0px !important;
-    max-height: 100vh !important;
+    max-height: 96vh !important;
+    max-height: 96dvh !important;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
   }
 
   .ctc-booking-modal-close {
-    top: 14px !important;
-    right: 14px !important;
-    font-size: 22px !important;
-    width: 36px !important;
-    height: 36px !important;
+    top: 12px !important;
+    right: 12px !important;
+    font-size: 20px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   .wiz-header {
-    margin-bottom: 14px !important;
-    padding-right: 32px !important;
+    margin-bottom: 10px !important;
+    padding-right: 28px !important;
   }
 
   .wiz-header h2 {
-    font-size: 25px !important;
-    line-height: 1.3 !important;
-    margin: 25px 0 20px 0 !important;
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+    margin: 6px 0 4px 0 !important;
   }
 
   .wiz-header p {
-    font-size: 15px !important;
-    line-height: 1.4 !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
   }
 
   /* Mobile Step Indicators: scrollable pill layout */
@@ -1119,8 +1124,8 @@ body.dark-theme .wiz-step.active {
     overflow-x: auto !important;
     scroll-snap-type: x mandatory !important;
     gap: 6px !important;
-    margin-bottom: 18px !important;
-    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 6px !important;
     border-bottom: 1px solid var(--cymb-border-color) !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
@@ -1133,7 +1138,7 @@ body.dark-theme .wiz-step.active {
   .wiz-step {
     font-size: 12px !important;
     font-weight: 600 !important;
-    padding: 6px 12px !important;
+    padding: 5px 10px !important;
     border-radius: 20px !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
@@ -1158,85 +1163,87 @@ body.dark-theme .wiz-step.active {
 
   /* Form Labels & Inputs for Mobile */
   .form-label {
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
   }
 
   .form-input,
   .form-select,
   textarea.form-input {
-    font-size: 16px !important;
-    /* Prevents auto-zoom on iOS mobile */
-    padding: 12px 14px !important;
+    font-size: 15px !important;
+    padding: 10px 12px !important;
     border-radius: 10px !important;
   }
 
   /* Filter Inputs on Mobile */
   .wiz-step-filters {
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
   }
 
   /* Hospital Cards Grid on Mobile */
   .wiz-hospital-grid {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
-    max-height: 260px !important;
+    gap: 8px !important;
+    max-height: 180px !important;
+    margin-bottom: 12px !important;
   }
 
   .hospital-select-card {
-    padding: 12px 14px !important;
-    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
   }
 
   .hospital-select-card h4 {
-    font-size: 14px !important;
+    font-size: 13.5px !important;
     font-weight: 700 !important;
   }
 
   .hospital-select-card div {
-    font-size: 12px !important;
+    font-size: 11.5px !important;
   }
 
   /* Timing Tags Grid on Mobile */
   .timing-tags-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
 
   .timing-tag-btn {
-    font-size: 13px !important;
-    padding: 12px 8px !important;
-    min-height: 48px !important;
-    border-radius: 10px !important;
+    font-size: 12.5px !important;
+    padding: 10px 6px !important;
+    min-height: 42px !important;
+    border-radius: 8px !important;
   }
 
   /* Specialty List Grid on Mobile */
   .specialty-checkbox-list {
     grid-template-columns: 1fr !important;
-    gap: 8px !important;
-    max-height: 180px !important;
+    gap: 6px !important;
+    max-height: 160px !important;
   }
 
   .specialty-check-item {
-    font-size: 14px !important;
-    padding: 12px 14px !important;
-    min-height: 46px !important;
-    border-radius: 10px !important;
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+    min-height: 42px !important;
+    border-radius: 8px !important;
   }
 
   .wiz-summary-card {
-    padding: 16px !important;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
   }
 
   .wiz-summary-card div {
     grid-template-columns: 1fr !important;
-    gap: 8px !important;
-    font-size: 13.5px !important;
+    gap: 6px !important;
+    font-size: 12.5px !important;
   }
 
-  /* Mobile Action Footer: Single row side-by-side layout ensures both buttons are visible without scrolling */
+  /* Mobile Action Footer: Sticky single row side-by-side layout ensures both buttons stay visible at bottom */
   .wiz-action-footer {
     display: flex !important;
     flex-direction: row !important;
@@ -1244,9 +1251,22 @@ body.dark-theme .wiz-step.active {
     align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
-    padding-top: 12px !important;
-    margin-top: 14px !important;
+    padding-top: 10px !important;
+    padding-bottom: 4px !important;
+    margin-top: 10px !important;
     border-top: 1px solid var(--cymb-border-color) !important;
+    position: sticky !important;
+    bottom: -1px !important;
+    background: #FFFFFF !important;
+    background: var(--cymb-bg-card, #FFFFFF) !important;
+    z-index: 40 !important;
+  }
+
+  html.dark-theme .wiz-action-footer,
+  body.dark-theme .wiz-action-footer,
+  html.dark .wiz-action-footer,
+  body.dark .wiz-action-footer {
+    background: #1C2541 !important;
   }
 
   .wiz-action-footer button,
