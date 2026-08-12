@@ -207,26 +207,165 @@ class CareToChina_Staff_Portal {
 
     private function render_staff_login_ui() {
         ?>
-        <div class="careyou-staff-portal-wrapper caretochina-staff-portal-wrapper" style="max-width:550px; margin:50px auto;">
-            <div class="glass-card" style="padding:40px; background:#FFFFFF; border-radius:24px; border:1px solid #E2E8F0; box-shadow:0 20px 40px -15px rgba(15, 118, 110, 0.15);">
+        <style>
+        .ctc-staff-login-wrapper {
+            max-width: 600px !important;
+            margin: 50px auto;
+            padding: 0 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .ctc-staff-login-card {
+            padding: 40px;
+            background: #FFFFFF;
+            border-radius: 24px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 20px 40px -15px rgba(15, 118, 110, 0.15);
+            transition: all 0.3s ease;
+        }
+        .ctc-staff-login-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #CCFBF1;
+            color: #0F766E;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+        .ctc-staff-login-title {
+            font-family: 'Manrope', sans-serif;
+            color: #0F172A;
+            margin: 0 0 6px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .ctc-staff-login-desc {
+            color: #64748B;
+            font-size: 14px;
+            margin: 0;
+        }
+        .ctc-staff-login-label {
+            display: block;
+            font-weight: 600;
+            font-family: 'Manrope', sans-serif;
+            color: #0F172A;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .ctc-staff-login-input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #CBD5E1;
+            background-color: #FFFFFF;
+            color: #0F172A;
+            font-size: 15px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        .ctc-staff-login-input:focus {
+            border-color: #0F766E;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+        .ctc-staff-login-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 999px;
+            background: #0F766E;
+            color: #FFFFFF;
+            font-family: 'Manrope', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .ctc-staff-login-btn:hover {
+            background: #0D6E66;
+            transform: translateY(-1px);
+        }
+
+        /* DARK MODE SUPPORT (Only when website theme is dark) */
+        html.dark-theme .ctc-staff-login-card,
+        body.dark-theme .ctc-staff-login-card,
+        html.dark .ctc-staff-login-card,
+        body.dark .ctc-staff-login-card,
+        body[data-theme="dark"] .ctc-staff-login-card {
+            background: #1C2541 !important;
+            border-color: #2D3748 !important;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
+        }
+        html.dark-theme .ctc-staff-login-icon,
+        body.dark-theme .ctc-staff-login-icon,
+        html.dark .ctc-staff-login-icon,
+        body.dark .ctc-staff-login-icon,
+        body[data-theme="dark"] .ctc-staff-login-icon {
+            background: rgba(20, 184, 166, 0.2) !important;
+            color: #2DD4BF !important;
+        }
+        html.dark-theme .ctc-staff-login-title,
+        body.dark-theme .ctc-staff-login-title,
+        html.dark .ctc-staff-login-title,
+        body.dark .ctc-staff-login-title,
+        body[data-theme="dark"] .ctc-staff-login-title {
+            color: #F8FAFC !important;
+        }
+        html.dark-theme .ctc-staff-login-desc,
+        body.dark-theme .ctc-staff-login-desc,
+        html.dark .ctc-staff-login-desc,
+        body.dark .ctc-staff-login-desc,
+        body[data-theme="dark"] .ctc-staff-login-desc {
+            color: #94A3B8 !important;
+        }
+        html.dark-theme .ctc-staff-login-label,
+        body.dark-theme .ctc-staff-login-label,
+        html.dark .ctc-staff-login-label,
+        body.dark .ctc-staff-login-label,
+        body[data-theme="dark"] .ctc-staff-login-label {
+            color: #F8FAFC !important;
+        }
+        html.dark-theme .ctc-staff-login-input,
+        body.dark-theme .ctc-staff-login-input,
+        html.dark .ctc-staff-login-input,
+        body.dark .ctc-staff-login-input,
+        body[data-theme="dark"] .ctc-staff-login-input {
+            background-color: #0F172A !important;
+            color: #F8FAFC !important;
+            border-color: #334155 !important;
+        }
+        html.dark-theme .ctc-staff-login-input:focus,
+        body.dark-theme .ctc-staff-login-input:focus,
+        html.dark .ctc-staff-login-input:focus,
+        body.dark .ctc-staff-login-input:focus,
+        body[data-theme="dark"] .ctc-staff-login-input:focus {
+            border-color: #2DD4BF !important;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2) !important;
+        }
+        </style>
+        <div class="careyou-staff-portal-wrapper caretochina-staff-portal-wrapper ctc-staff-login-wrapper">
+            <div class="glass-card ctc-staff-login-card">
                 <div style="text-align:center; margin-bottom:24px;">
-                    <div style="width:64px; height:64px; border-radius:50%; background:#CCFBF1; color:#0F766E; display:inline-flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:12px;">
+                    <div class="ctc-staff-login-icon">
                         <i class="fa-solid fa-user-doctor"></i>
                     </div>
-                    <h2 style="font-family:'Manrope'; color:#0F172A; margin:0 0 6px 0;"><?php _e('Medical Staff Portal Login', 'caretochina-staff'); ?></h2>
-                    <p style="color:#64748B; font-size:14px; margin:0;"><?php _e('Strictly for authorized Care Coordinators & Technical Staff.', 'caretochina-staff'); ?></p>
+                    <h2 class="ctc-staff-login-title"><?php _e('Medical Staff Portal Login', 'caretochina-staff'); ?></h2>
+                    <p class="ctc-staff-login-desc"><?php _e('Strictly for authorized Care Coordinators & Technical Staff.', 'caretochina-staff'); ?></p>
                 </div>
 
                 <form id="staff-portal-login-form">
                     <div style="margin-bottom:20px;">
-                        <label class="form-label" style="display:block; font-weight:600; font-family:'Manrope'; color:#0F172A; font-size:14px; margin-bottom:8px;"><?php _e('Staff Username or Email *', 'caretochina-staff'); ?></label>
-                        <input type="text" name="username" class="form-input" required style="width:100%; padding:14px 18px; border-radius:12px; border:1px solid #cbd5e1;">
+                        <label class="ctc-staff-login-label"><?php _e('Staff Username or Email *', 'caretochina-staff'); ?></label>
+                        <input type="text" name="username" class="form-input ctc-staff-login-input" required>
                     </div>
                     <div style="margin-bottom:24px;">
-                        <label class="form-label" style="display:block; font-weight:600; font-family:'Manrope'; color:#0F172A; font-size:14px; margin-bottom:8px;"><?php _e('Staff Password *', 'caretochina-staff'); ?></label>
-                        <input type="password" name="password" class="form-input" required style="width:100%; padding:14px 18px; border-radius:12px; border:1px solid #cbd5e1;">
+                        <label class="ctc-staff-login-label"><?php _e('Staff Password *', 'caretochina-staff'); ?></label>
+                        <input type="password" name="password" class="form-input ctc-staff-login-input" required>
                     </div>
-                    <button type="submit" id="staff_login_btn" class="btn btn-primary btn-full btn-lg" style="width:100%; padding:16px; border-radius:999px; background:#0F766E; color:#FFFFFF; font-family:'Manrope'; font-size:16px; font-weight:700; border:none; cursor:pointer;">
+                    <button type="submit" id="staff_login_btn" class="btn btn-primary btn-full btn-lg ctc-staff-login-btn">
                         <i class="fa-solid fa-lock"></i> <?php _e('Access Medical Control Desk', 'caretochina-staff'); ?>
                     </button>
                 </form>
@@ -1297,7 +1436,23 @@ class CareToChina_Staff_Portal {
         if (is_admin()) {
             return $show;
         }
-        return false;
+
+        if (is_user_logged_in()) {
+            $user = wp_get_current_user();
+            $roles = (array) $user->roles;
+
+            // Administrators always keep the top admin bar
+            if (current_user_can('manage_options')) {
+                return $show;
+            }
+
+            // Hide admin bar specifically for staff (editor / medical_staff) and patient roles
+            if (in_array('patient', $roles) || in_array('editor', $roles) || in_array('medical_staff', $roles)) {
+                return false;
+            }
+        }
+
+        return $show;
     }
 
     public function restrict_staff_admin_access() {

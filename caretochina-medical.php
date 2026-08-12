@@ -3,7 +3,7 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, and Coordinator Portal.
- * Version: 1.4.3
+ * Version: 1.4.4
  * Author: SM Mart
  * Text Domain: caretochina-medical
  * Domain Path: /languages
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '1.4.3');
+define('CARETOCHINA_MEDICAL_VERSION', '1.4.4');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
 

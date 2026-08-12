@@ -1367,3 +1367,157 @@ body.dark-theme .wiz-summary-card {
     opacity: 0.9;
   }
 }
+
+/* STAFF LOGIN FORM STYLES & DARK MODE */
+.ctc-staff-login-wrapper {
+  max-width: 600px !important;
+  margin: 50px auto;
+  padding: 0 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ctc-staff-login-card {
+  padding: 40px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 20px 40px -15px rgba(15, 118, 110, 0.15);
+  transition: all 0.3s ease;
+}
+
+.ctc-staff-login-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #CCFBF1;
+  color: #0F766E;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.ctc-staff-login-title {
+  font-family: 'Manrope', sans-serif;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.ctc-staff-login-desc {
+  color: #64748B;
+  font-size: 14px;
+  margin: 0;
+}
+
+.ctc-staff-login-label {
+  display: block;
+  font-weight: 600;
+  font-family: 'Manrope', sans-serif;
+  color: #0F172A;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.ctc-staff-login-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #0F172A;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.ctc-staff-login-input:focus {
+  border-color: #0F766E;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+.ctc-staff-login-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 999px;
+  background: #0F766E;
+  color: #FFFFFF;
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ctc-staff-login-btn:hover {
+  background: #0D6E66;
+  transform: translateY(-1px);
+}
+
+/* DARK MODE SUPPORT FOR STAFF LOGIN */
+html.dark-theme .ctc-staff-login-card,
+body.dark-theme .ctc-staff-login-card,
+html.dark .ctc-staff-login-card,
+body.dark .ctc-staff-login-card,
+body[data-theme="dark"] .ctc-staff-login-card {
+  background: #1C2541 !important;
+  border-color: #2D3748 !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark-theme .ctc-staff-login-icon,
+body.dark-theme .ctc-staff-login-icon,
+html.dark .ctc-staff-login-icon,
+body.dark .ctc-staff-login-icon,
+body[data-theme="dark"] .ctc-staff-login-icon {
+  background: rgba(20, 184, 166, 0.2) !important;
+  color: #2DD4BF !important;
+}
+
+html.dark-theme .ctc-staff-login-title,
+body.dark-theme .ctc-staff-login-title,
+html.dark .ctc-staff-login-title,
+body.dark .ctc-staff-login-title,
+body[data-theme="dark"] .ctc-staff-login-title {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .ctc-staff-login-desc,
+body.dark-theme .ctc-staff-login-desc,
+html.dark .ctc-staff-login-desc,
+body.dark .ctc-staff-login-desc,
+body[data-theme="dark"] .ctc-staff-login-desc {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme .ctc-staff-login-label,
+body.dark-theme .ctc-staff-login-label,
+html.dark .ctc-staff-login-label,
+body.dark .ctc-staff-login-label,
+body[data-theme="dark"] .ctc-staff-login-label {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .ctc-staff-login-input,
+body.dark-theme .ctc-staff-login-input,
+html.dark .ctc-staff-login-input,
+body.dark .ctc-staff-login-input,
+body[data-theme="dark"] .ctc-staff-login-input {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+}
+
+html.dark-theme .ctc-staff-login-input:focus,
+body.dark-theme .ctc-staff-login-input:focus,
+html.dark .ctc-staff-login-input:focus,
+body.dark .ctc-staff-login-input:focus,
+body[data-theme="dark"] .ctc-staff-login-input:focus {
+  border-color: #2DD4BF !important;
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2) !important;
+}

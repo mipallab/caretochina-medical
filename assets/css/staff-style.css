@@ -3,13 +3,16 @@
    ========================================================================== */
 
 /* GLOBAL SCOPED BOX-SIZING RESET */
-.careyou-staff-portal-wrapper, .caretochina-staff-portal-wrapper,
-.careyou-staff-portal-wrapper, .caretochina-staff-portal-wrapper * {
+.careyou-staff-portal-wrapper,
+.caretochina-staff-portal-wrapper,
+.careyou-staff-portal-wrapper,
+.caretochina-staff-portal-wrapper * {
   box-sizing: border-box !important;
 }
 
 /* SCOPED DESIGN TOKENS & UTILITIES FOR MEDICAL STAFF PLUGIN */
-.careyou-staff-portal-wrapper, .caretochina-staff-portal-wrapper {
+.careyou-staff-portal-wrapper,
+.caretochina-staff-portal-wrapper {
   --cyms-primary: #0F766E;
   --cyms-primary-hover: #0D645C;
   --cyms-secondary-light: #CCFBF1;
@@ -37,8 +40,15 @@
   color: var(--cyms-text-dark) !important;
 }
 
+/*Staff login page*/
+.ctc-staff-login-card {
+  background-color: #F8FAFC !important;
+}
+
+
 /* SCOPED TOP BANNER */
-.careyou-staff-portal-wrapper .staff-header-banner, .caretochina-staff-portal-wrapper .staff-header-banner {
+.careyou-staff-portal-wrapper .staff-header-banner,
+.caretochina-staff-portal-wrapper .staff-header-banner {
   width: 100% !important;
   background: linear-gradient(135deg, var(--cyms-primary) 0%, var(--cyms-text-dark) 100%) !important;
   color: #FFF !important;
@@ -53,21 +63,24 @@
   gap: 20px !important;
 }
 
-.careyou-staff-portal-wrapper .staff-header-banner h2, .caretochina-staff-portal-wrapper .staff-header-banner h2 {
+.careyou-staff-portal-wrapper .staff-header-banner h2,
+.caretochina-staff-portal-wrapper .staff-header-banner h2 {
   color: #FFF !important;
   font-family: var(--cyms-font-heading) !important;
   font-size: 24px !important;
   margin: 0 0 4px 0 !important;
 }
 
-.careyou-staff-portal-wrapper .staff-header-banner p, .caretochina-staff-portal-wrapper .staff-header-banner p {
+.careyou-staff-portal-wrapper .staff-header-banner p,
+.caretochina-staff-portal-wrapper .staff-header-banner p {
   opacity: 0.95 !important;
   font-size: 14px !important;
   margin: 0 !important;
 }
 
 /* SCOPED GRID LAYOUT */
-.careyou-staff-portal-wrapper .staff-container, .caretochina-staff-portal-wrapper .staff-container {
+.careyou-staff-portal-wrapper .staff-container,
+.caretochina-staff-portal-wrapper .staff-container {
   display: grid !important;
   grid-template-columns: 280px 1fr !important;
   gap: 30px !important;
@@ -75,14 +88,16 @@
   box-sizing: border-box !important;
 }
 
-.careyou-staff-portal-wrapper .staff-sidebar, .caretochina-staff-portal-wrapper .staff-sidebar {
+.careyou-staff-portal-wrapper .staff-sidebar,
+.caretochina-staff-portal-wrapper .staff-sidebar {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
   width: 100% !important;
 }
 
-.careyou-staff-portal-wrapper .staff-tab, .caretochina-staff-portal-wrapper .staff-tab {
+.careyou-staff-portal-wrapper .staff-tab,
+.caretochina-staff-portal-wrapper .staff-tab {
   display: flex !important;
   align-items: center !important;
   gap: 14px !important;
@@ -111,19 +126,22 @@
   border-color: var(--cyms-primary) !important;
 }
 
-.careyou-staff-portal-wrapper .staff-panel, .caretochina-staff-portal-wrapper .staff-panel {
+.careyou-staff-portal-wrapper .staff-panel,
+.caretochina-staff-portal-wrapper .staff-panel {
   display: none;
   width: 100% !important;
   box-sizing: border-box !important;
 }
 
-.careyou-staff-portal-wrapper .staff-panel.active, .caretochina-staff-portal-wrapper .staff-panel.active {
+.careyou-staff-portal-wrapper .staff-panel.active,
+.caretochina-staff-portal-wrapper .staff-panel.active {
   display: block !important;
   animation: cymsFadeIn 0.3s ease !important;
 }
 
 /* SCOPED GLASS CARDS */
-.careyou-staff-portal-wrapper .staff-panel .glass-card, .caretochina-staff-portal-wrapper .staff-panel .glass-card {
+.careyou-staff-portal-wrapper .staff-panel .glass-card,
+.caretochina-staff-portal-wrapper .staff-panel .glass-card {
   background: var(--cyms-bg-card) !important;
   border: 1px solid var(--cyms-border-color) !important;
   border-radius: var(--cyms-radius-card) !important;
@@ -134,7 +152,8 @@
 }
 
 /* SCOPED ACTION BUTTONS */
-.careyou-staff-portal-wrapper .btn-action-accept, .caretochina-staff-portal-wrapper .btn-action-accept {
+.careyou-staff-portal-wrapper .btn-action-accept,
+.caretochina-staff-portal-wrapper .btn-action-accept {
   background: var(--cyms-success) !important;
   color: #FFFFFF !important;
   border: none !important;
@@ -147,12 +166,14 @@
   transition: all 0.2s ease !important;
 }
 
-.careyou-staff-portal-wrapper .btn-action-accept:hover, .caretochina-staff-portal-wrapper .btn-action-accept:hover {
+.careyou-staff-portal-wrapper .btn-action-accept:hover,
+.caretochina-staff-portal-wrapper .btn-action-accept:hover {
   background: #059669 !important;
   transform: translateY(-1px) !important;
 }
 
-.careyou-staff-portal-wrapper .btn-action-waiting, .caretochina-staff-portal-wrapper .btn-action-waiting {
+.careyou-staff-portal-wrapper .btn-action-waiting,
+.caretochina-staff-portal-wrapper .btn-action-waiting {
   background: var(--cyms-accent-light) !important;
   color: #B45309 !important;
   border: 1px solid var(--cyms-accent) !important;
@@ -165,12 +186,14 @@
   transition: all 0.2s ease !important;
 }
 
-.careyou-staff-portal-wrapper .btn-action-waiting:hover, .caretochina-staff-portal-wrapper .btn-action-waiting:hover {
+.careyou-staff-portal-wrapper .btn-action-waiting:hover,
+.caretochina-staff-portal-wrapper .btn-action-waiting:hover {
   background: var(--cyms-accent) !important;
   color: #FFFFFF !important;
 }
 
-.careyou-staff-portal-wrapper .btn-action-reject, .caretochina-staff-portal-wrapper .btn-action-reject {
+.careyou-staff-portal-wrapper .btn-action-reject,
+.caretochina-staff-portal-wrapper .btn-action-reject {
   background: #FEE2E2 !important;
   color: #991B1B !important;
   border: 1px solid var(--cyms-danger) !important;
@@ -183,18 +206,28 @@
   transition: all 0.2s ease !important;
 }
 
-.careyou-staff-portal-wrapper .btn-action-reject:hover, .caretochina-staff-portal-wrapper .btn-action-reject:hover {
+.careyou-staff-portal-wrapper .btn-action-reject:hover,
+.caretochina-staff-portal-wrapper .btn-action-reject:hover {
   background: var(--cyms-danger) !important;
   color: #FFFFFF !important;
 }
 
 @keyframes cymsFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 991px) {
-  .careyou-staff-portal-wrapper .staff-container, .caretochina-staff-portal-wrapper .staff-container {
+
+  .careyou-staff-portal-wrapper .staff-container,
+  .caretochina-staff-portal-wrapper .staff-container {
     grid-template-columns: 1fr !important;
   }
 }
