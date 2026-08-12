@@ -290,6 +290,12 @@ jQuery(document).ready(function($) {
   $(document).on('keyup input', '#wiz-hospital-search', function() {
     appWizard.renderHospitals();
   });
+  $(document).on('keydown', '#wiz-hospital-search', function(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+      e.preventDefault();
+      $(this).blur();
+    }
+  });
   $(document).on('change', '#wiz-hospital-city-filter', function() {
     appWizard.renderHospitals();
   });

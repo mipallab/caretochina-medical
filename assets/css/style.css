@@ -1243,7 +1243,8 @@ body.dark-theme .wiz-step.active {
     font-size: 12.5px !important;
   }
 
-  /* Mobile Action Footer: Sticky single row side-by-side layout ensures both buttons stay visible at bottom */
+  /* Mobile Action Footer: Single row layout that naturally sits at end of step.
+     Releases sticky mode when keypad/input is active so it never blocks inputs or search results */
   .wiz-action-footer {
     display: flex !important;
     flex-direction: row !important;
@@ -1251,22 +1252,22 @@ body.dark-theme .wiz-step.active {
     align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
-    padding-top: 10px !important;
-    padding-bottom: 4px !important;
-    margin-top: 10px !important;
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+    margin-top: 14px !important;
     border-top: 1px solid var(--cymb-border-color) !important;
-    position: sticky !important;
-    bottom: -1px !important;
-    background: #FFFFFF !important;
-    background: var(--cymb-bg-card, #FFFFFF) !important;
-    z-index: 40 !important;
+    position: relative !important;
+    bottom: auto !important;
+    z-index: 10 !important;
   }
 
-  html.dark-theme .wiz-action-footer,
-  body.dark-theme .wiz-action-footer,
-  html.dark .wiz-action-footer,
-  body.dark .wiz-action-footer {
-    background: #1C2541 !important;
+  /* Unstick footer when virtual keypad / input is focused */
+  .wiz-page:focus-within .wiz-action-footer,
+  form:focus-within .wiz-action-footer,
+  .ctc-booking-modal-container:focus-within .wiz-action-footer {
+    position: relative !important;
+    bottom: auto !important;
+    z-index: 1 !important;
   }
 
   .wiz-action-footer button,
