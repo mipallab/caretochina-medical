@@ -231,46 +231,132 @@ class CareToChina_Patient_Dashboard {
                         <?php endif; ?>
                     </div>
 
-                    <!-- TAB 2: PAYMENT HISTORY -->
+                    <!-- TAB 2: PAYMENT HISTORY & BILLING INVOICES -->
                     <div class="ctc-dash-panel" id="dash-panel-invoices">
                         <div class="ctc-panel-card" style="margin-bottom: 24px !important;">
-                            <h3 class="ctc-card-title" style="margin-bottom: 18px !important;"><?php _e('Payment History & Billing Invoices', 'caretochina-booking'); ?></h3>
+                            <h3 class="ctc-card-title" style="margin-bottom: 18px !important;"><?php _e('Payment History & Invoices', 'caretochina-booking'); ?></h3>
                             
-                            <?php if ($active_booking) : ?>
+                            <?php
+                            global $wpdb;
+                            $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+                            $patient_bookings = $wpdb->get_results($wpdb->prepare(
+                                "SELECT * FROM $table_bookings WHERE patient_id = %d ORDER BY id DESC",
+                                $patient_id
+                            ));
+
+                            $total_paid = 0.00;
+                            $paid_count = 0;
+                            if (!empty($patient_bookings)) {
+                                foreach ($patient_bookings as $pb) {
+                                    if (in_array($pb->status, ['confirmed', 'paid'])) {
+                                        $total_paid += floatval($pb->amount);
+                                        $paid_count++;
+                                    }
+                                }
+                            }
+                            ?>
+
+                            <?php if (!empty($patient_bookings)) : ?>
                                 <div class="ctc-summary-grid" style="margin-bottom: 24px !important;">
                                     <div class="ctc-summary-box">
-                                        <span class="ctc-summary-lbl"><?php _e('Treatment Package Cost', 'caretochina-booking'); ?></span>
-                                        <h3 class="ctc-summary-val">$14,500.00</h3>
+                                        <span class="ctc-summary-lbl"><?php _e('Total Completed Payments', 'caretochina-booking'); ?></span>
+                                        <h3 class="ctc-summary-val" style="color:#0F766E;">$<?php echo number_format($total_paid, 2); ?></h3>
                                     </div>
                                     <div class="ctc-summary-box">
-                                        <span class="ctc-summary-lbl"><?php _e('Payment Status', 'caretochina-booking'); ?></span>
-                                        <h3 class="ctc-summary-val text-teal-accent" style="font-size:16px; font-weight:800;"><?php echo esc_html($active_booking->invoice_status); ?></h3>
+                                        <span class="ctc-summary-lbl"><?php _e('Confirmed Invoices', 'caretochina-booking'); ?></span>
+                                        <h3 class="ctc-summary-val text-teal-accent" style="font-size:18px; font-weight:800;"><?php echo $paid_count; ?> <?php _e('Paid Case(s)', 'caretochina-booking'); ?></h3>
                                     </div>
                                 </div>
                                 <div class="ctc-table-responsive">
                                     <table class="ctc-custom-table">
                                         <thead>
                                             <tr>
-                                                <th><?php _e('Invoice ID', 'caretochina-booking'); ?></th>
-                                                <th><?php _e('Description', 'caretochina-booking'); ?></th>
-                                                <th><?php _e('Total Package Price', 'caretochina-booking'); ?></th>
-                                                <th><?php _e('Billing Milestone', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Reference #', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Treatment / Service', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Amount', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Payment Method', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Status', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Date', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Action', 'caretochina-booking'); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>#INV-9284</td>
-                                                <td><?php echo esc_html($active_booking->specialty); ?> at <?php echo esc_html($active_booking->hospital_name); ?></td>
-                                                <td>$14,500.00</td>
-                                                <td><span class="ctc-badge-pill badge-success"><?php echo esc_html($active_booking->invoice_status); ?></span></td>
-                                            </tr>
+                                            <?php foreach ($patient_bookings as $pb) : 
+                                                $status = $pb->status;
+                                                $badge_class = 'badge-pending';
+                                                $badge_lbl = ucfirst($status);
+
+                                                if ($status === 'confirmed' || $status === 'paid') {
+                                                    $badge_class = 'badge-success';
+                                                    $badge_lbl = __('Paid', 'caretochina-booking');
+                                                } elseif ($status === 'refunded' || $status === 'refund_full') {
+                                                    $badge_class = 'badge-danger';
+                                                    $badge_lbl = __('Refunded', 'caretochina-booking');
+                                                } elseif ($status === 'partially_refunded' || $status === 'refund_partial') {
+                                                    $badge_class = 'badge-warning';
+                                                    $badge_lbl = __('Partial Refund', 'caretochina-booking');
+                                                } elseif ($status === 'payment_failed') {
+                                                    $badge_class = 'badge-danger';
+                                                    $badge_lbl = __('Failed', 'caretochina-booking');
+                                                }
+                                                ?>
+                                                <tr>
+                                                    <td class="ctc-td-code">#<?php echo esc_html($pb->booking_code); ?></td>
+                                                    <td>
+                                                        <strong><?php echo esc_html($pb->specialty); ?></strong>
+                                                        <?php if (!empty($pb->hospital_name)) : ?>
+                                                            <br><span style="font-size:11px; color:#64748B;"><?php echo esc_html($pb->hospital_name); ?></span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td style="font-weight:700; color:#0F766E;">
+                                                        <?php echo esc_html('$' . number_format((float)$pb->amount, 2) . ' ' . ($pb->currency ?: 'USD')); ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php 
+                                                        if (strtolower($pb->payment_gateway) === 'stripe') {
+                                                            echo '<span style="color:#635BFF; font-weight:700;"><i class="fa-brands fa-stripe"></i> Stripe</span>';
+                                                        } elseif (strtolower($pb->payment_gateway) === 'paypal') {
+                                                            echo '<span style="color:#003087; font-weight:700;"><i class="fa-brands fa-paypal"></i> PayPal</span>';
+                                                        } else {
+                                                            echo esc_html($pb->payment_gateway ?: '—');
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td><span class="ctc-badge-pill <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge_lbl); ?></span></td>
+                                                    <td style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pb->created_at))); ?></td>
+                                                    <td>
+                                                        <?php if ($status === 'confirmed' || $status === 'paid' || $status === 'refunded' || $status === 'partially_refunded') : ?>
+                                                            <button type="button" onclick="window.ctcOpenReceiptModal(<?php echo esc_attr(json_encode([
+                                                                'code'      => $pb->booking_code,
+                                                                'name'      => $pb->full_name,
+                                                                'email'     => $pb->email,
+                                                                'specialty' => $pb->specialty,
+                                                                'hospital'  => $pb->hospital_name,
+                                                                'amount'    => number_format((float)$pb->amount, 2),
+                                                                'currency'  => $pb->currency ?: 'USD',
+                                                                'gateway'   => ucfirst($pb->payment_gateway ?: 'Online'),
+                                                                'date'      => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($pb->paid_at ?: $pb->created_at)),
+                                                                'status'    => $badge_lbl
+                                                            ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                                                <i class="fa-solid fa-receipt"></i> <?php _e('View Receipt', 'caretochina-booking'); ?>
+                                                            </button>
+                                                        <?php elseif ($status === 'pending') : ?>
+                                                            <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($pb->id); ?>, <?php echo esc_attr($pb->amount); ?>, '<?php echo esc_attr($pb->currency ?: 'USD'); ?>', '<?php echo esc_attr($pb->specialty); ?>')" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                                                <i class="fa-solid fa-lock"></i> <?php _e('Pay Now', 'caretochina-booking'); ?>
+                                                            </button>
+                                                        <?php else : ?>
+                                                            <span style="color:#94A3B8; font-size:12px;">—</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
                             <?php else : ?>
                                 <div style="text-align:center; padding:40px 20px; color:#64748B;">
-                                    <i class="fa-solid fa-file-invoice" style="font-size:40px; color:#CBD5E1; margin-bottom:12px;"></i>
-                                    <p><?php _e('No billing invoices available. Submit a booking request to generate estimates.', 'caretochina-booking'); ?></p>
+                                    <i class="fa-solid fa-file-invoice-dollar" style="font-size:40px; color:#CBD5E1; margin-bottom:12px;"></i>
+                                    <p><?php _e('No payment history available yet. Once you complete a booking or accept a clinic payment request, your invoices will appear here.', 'caretochina-booking'); ?></p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -492,6 +578,56 @@ class CareToChina_Patient_Dashboard {
 
                 </div>
             </div>
+
+            <!-- PRINTABLE RECEIPT MODAL -->
+            <div id="patient-receipt-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:999999; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+                <div style="background:#FFF; border-radius:20px; max-width:540px; width:100%; padding:32px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); font-family:'Manrope', sans-serif; position:relative; max-height:90vh; overflow-y:auto;" id="ctc-printable-receipt-area">
+                    <div style="text-align:center; margin-bottom:24px; border-bottom:2px dashed #E2E8F0; padding-bottom:20px;">
+                        <div style="display:inline-flex; width:52px; height:52px; border-radius:50%; background:#CCFBF1; color:#0F766E; align-items:center; justify-content:center; font-size:22px; margin-bottom:10px;">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h2 style="margin:0 0 4px 0; color:#0F172A; font-size:20px; font-weight:800;"><?php _e('CareToChina Medical Services', 'caretochina-booking'); ?></h2>
+                        <p style="margin:0; color:#64748B; font-size:13px;"><?php _e('Official Payment Receipt & Confirmation', 'caretochina-booking'); ?></p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; font-size:13px;">
+                        <div>
+                            <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Receipt / Ref Code:', 'caretochina-booking'); ?></span>
+                            <div id="rcpt-code" style="font-weight:800; color:#0F766E; font-size:15px;">#BK-0000</div>
+                        </div>
+                        <div>
+                            <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Payment Date:', 'caretochina-booking'); ?></span>
+                            <div id="rcpt-date" style="font-weight:600; color:#1E293B;">—</div>
+                        </div>
+                        <div>
+                            <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Patient Name:', 'caretochina-booking'); ?></span>
+                            <div id="rcpt-name" style="font-weight:600; color:#1E293B;">—</div>
+                        </div>
+                        <div>
+                            <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Payment Gateway:', 'caretochina-booking'); ?></span>
+                            <div id="rcpt-gateway" style="font-weight:600; color:#1E293B;">—</div>
+                        </div>
+                    </div>
+
+                    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px; margin-bottom:20px;">
+                        <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700; display:block; margin-bottom:4px;"><?php _e('Medical Service & Facility:', 'caretochina-booking'); ?></span>
+                        <div id="rcpt-service" style="font-weight:700; color:#0F172A; font-size:14px; margin-bottom:2px;">—</div>
+                        <div id="rcpt-hospital" style="font-size:12px; color:#64748B;">—</div>
+                    </div>
+
+                    <div style="border-top:2px solid #0F172A; padding-top:14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                        <span style="font-size:15px; font-weight:800; color:#0F172A;"><?php _e('Total Amount Paid:', 'caretochina-booking'); ?></span>
+                        <span id="rcpt-amount" style="font-size:22px; font-weight:900; color:#0F766E;">$0.00 USD</span>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px;" class="ctc-receipt-actions">
+                        <button type="button" onclick="jQuery('#patient-receipt-modal').hide()" class="ctc-solid-btn" style="background:#F1F5F9; color:#475569; padding:10px 18px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:13px;"><?php _e('Close', 'caretochina-booking'); ?></button>
+                        <button type="button" onclick="window.print()" class="ctc-solid-btn btn-teal-primary" style="padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px;">
+                            <i class="fa-solid fa-print"></i> <?php _e('Print Official Receipt', 'caretochina-booking'); ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script>
@@ -586,6 +722,16 @@ class CareToChina_Patient_Dashboard {
                     $read_tick = '<span style="color:#3B82F6; margin-left:6px; font-weight:800;" title="' . esc_attr(__('Seen by Coordinator', 'caretochina-booking')) . '">✓✓ Seen</span>';
                 } else {
                     $read_tick = '<span style="color:#94A3B8; margin-left:6px; font-weight:600;" title="' . esc_attr(__('Delivered', 'caretochina-booking')) . '">✓ Delivered</span>';
+                }
+
+                // Check for Payment Request message type
+                if (isset($m->message_type) && $m->message_type === 'payment_request' && !empty($m->payment_request_id)) {
+                    if (class_exists('CareToChina_Payment_Request_Manager')) {
+                        $chat_html .= '<div class="chat-msg payment-request-msg mb-14" style="display:flex; justify-content:flex-start; margin-bottom:14px; width:100%;">';
+                        $chat_html .= CareToChina_Payment_Request_Manager::render_card($m->payment_request_id, false);
+                        $chat_html .= '</div>';
+                        continue;
+                    }
                 }
 
                 if ($m->sender_type === 'coordinator') {

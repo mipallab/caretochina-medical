@@ -3,7 +3,7 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, and Coordinator Portal.
- * Version: 1.4.7
+ * Version: 1.6.0
  * Author: SM Mart
  * Text Domain: caretochina-medical
  * Domain Path: /languages
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '1.4.7');
+define('CARETOCHINA_MEDICAL_VERSION', '1.6.0');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
 
@@ -38,9 +38,22 @@ if (!defined('CAREYOU_STAFF_URL')) define('CAREYOU_STAFF_URL', CARETOCHINA_MEDIC
 require_once CARETOCHINA_MEDICAL_PATH . 'hospitals-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'booking-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'staff-main.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/payments/loader.php';
 
-// Activation hook for DB tables
-register_activation_hook(__FILE__, ['CareToChina_Booking_DB', 'create_tables']);
+// Activation hook for DB tables & Capabilities
+register_activation_hook(__FILE__, function() {
+    CareToChina_Booking_DB::create_tables();
+
+    // Grant caretochina_manage_bookings capability strictly to admin and medical_staff
+    $admin_role = get_role('administrator');
+    if ($admin_role) {
+        $admin_role->add_cap('caretochina_manage_bookings');
+    }
+    $staff_role = get_role('medical_staff');
+    if ($staff_role) {
+        $staff_role->add_cap('caretochina_manage_bookings');
+    }
+});
 
 // Prevent accidental deactivation with a warning popup
 add_action('admin_footer-plugins.php', function() {

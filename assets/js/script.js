@@ -12,17 +12,30 @@ window.appWizard = {
   selectedHospitalName: '',
   selectedTiming: '',
   selectedSpecialties: [],
+  selectedTreatmentId: 0,
+  selectedPricingPlanId: 0,
+  selectedPricingPlanName: '',
+  selectedPricingPlanPrice: 0.00,
+  selectedPricingPlanCurrency: 'USD',
 
   openScenario1() {
     this.selectedHospitalId = 0;
     this.selectedHospitalName = '';
     this.selectedTiming = '';
     this.selectedSpecialties = [];
+    this.selectedTreatmentId = 0;
+    this.selectedPricingPlanId = 0;
+    this.selectedPricingPlanName = '';
+    this.selectedPricingPlanPrice = 0.00;
     
     // Clear selections
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
     jQuery('#wiz_treatment_timing').val('');
+    jQuery('#wiz_selected_treatment_id').val(0);
+    jQuery('#wiz_pricing_plan_id').val(0);
+    jQuery('#wiz_pricing_plan_name').val('');
+    jQuery('#wiz_pricing_plan_price').val(0);
     jQuery('.timing-tag-btn').removeClass('active');
     
     // Reset steps
@@ -47,11 +60,19 @@ window.appWizard = {
     this.selectedHospitalName = hospitalData.name;
     this.selectedTiming = '';
     this.selectedSpecialties = [];
+    this.selectedTreatmentId = 0;
+    this.selectedPricingPlanId = 0;
+    this.selectedPricingPlanName = '';
+    this.selectedPricingPlanPrice = 0.00;
 
     // Set selections
     jQuery('#wiz_hospital_id').val(hospitalData.id);
     jQuery('#wiz_hospital_name').val(hospitalData.name);
     jQuery('#wiz_treatment_timing').val('');
+    jQuery('#wiz_selected_treatment_id').val(0);
+    jQuery('#wiz_pricing_plan_id').val(0);
+    jQuery('#wiz_pricing_plan_name').val('');
+    jQuery('#wiz_pricing_plan_price').val(0);
     jQuery('.timing-tag-btn').removeClass('active');
     
     // Reset steps and skip step 1
@@ -91,9 +112,11 @@ window.appWizard = {
   },
 
   nextStep(stepNum) {
-    // Validation
+    var self = this;
+    var bookingObj = getBookingObj();
+
+    // STEP 1 -> 2 VALIDATION
     if (stepNum === 2 && this.currentStep === 1) {
-      var bookingObj = getBookingObj();
       if (this.selectedHospitalId === 0) {
         alert(bookingObj.hospitals.length ? 'Please select a hospital, or click "Skip Hospital" to proceed.' : 'No hospitals available. Please skip.');
         return;
@@ -102,6 +125,7 @@ window.appWizard = {
       this.renderSpecialtyCheckboxes(hosp ? hosp.specialties : []);
     }
 
+    // STEP 2 -> 3 VALIDATION (Timing & Specialty -> Pricing Plans)
     if (stepNum === 3 && this.currentStep === 2) {
       this.selectedTiming = jQuery('#wiz_treatment_timing').val();
       if (!this.selectedTiming) {
@@ -110,20 +134,38 @@ window.appWizard = {
       }
 
       this.selectedSpecialties = [];
+      this.selectedTreatmentId = 0;
       jQuery('.specialty-checkbox:checked').each((index, el) => {
-        this.selectedSpecialties.push(jQuery(el).val());
+        self.selectedSpecialties.push(jQuery(el).val());
+        var termId = parseInt(jQuery(el).data('term-id') || 0);
+        if (termId > 0 && !self.selectedTreatmentId) {
+          self.selectedTreatmentId = termId;
+        }
       });
 
       if (this.selectedSpecialties.length === 0) {
-        alert('Please select at least one specialty.');
+        alert('Please select at least one specialty / treatment.');
+        return;
+      }
+
+      jQuery('#wiz_selected_treatment_id').val(this.selectedTreatmentId);
+      this.loadPricingPlansForSelectedSpecialty();
+    }
+
+    // STEP 3 -> 4 VALIDATION (Pricing Plan Selection)
+    if (stepNum === 4 && this.currentStep === 3) {
+      var planId = parseInt(jQuery('#wiz_pricing_plan_id').val() || 0);
+      var plansCount = jQuery('.pricing-plan-card').length;
+      if (plansCount > 0 && planId === 0) {
+        alert('Please select a pricing plan tier to proceed.');
         return;
       }
     }
 
-    if (stepNum === 4 && this.currentStep === 3) {
-      // Validate fields
+    // STEP 4 -> 5 VALIDATION (Patient Details -> Review & Submit)
+    if (stepNum === 5 && this.currentStep === 4) {
       if (!jQuery('#wiz_quote_details').val()) {
-        alert('Please enter your quote/treatment details.');
+        alert('Please describe your condition or request.');
         return;
       }
       if (!jQuery('#wiz_full_name').val()) {
@@ -140,8 +182,14 @@ window.appWizard = {
       }
 
       // Populate summary
+      var planName = jQuery('#wiz_pricing_plan_name').val() || 'Standard Consultation Package';
+      var planPrice = parseFloat(jQuery('#wiz_pricing_plan_price').val() || 500.00).toFixed(2);
+      var currency = self.selectedPricingPlanCurrency || 'USD';
+
       jQuery('#wiz-sum-hospital').text(this.selectedHospitalName || 'Skipped (General Request)');
       jQuery('#wiz-sum-specialties').text(this.selectedSpecialties.join(', '));
+      jQuery('#wiz-sum-plan').text(planName);
+      jQuery('#wiz-sum-cost').text('$' + planPrice + ' ' + currency);
       jQuery('#wiz-sum-timing').text(this.selectedTiming);
       jQuery('#wiz-sum-patient').text(jQuery('#wiz_full_name').val());
     }
@@ -186,7 +234,6 @@ window.appWizard = {
     const bookingObj = getBookingObj();
 
     bookingObj.hospitals.forEach(h => {
-      // Filter logic
       if (searchVal && h.title.toLowerCase().indexOf(searchVal) === -1) return;
       if (cityVal && !h.cities.some(c => c.id == cityVal)) return;
 
@@ -230,12 +277,104 @@ window.appWizard = {
     specialties.forEach(s => {
       const checkbox = jQuery(`
         <label class="specialty-check-item" style="display:flex; align-items:center; gap:8px; background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 14px; border-radius:10px; cursor:pointer; font-size:13px; transition:all 0.2s;">
-          <input type="checkbox" name="specialty[]" value="${s.name}" class="specialty-checkbox" style="accent-color:#0F766E;">
+          <input type="checkbox" name="specialty[]" value="${s.name}" data-term-id="${s.id}" class="specialty-checkbox" style="accent-color:#0F766E;">
           <span style="color:#0F172A; font-weight:500;">${s.name}</span>
         </label>
       `);
       checkList.append(checkbox);
     });
+  },
+
+  /**
+   * Load active Pricing Plans for selected Specialty / Treatment via AJAX
+   */
+  loadPricingPlansForSelectedSpecialty() {
+    var self = this;
+    var grid = jQuery('#wiz-pricing-plans-grid');
+    var emptyBox = jQuery('#wiz-pricing-plans-empty');
+    var apiObj = getBookingObj();
+
+    grid.empty().html('<div style="text-align:center; padding:20px; color:#0F766E;"><i class="fa-solid fa-spinner fa-spin"></i> Loading pricing packages...</div>');
+    emptyBox.hide();
+
+    jQuery.get(apiObj.ajax_url, {
+      action: 'ctc_get_treatment_plans',
+      treatment_id: self.selectedTreatmentId
+    }, function(res) {
+      grid.empty();
+      if (res.success && res.data && res.data.plans && res.data.plans.length > 0) {
+        self.selectedPricingPlanCurrency = res.data.currency || 'USD';
+
+        res.data.plans.forEach(function(plan, idx) {
+          var isChecked = (self.selectedPricingPlanId == plan.id) || (self.selectedPricingPlanId === 0 && idx === 0);
+          if (isChecked) {
+            self.selectedPricingPlanId = plan.id;
+            self.selectedPricingPlanName = plan.name;
+            self.selectedPricingPlanPrice = plan.price;
+            jQuery('#wiz_pricing_plan_id').val(plan.id);
+            jQuery('#wiz_pricing_plan_name').val(plan.name);
+            jQuery('#wiz_pricing_plan_price').val(plan.price);
+          }
+
+          var cardHtml = `
+            <div class="pricing-plan-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPricingPlanCard(this, ${plan.id}, ${plan.price}, '${plan.name.replace(/'/g, "\\'")}', '${plan.currency}')" style="border:1.5px solid ${isChecked ? '#0F766E' : '#E2E8F0'}; background:${isChecked ? '#F0FDFA' : '#FFF'}; padding:16px; border-radius:12px; cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center;">
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <input type="radio" name="plan_radio" value="${plan.id}" ${isChecked ? 'checked' : ''} style="accent-color:#0F766E;">
+                  <h4 style="margin:0; font-size:15px; font-weight:800; color:#0F172A;">${plan.name}</h4>
+                </div>
+                ${plan.description ? `<p style="margin:4px 0 0 24px; font-size:12px; color:#64748B;">${plan.description}</p>` : ''}
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:18px; font-weight:900; color:#0F766E;">$${parseFloat(plan.price).toFixed(2)}</div>
+                <div style="font-size:11px; font-weight:700; color:#94A3B8;">${plan.currency}</div>
+              </div>
+            </div>
+          `;
+          grid.append(cardHtml);
+        });
+      } else {
+        emptyBox.show();
+        self.selectedPricingPlanId = 0;
+        self.selectedPricingPlanName = 'Standard Deposit Consultation';
+        self.selectedPricingPlanPrice = 500.00;
+        jQuery('#wiz_pricing_plan_id').val(0);
+        jQuery('#wiz_pricing_plan_name').val('Standard Deposit Consultation');
+        jQuery('#wiz_pricing_plan_price').val(500.00);
+      }
+    }).fail(function() {
+      grid.empty();
+      emptyBox.show();
+    });
+  },
+
+  selectPricingPlanCard(element, planId, price, name, currency) {
+    jQuery('.pricing-plan-card').removeClass('selected').css({ 'border-color': '#E2E8F0', 'background': '#FFF' });
+    jQuery(element).addClass('selected').css({ 'border-color': '#0F766E', 'background': '#F0FDFA' });
+    jQuery(element).find('input[type="radio"]').prop('checked', true);
+
+    this.selectedPricingPlanId = planId;
+    this.selectedPricingPlanName = name;
+    this.selectedPricingPlanPrice = price;
+    this.selectedPricingPlanCurrency = currency || 'USD';
+
+    jQuery('#wiz_pricing_plan_id').val(planId);
+    jQuery('#wiz_pricing_plan_name').val(name);
+    jQuery('#wiz_pricing_plan_price').val(price);
+  },
+
+  switchAuthModalTab(tab) {
+    if (tab === 'login') {
+      jQuery('#wiz-auth-tab-login').css({ 'background': '#0F766E', 'color': '#FFF' });
+      jQuery('#wiz-auth-tab-reg').css({ 'background': '#F1F5F9', 'color': '#475569' });
+      jQuery('#wiz-ajax-login-form').show();
+      jQuery('#wiz-ajax-reg-form').hide();
+    } else {
+      jQuery('#wiz-auth-tab-reg').css({ 'background': '#0F766E', 'color': '#FFF' });
+      jQuery('#wiz-auth-tab-login').css({ 'background': '#F1F5F9', 'color': '#475569' });
+      jQuery('#wiz-ajax-reg-form').show();
+      jQuery('#wiz-ajax-login-form').hide();
+    }
   }
 };
 
@@ -273,9 +412,16 @@ window.appDash = {
 jQuery(document).ready(function($) {
   var apiObj = (typeof caretochina_obj !== 'undefined') ? caretochina_obj : ((typeof careyou_obj !== 'undefined') ? careyou_obj : { ajax_url: '/wp-admin/admin-ajax.php', nonce: '' });
 
-  // Append booking modal to body to prevent container layouts from breaking full backdrop blur positioning
+  function isUserLoggedIn() {
+    return $('body').hasClass('logged-in');
+  }
+
+  // Append booking modal to body
   if ($('#ctc-booking-modal').length) {
     $('body').append($('#ctc-booking-modal'));
+  }
+  if ($('#wiz-auth-gate-modal').length) {
+    $('body').append($('#wiz-auth-gate-modal'));
   }
 
   // Render Cities filter in wizard
@@ -286,7 +432,7 @@ jQuery(document).ready(function($) {
     });
   }
 
-  // Intercept Search and Filters in Step 1
+  // Search & filter listeners
   $(document).on('keyup input', '#wiz-hospital-search', function() {
     appWizard.renderHospitals();
   });
@@ -300,7 +446,7 @@ jQuery(document).ready(function($) {
     appWizard.renderHospitals();
   });
 
-  // Intercept Hospital Page quote button clicks
+  // Modal open triggers
   $(document).on('click', 'a[href="#booking"], .ctc-trigger-booking, [id="booking"], .ctc-quote-btn, .ctc-sidebar-quote-btn', function(e) {
     e.preventDefault();
     if (typeof apiObj.current_hospital !== 'undefined' && apiObj.current_hospital) {
@@ -310,67 +456,162 @@ jQuery(document).ready(function($) {
     }
   });
 
-  // Close modal on backdrop click
+  // Close modals on backdrop or Escape
   $(document).on('click', '#ctc-booking-modal', function(e) {
     if ($(e.target).is('#ctc-booking-modal')) {
       appWizard.closeModal();
     }
   });
-
-  // Close modal on Escape key
   $(document).on('keyup', function(e) {
     if (e.key === 'Escape' || e.keyCode === 27) {
       appWizard.closeModal();
+      $('#wiz-auth-gate-modal').hide();
     }
   });
 
-  // WIZARD FORM SUBMISSION
+  // RESTORE DRAFT STATE IF LOGGED IN (e.g. Returned from Google OAuth)
+  var savedDraft = sessionStorage.getItem('ctc_wizard_draft');
+  if (savedDraft && isUserLoggedIn()) {
+    try {
+      var draftData = JSON.parse(savedDraft);
+      sessionStorage.removeItem('ctc_wizard_draft');
+      // Submit booking automatically for authenticated user
+      submitBookingForm(draftData);
+    } catch (err) {
+      sessionStorage.removeItem('ctc_wizard_draft');
+    }
+  }
+
+  // WIZARD FORM SUBMISSION HANDLER
   $('#ctc-booking-wizard-form').on('submit', function(e) {
     e.preventDefault();
-    const btn = $('#ctc-wizard-submit-btn');
-    const status = $('#ctc-wizard-status');
+    var formSerialized = $(this).serialize();
 
-    btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Submitting...');
-    
-    const formData = $(this).serialize() + '&action=caretochina_submit_booking&nonce=' + apiObj.nonce;
+    // Check if user is logged in
+    if (!isUserLoggedIn()) {
+      // Save draft state to sessionStorage
+      sessionStorage.setItem('ctc_wizard_draft', JSON.stringify(formSerialized));
+      // Pre-fill email/name into auth forms if provided
+      var emailVal = $('#wiz_email').val();
+      var nameVal = $('#wiz_full_name').val();
+      if (emailVal) {
+        $('#wiz_auth_log_email, #wiz_auth_reg_email').val(emailVal);
+      }
+      if (nameVal) {
+        $('#wiz_auth_reg_name').val(nameVal);
+      }
+      // Open Auth Gate Modal
+      $('#wiz-auth-gate-modal').css('display', 'flex');
+      return;
+    }
 
-    $.post(apiObj.ajax_url, formData, function(res) {
+    submitBookingForm(formSerialized);
+  });
+
+  function submitBookingForm(serializedData) {
+    var btn = $('#ctc-wizard-submit-btn');
+    var status = $('#ctc-wizard-status');
+
+    btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Processing Booking...');
+    var postData = (typeof serializedData === 'string' ? serializedData : $.param(serializedData)) + '&action=caretochina_submit_booking&nonce=' + apiObj.nonce;
+
+    $.post(apiObj.ajax_url, postData, function(res) {
       status.show();
-      if (res.success) {
+      if (res.success && res.data) {
+        sessionStorage.removeItem('ctc_wizard_draft');
         status.html(`<div style="background:#D1FAE5; color:#065F46; padding:16px; border-radius:12px; font-weight:700; font-size:14px;"><i class="fa-solid fa-circle-check"></i> ${res.data.message}</div>`);
-        btn.html('<i class="fa-solid fa-check"></i> Submitted');
-        
-        // Hide form and step indicators so only status message is shown
-        $('#ctc-booking-wizard-form').hide();
-        $('.wizard-steps-indicator').hide();
+        btn.html('<i class="fa-solid fa-check"></i> Confirmed');
 
-        setTimeout(() => {
+        setTimeout(function() {
           appWizard.closeModal();
-          // Reset form
           $('#ctc-booking-wizard-form')[0].reset();
-          btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Send Request');
+          btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Proceed to Payment');
           status.hide().empty();
-          
-          // Restore visibility for next time
-          $('#ctc-booking-wizard-form').show();
-          $('.wizard-steps-indicator').show();
-          
-          if (isUserLoggedIn()) {
+
+          // Trigger Payment Modal directly with snapshotted plan amount!
+          if (window.CareToChinaPayment && typeof window.CareToChinaPayment.openPaymentModal === 'function') {
+            CareToChinaPayment.openPaymentModal(res.data.booking_id, res.data.amount, res.data.currency, res.data.specialty);
+          } else {
             window.location.reload();
           }
-        }, 3000);
+        }, 1200);
       } else {
-        status.html(`<div style="color:#EF4444; font-weight:700; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> ${res.data.message}</div>`);
-        btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Send Request');
+        status.html(`<div style="color:#EF4444; font-weight:700; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> ${(res.data && res.data.message) || 'Failed to submit booking.'}</div>`);
+        btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Proceed to Payment');
       }
+    }).fail(function() {
+      btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Proceed to Payment');
+      alert('Network error submitting booking.');
+    });
+  }
+
+  // AJAX LOGIN IN WIZARD AUTH GATE MODAL
+  $('#wiz-ajax-login-form').on('submit', function(e) {
+    e.preventDefault();
+    var $btn = $('#btn-wiz-ajax-login');
+    var $notice = $('#wiz-auth-modal-notice');
+    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...');
+    $notice.hide().empty();
+
+    $.post(apiObj.ajax_url, {
+      action: 'caretochina_user_login',
+      nonce: apiObj.nonce,
+      log: $('#wiz_auth_log_email').val(),
+      pwd: $('#wiz_auth_log_pass').val()
+    }, function(res) {
+      if (res.success) {
+        $notice.removeClass('notice-error').css({ 'background': '#D1FAE5', 'color': '#065F46' }).html('<i class="fa-solid fa-check"></i> Authenticated! Resuming booking...').show();
+        $('body').addClass('logged-in');
+        $('#wiz-auth-gate-modal').hide();
+        var saved = sessionStorage.getItem('ctc_wizard_draft');
+        submitBookingForm(saved ? JSON.parse(saved) : $('#ctc-booking-wizard-form').serialize());
+      } else {
+        $btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In & Complete Booking');
+        $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> ' + ((res.data && res.data.message) || 'Login failed.')).show();
+      }
+    }).fail(function() {
+      $btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In & Complete Booking');
+      $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> Server communication error.').show();
     });
   });
 
-  function isUserLoggedIn() {
-    return $('body').hasClass('logged-in');
-  }
+  // AJAX REGISTER IN WIZARD AUTH GATE MODAL
+  $('#wiz-ajax-reg-form').on('submit', function(e) {
+    e.preventDefault();
+    var $btn = $('#btn-wiz-ajax-reg');
+    var $notice = $('#wiz-auth-modal-notice');
+    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Registering...');
+    $notice.hide().empty();
 
-  // 1. REAL-TIME CHAT POLLING FOR PATIENT DASHBOARD
+    var postData = {
+      action: 'caretochina_user_register',
+      nonce: apiObj.nonce,
+      user_name: $('#wiz_auth_reg_name').val(),
+      user_email: $('#wiz_auth_reg_email').val(),
+      user_pass: $('#wiz_auth_reg_pass').val(),
+      user_pass_confirm: $('#wiz_auth_reg_pass').val(),
+      user_phone: $('#wiz_phone').val() || '+1000000000',
+      user_gender: $('#wiz_gender').val() || 'Not Specified'
+    };
+
+    $.post(apiObj.ajax_url, postData, function(res) {
+      if (res.success) {
+        $notice.css({ 'background': '#D1FAE5', 'color': '#065F46' }).html('<i class="fa-solid fa-check"></i> Account created! Submitting booking...').show();
+        $('body').addClass('logged-in');
+        $('#wiz-auth-gate-modal').hide();
+        var saved = sessionStorage.getItem('ctc_wizard_draft');
+        submitBookingForm(saved ? JSON.parse(saved) : $('#ctc-booking-wizard-form').serialize());
+      } else {
+        $btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register & Complete Booking');
+        $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> ' + ((res.data && res.data.message) || 'Registration failed.')).show();
+      }
+    }).fail(function() {
+      $btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register & Complete Booking');
+      $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> Server communication error.').show();
+    });
+  });
+
+  // REAL-TIME CHAT POLLING FOR PATIENT DASHBOARD
   var patientBookingId = $('.caretochina-dashboard-wrapper, .careyou-dashboard-wrapper').data('booking-id') || 1;
   var userIsScrolledUp = false;
 
@@ -398,7 +639,6 @@ jQuery(document).ready(function($) {
           chatBox.scrollTop(chatBox[0].scrollHeight);
         }
         
-        // Show Typing Indicator
         var typingInd = $('#patient-chat-typing-indicator');
         if (res.data.is_typing) {
           typingInd.text(res.data.typing_name + ' is typing...').show();
@@ -414,7 +654,7 @@ jQuery(document).ready(function($) {
     setInterval(fetchPatientChat, 1000);
   }
 
-  // 2. PATIENT MESSAGING SUBMISSION (ZERO RELOAD)
+  // PATIENT MESSAGING SUBMISSION
   $('#patient-message-form').on('submit', function(e) {
     e.preventDefault();
     var input = $('#patient_msg_input');
@@ -423,7 +663,6 @@ jQuery(document).ready(function($) {
 
     if (!msg) return;
 
-    // Optimistic UI: Append message locally immediately!
     var chatBox = $('#patient-chat-box');
     var safeMsg = $('<div>').text(msg).html();
     var tempMsgId = 'temp-msg-' + Date.now();
@@ -443,7 +682,6 @@ jQuery(document).ready(function($) {
     
     var formData = $(this).serialize() + '&action=caretochina_send_patient_message&nonce=' + apiObj.nonce;
 
-    // Clear input immediately
     input.val('');
     userIsScrolledUp = false;
 
@@ -452,7 +690,6 @@ jQuery(document).ready(function($) {
         chatBox.html(res.data.html);
         chatBox.scrollTop(chatBox[0].scrollHeight);
       } else {
-        // If it fails, highlight error
         $('#' + tempMsgId).css('opacity', '1.0');
         $('#' + tempMsgId + ' .msg-bubble').css('background', '#EF4444');
         $('#' + tempMsgId + ' i').removeClass('fa-spinner fa-spin').addClass('fa-circle-exclamation');
@@ -461,7 +698,6 @@ jQuery(document).ready(function($) {
     });
   });
 
-  // Keyup listener to send typing signal
   var isTypingSent = false;
   $('#patient_msg_input').on('keyup input', function() {
     if (!isTypingSent) {
@@ -477,7 +713,7 @@ jQuery(document).ready(function($) {
     }
   });
 
-  // 3. PATIENT PROFILE UPDATE (ZERO RELOAD)
+  // PATIENT PROFILE UPDATE
   $('#patient-profile-form').on('submit', function(e) {
     e.preventDefault();
     var btn = $('#save_profile_btn');
@@ -492,7 +728,6 @@ jQuery(document).ready(function($) {
         box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-check"></i> Saved!');
         
-        // If user updated gender and doesn't have custom avatar, swap placeholders dynamically
         if (res.data.new_avatar_url) {
           $('.ctc-dash-avatar, .ctc-profile-avatar-img').attr('src', res.data.new_avatar_url);
         }
@@ -539,14 +774,11 @@ jQuery(document).ready(function($) {
 
   $(document).on('change', '#ctc-avatar-file-input', function() {
     var fileInput = this;
-    if (fileInput.files.length === 0) {
-      return;
-    }
+    if (fileInput.files.length === 0) return;
 
     var file = fileInput.files[0];
     var statusSpan = $('#avatar-upload-status');
 
-    // 1. Client-Side Size Check (Max 2MB)
     var maxSizeBytes = 2 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       statusSpan.show().html('<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Size exceeds 2MB limit.</span>');
@@ -554,7 +786,6 @@ jQuery(document).ready(function($) {
       return;
     }
 
-    // 2. Client-Side Type Check (Only png, jpg, jpeg, webp)
     var allowedExtensions = /(\.png|\.jpg|\.jpeg|\.webp)$/i;
     if (!allowedExtensions.exec(file.name)) {
       statusSpan.show().html('<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Only PNG, JPG, and WEBP allowed.</span>');
@@ -562,17 +793,14 @@ jQuery(document).ready(function($) {
       return;
     }
 
-    // 3. Prepare FormData
     var formData = new FormData();
     formData.append('avatar', file);
     formData.append('action', 'caretochina_upload_patient_avatar');
     formData.append('nonce', apiObj.nonce);
 
-    // 4. Show Loading Spinner
     statusSpan.show().html('<span style="color:#0f766e;"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</span>');
     $('.ctc-avatar-upload-overlay').css('opacity', '1').html('<i class="fa-solid fa-spinner fa-spin" style="font-size:20px; color:#fff;"></i>');
 
-    // 5. Submit AJAX Upload
     $.ajax({
       url: apiObj.ajax_url,
       type: 'POST',
@@ -600,7 +828,7 @@ jQuery(document).ready(function($) {
     });
   });
 
-  // 4. AUTH LOGIN SUBMISSION
+  // AUTH LOGIN SUBMISSION
   $('#careyou-auth-login-form').on('submit', function(e) {
     e.preventDefault();
     var btn = $('#login_submit_btn');
@@ -621,7 +849,7 @@ jQuery(document).ready(function($) {
     });
   });
 
-  // 5. AUTH REGISTER SUBMISSION
+  // AUTH REGISTER SUBMISSION
   $('#careyou-auth-register-form').on('submit', function(e) {
     e.preventDefault();
     var btn = $('#reg_submit_btn');

@@ -39,6 +39,11 @@ class CareToChina_Staff_Portal {
         add_action('wp_ajax_caretochina_staff_check_new_bookings', [$this, 'handle_check_new_bookings']);
         add_action('wp_ajax_caretochina_staff_send_typing', [$this, 'handle_send_typing']);
 
+        // Payment & Refund Staff Actions
+        add_action('wp_ajax_caretochina_staff_cancel_booking', [$this, 'handle_staff_cancel_booking']);
+        add_action('wp_ajax_caretochina_staff_refund_booking', [$this, 'handle_staff_refund_booking']);
+        add_action('wp_ajax_caretochina_staff_get_payment_audit_logs', [$this, 'handle_get_payment_audit_logs']);
+
         // Backward compatibility AJAX aliases
         add_action('wp_ajax_careyou_staff_update_booking_status', [$this, 'handle_update_booking_status']);
         add_action('wp_ajax_careyou_staff_send_chat', [$this, 'handle_send_chat']);
@@ -598,6 +603,9 @@ class CareToChina_Staff_Portal {
                                     <form id="staff-chat-form" style="padding:12px 16px; border-top:1px solid #E2E8F0; background:#FFF; display:flex; gap:12px; align-items:center; margin:0; <?php echo $is_active_b_guest ? 'display:none;' : ''; ?>">
                                         <input type="hidden" name="booking_id" id="staff_chat_booking_id" value="<?php echo esc_attr($active_b->id); ?>">
                                         <input type="text" name="message" id="staff_chat_input" class="form-input" placeholder="<?php _e('Type a response to patient...', 'caretochina-staff'); ?>" required style="flex:1; padding:11px; border-radius:10px; border:1px solid #cbd5e1; font-size:14px;">
+                                        <button type="button" onclick="window.ctcOpenStaffPaymentReqModal()" class="ctc-solid-btn" style="background:#0F766E; color:#FFF; padding:11px 16px; font-size:13px; font-weight:700; border-radius:10px; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap;" title="<?php _e('Create & Send Payment Request', 'caretochina-staff'); ?>">
+                                            <i class="fa-solid fa-file-invoice-dollar"></i> <?php _e('Request Payment', 'caretochina-staff'); ?>
+                                        </button>
                                         <button type="submit" class="ctc-solid-btn btn-teal-primary" style="padding:11px 22px; font-size:14px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i> <?php _e('Send', 'caretochina-staff'); ?></button>
                                     </form>
                                     <div id="staff-chat-guest-notice" style="padding:16px; background:#FEF3C7; color:#B45309; text-align:center; font-size:13px; font-weight:600; border-top:1px solid #FCD34D; width:100%; box-sizing:border-box; <?php echo !$is_active_b_guest ? 'display:none;' : ''; ?>">
@@ -697,6 +705,107 @@ class CareToChina_Staff_Portal {
 
                 </div>
             </div>
+            <!-- STAFF PAYMENT REQUEST CREATION MODAL -->
+            <div id="staff-payment-request-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:99999; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+                <div style="background:#FFF; border-radius:20px; max-width:560px; width:100%; padding:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); font-family:'Manrope', sans-serif; position:relative; max-height:90vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #E2E8F0; padding-bottom:14px;">
+                        <h3 style="margin:0; font-size:18px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-file-invoice-dollar" style="color:#0F766E;"></i> <?php _e('Send Payment Request', 'caretochina-staff'); ?>
+                        </h3>
+                        <button type="button" onclick="jQuery('#staff-payment-request-modal').hide()" style="background:none; border:none; font-size:18px; color:#94A3B8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <form id="staff-send-payment-request-form">
+                        <input type="hidden" name="booking_id" id="req_modal_booking_id" value="<?php echo esc_attr($active_b->id); ?>">
+
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:8px;"><?php _e('Choose Pricing Source (Select exactly one):', 'caretochina-staff'); ?></label>
+                            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+                                <label style="border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 8px; text-align:center; font-size:11px; font-weight:700; cursor:pointer; color:#475569;" class="ctc-pricing-opt-label active">
+                                    <input type="radio" name="pricing_type" value="treatment_plan" checked style="margin-bottom:4px;" onchange="window.ctcSwitchPricingType('treatment_plan')"><br>
+                                    <?php _e('Catalog Treatment', 'caretochina-staff'); ?>
+                                </label>
+                                <label style="border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 8px; text-align:center; font-size:11px; font-weight:700; cursor:pointer; color:#475569;" class="ctc-pricing-opt-label">
+                                    <input type="radio" name="pricing_type" value="custom_amount" style="margin-bottom:4px;" onchange="window.ctcSwitchPricingType('custom_amount')"><br>
+                                    <?php _e('Custom Fee', 'caretochina-staff'); ?>
+                                </label>
+                                <label style="border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 8px; text-align:center; font-size:11px; font-weight:700; cursor:pointer; color:#475569;" class="ctc-pricing-opt-label">
+                                    <input type="radio" name="pricing_type" value="custom_treatment" style="margin-bottom:4px;" onchange="window.ctcSwitchPricingType('custom_treatment')"><br>
+                                    <?php _e('One-Off Treatment', 'caretochina-staff'); ?>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 1: TREATMENT PLAN -->
+                        <div id="pricing-sec-treatment_plan" class="pricing-sec-box">
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Select Medical Specialty / Treatment *', 'caretochina-staff'); ?></label>
+                                <select name="treatment_id" id="req_treatment_select" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                                    <option value="0"><?php _e('-- Select Treatment Specialty --', 'caretochina-staff'); ?></option>
+                                    <?php
+                                    $specialties = get_terms(['taxonomy' => 'hospital_specialty', 'hide_empty' => false]);
+                                    if (!empty($specialties) && !is_wp_error($specialties)) {
+                                        foreach ($specialties as $s) {
+                                            echo '<option value="' . esc_attr($s->term_id) . '">' . esc_html($s->name) . '</option>';
+                                        }
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Select Pricing Plan / Package Tier *', 'caretochina-staff'); ?></label>
+                                <select name="pricing_plan_id" id="req_plan_select" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                                    <option value="0"><?php _e('-- Select Specialty First --', 'caretochina-staff'); ?></option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Custom Plan Name Override (Optional)', 'caretochina-staff'); ?></label>
+                                <input type="text" name="plan_name" id="req_plan_name_input" class="form-input" placeholder="e.g. Standard VIP Package" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Locked Amount ($ USD) *', 'caretochina-staff'); ?></label>
+                                <input type="number" step="0.01" name="plan_custom_amount" id="req_plan_amount" class="form-input" placeholder="0.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                            </div>
+                        </div>
+
+                        <!-- SECTION 2: CUSTOM AMOUNT -->
+                        <div id="pricing-sec-custom_amount" class="pricing-sec-box" style="display:none;">
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Short Description / Fee Label *', 'caretochina-staff'); ?></label>
+                                <input type="text" name="custom_amount_title" class="form-input" placeholder="e.g. Specialist Consultation & Second Opinion" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Fee Amount ($ USD) *', 'caretochina-staff'); ?></label>
+                                <input type="number" step="0.01" name="custom_fee_amount" class="form-input" placeholder="e.g. 150.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3: CUSTOM TREATMENT -->
+                        <div id="pricing-sec-custom_treatment" class="pricing-sec-box" style="display:none;">
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Custom Treatment Title *', 'caretochina-staff'); ?></label>
+                                <input type="text" name="custom_treatment_title" class="form-input" placeholder="e.g. Comprehensive Immunotherapy Protocol" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Detailed Treatment Overview (Rich content, sanitized) *', 'caretochina-staff'); ?></label>
+                                <textarea name="custom_treatment_content" rows="3" class="form-input" placeholder="Include treatment scope, hospital inclusion, concierge services..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;"></textarea>
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Total Package Price ($ USD) *', 'caretochina-staff'); ?></label>
+                                <input type="number" step="0.01" name="custom_treatment_amount" class="form-input" placeholder="e.g. 5000.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                            <button type="button" onclick="jQuery('#staff-payment-request-modal').hide()" class="ctc-solid-btn" style="background:#F1F5F9; color:#475569; padding:10px 18px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:13px;"><?php _e('Cancel', 'caretochina-staff'); ?></button>
+                            <button type="submit" id="btn-submit-payment-req" class="ctc-solid-btn btn-teal-primary" style="padding:10px 22px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px;">
+                                <i class="fa-solid fa-paper-plane"></i> <?php _e('Send Request to Patient', 'caretochina-staff'); ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- TOAST ALERT NOTIFICATION CONTAINER -->
             <div id="ctc-staff-toast-container" style="position:fixed; bottom:20px; right:20px; z-index:999999; display:flex; flex-direction:column; gap:10px;"></div>
         </div>
@@ -1041,6 +1150,16 @@ class CareToChina_Staff_Portal {
         } else {
             foreach ($messages as $m) {
                 $read_tick = ($m->is_read == 1) ? '<span style="color:#3B82F6; margin-left:6px; font-weight:700;" title="' . esc_attr(__('Read by Patient', 'caretochina-staff')) . '">✓✓ Seen</span>' : '<span style="color:#94A3B8; margin-left:6px;" title="' . esc_attr(__('Delivered', 'caretochina-staff')) . '">✓ Delivered</span>';
+
+                // Check for Payment Request message type
+                if (isset($m->message_type) && $m->message_type === 'payment_request' && !empty($m->payment_request_id)) {
+                    if (class_exists('CareToChina_Payment_Request_Manager')) {
+                        $chat_html .= '<div class="chat-msg payment-request-msg mb-14" style="display:flex; justify-content:flex-end; margin-bottom:14px; width:100%;">';
+                        $chat_html .= CareToChina_Payment_Request_Manager::render_card($m->payment_request_id, true);
+                        $chat_html .= '</div>';
+                        continue;
+                    }
+                }
 
                 if ($m->sender_type === 'coordinator') {
                     $name = 'roji';
@@ -1529,5 +1648,63 @@ class CareToChina_Staff_Portal {
             }
         }
         wp_send_json_error(['message' => __('Invalid patient ID.', 'caretochina-staff')]);
+    }
+
+    public function handle_staff_cancel_booking() {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+            wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
+        }
+        if (!current_user_can('caretochina_manage_bookings') && !current_user_can('manage_options') && !current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => __('Insufficient permissions.', 'caretochina-staff')]);
+        }
+
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $confirm_no_refund = !empty($_POST['confirm_no_refund']);
+
+        $res = CareToChina_Payment_Manager::instance()->cancel_booking($booking_id, get_current_user_id(), $confirm_no_refund);
+
+        if (is_wp_error($res)) {
+            wp_send_json_error(['message' => $res->get_error_message()]);
+        }
+        wp_send_json_success($res);
+    }
+
+    public function handle_staff_refund_booking() {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+            wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
+        }
+        if (!current_user_can('caretochina_manage_bookings') && !current_user_can('manage_options') && !current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => __('Insufficient permissions.', 'caretochina-staff')]);
+        }
+
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $amount = floatval($_POST['amount'] ?? 0);
+        $reason = sanitize_text_field($_POST['reason'] ?? '');
+
+        $res = CareToChina_Payment_Manager::instance()->refund_booking($booking_id, $amount, $reason, get_current_user_id());
+
+        if (is_wp_error($res)) {
+            wp_send_json_error(['message' => $res->get_error_message()]);
+        }
+        wp_send_json_success($res);
+    }
+
+    public function handle_get_payment_audit_logs() {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+            wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
+        }
+        $booking_id = intval($_POST['booking_id'] ?? 0);
+
+        global $wpdb;
+        $table_logs = $wpdb->prefix . 'caretochina_payment_audit_logs';
+        $logs = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_logs WHERE booking_id = %d ORDER BY id DESC LIMIT 50",
+            $booking_id
+        ));
+
+        wp_send_json_success(['logs' => $logs ?: []]);
     }
 }
