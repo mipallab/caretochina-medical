@@ -180,3 +180,84 @@ Staff can send direct payment requests to patients inside existing chat threads 
   - Triggers the Auth Gate Modal (`#wiz-auth-gate-modal`) offering Sign In, New Registration, and Continue with Google.
   - Upon authentication, the draft state is automatically retrieved and submitted, seamlessly opening the Stripe/PayPal payment modal.
 
+---
+
+## 11. First-Run Onboarding Setup Wizard
+
+### 11.1 Activation Redirect & Navigation
+- On plugin activation (`register_activation_hook`), a 60-second transient `ctc_activation_redirect` is established.
+- On the next single admin load, `admin_init` checks the transient, verifies `manage_options`, excludes bulk activation (`$_GET['activate-multi']`) and background requests (AJAX/REST/cron/WP-CLI), and redirects the administrator to `admin.php?page=caretochina-setup-wizard`.
+- A persistent admin submenu **CareToChina &rarr; Setup Wizard** is available anytime under the coordinator menu for re-entry.
+
+### 11.2 6-Step Multi-Step Controller (`CareToChina_Setup_Wizard`)
+1. **Welcome**: System overview and introductory launch.
+2. **WooCommerce Engine Check**: Detects active, inactive, or uninstalled states with 1-click `Plugin_Upgrader` install/activate and direct filesystem fallback.
+3. **Dedicated Pages**: Create or assign Patient Dashboard, Staff Portal, Privacy Policy, and Terms & Conditions.
+4. **Google reCAPTCHA Security**: Select v2 Checkbox or v3 Invisible, configure encrypted keys, threshold, and form toggles.
+5. **Google OAuth Sign-In**: Surfaces Client ID & Secret configuration with authorized redirect URI (`/?ctc_google_callback=1`).
+6. **Finish & Safety Preferences**: Summary overview, direct settings links, "Delete data on uninstall" toggle, and "Export Data Now" button.
+- All steps include individual "Skip this step" and global "Skip setup entirely" options.
+
+---
+
+## 12. Google reCAPTCHA v2 / v3 Security Protection
+
+### 12.1 Configuration & Encrypted Storage
+- Managed by `CareToChina_Recaptcha`:
+  - `ctc_recaptcha_version`: `'v2'` (checkbox) or `'v3'` (invisible score-based).
+  - Keys encrypted at rest via `CareToChina_Payment_Security`: `ctc_recaptcha_v2_secret_key`, `ctc_recaptcha_v3_secret_key`.
+  - `ctc_recaptcha_v3_threshold`: Float (default `0.5`).
+- Independent Form Location Toggles:
+  - `ctc_recaptcha_enable_login`
+  - `ctc_recaptcha_enable_register`
+  - `ctc_recaptcha_enable_booking`
+- **Google OAuth Exemption**: "Continue with Google" is handled directly by Google authentication and is exempt from reCAPTCHA.
+
+### 12.2 Server-Side Verification
+- Form submissions verify the client token server-side against `https://www.google.com/recaptcha/api/siteverify` using `wp_remote_post()`. Submissions failing verification or scoring below the threshold are rejected with an explicit `WP_Error`.
+
+---
+
+## 13. Dedicated Pages & Dynamic URL Resolution (`CareToChina_Page_Manager`)
+
+- Centralized page resolver replacing hardcoded URL strings:
+  - `patient_dashboard`: `[caretochina_patient_dashboard]` (slug: `patient-dashboard`)
+  - `staff_portal`: `[caretochina_staff_portal]` (slug: `staff-portal`)
+  - `privacy_policy`: Privacy Policy (checks `wp_page_for_privacy_policy`)
+  - `terms`: Terms & Conditions (slug: `terms-and-conditions`)
+- Method `CareToChina_Page_Manager::get_page_url($type)` returns `get_permalink($id)` when configured or falls back gracefully to `home_url('/{slug}/')`.
+
+---
+
+## 14. Uninstall Data Management & Safety-Net Backups
+
+### 14.1 Safe Default & Opt-In Deletion
+- Option: `ctc_delete_data_on_uninstall` (defaults to `0` / OFF).
+- If OFF, `uninstall.php` leaves all database tables and options intact.
+
+### 14.2 Pure PHP `$wpdb` SQL Data Exporter (`CareToChina_Data_Exporter`)
+- Zero shell commands (`exec()`, `shell_exec()`, `mysqldump`).
+- Dynamically iterates plugin tables using `{$wpdb->prefix}caretochina_*` (`bookings`, `pricing_plans`, `payment_requests`, `messages`, `processed_webhook_events`, `payment_audit_logs`).
+- Exports plugin `wp_options` with credentials preserved strictly as ciphertext (never decrypted into plaintext).
+- **On-Demand Export**: Method `stream_download()` streams the SQL file directly to browser headers (`php://output`) without leaving files on disk.
+
+### 14.3 Protected Safety-Net Backup Directory
+- When opt-in deletion is triggered, `uninstall.php` writes a safety-net backup file before dropping tables:
+  `wp-content/uploads/caretochina-backups/caretochina-backup-{timestamp}-{random16}.sql`
+- **Directory Protection**:
+  - Apache `.htaccess` with both Apache 2.2 (`Deny from all`) and Apache 2.4+ (`Require all denied`).
+  - Blank `index.php` to prevent directory listing.
+  - Cryptographically random 16-character filename component.
+- **Nginx Web Server Configuration**:
+  On Nginx hosting, site administrators should add this block to their server configuration:
+  ```nginx
+  location ^~ /wp-content/uploads/caretochina-backups/ {
+      deny all;
+      return 403;
+  }
+  ```
+
+### 14.4 Conditional Table Dropping & Explicit Option Cleanup
+- `uninstall.php` strictly verifies `file_exists($backup_file)` and `filesize($backup_file) > 0`. If backup generation fails, deletion is aborted immediately to protect data integrity.
+- On verified backup success, plugin tables are dropped dynamically via `$wpdb->prefix` and options are removed by iterating an explicit whitelist array passed to `delete_option()`.
+

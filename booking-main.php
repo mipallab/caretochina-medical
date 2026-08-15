@@ -126,7 +126,7 @@ function caretochina_render_dashboard_button($atts = []) {
     ], $atts, 'caretochina_dashboard_button');
 
     $is_logged_in = is_user_logged_in();
-    $dash_url     = home_url('/patient-dashboard/');
+    $dash_url     = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
     $login_url    = home_url('/patient-login/');
     $display_mode = $atts['display_mode'];
 

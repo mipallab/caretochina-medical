@@ -65,7 +65,8 @@ class CareToChina_Booking_Auth {
         if (is_user_logged_in()) {
             $user = wp_get_current_user();
             if (in_array('patient', (array) $user->roles) && !current_user_can('manage_options')) {
-                wp_redirect(home_url('/patient-dashboard/'));
+                $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+                wp_redirect($dash_url);
                 exit;
             }
         }
@@ -83,7 +84,8 @@ class CareToChina_Booking_Auth {
     public function redirect_logged_in_user() {
         if (is_user_logged_in()) {
             if (is_page('patient-login') || strpos($_SERVER['REQUEST_URI'], 'patient-login') !== false) {
-                wp_redirect(home_url('/patient-dashboard/'));
+                $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+                wp_redirect($dash_url);
                 exit;
             }
         }
@@ -92,7 +94,7 @@ class CareToChina_Booking_Auth {
     public function custom_login_redirect($redirect_to, $request, $user) {
         if (isset($user->roles) && is_array($user->roles)) {
             if (in_array('patient', $user->roles) && !current_user_can('manage_options')) {
-                return home_url('/patient-dashboard/');
+                return class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
             }
         }
         return $redirect_to;
@@ -207,6 +209,9 @@ class CareToChina_Booking_Auth {
                                 <input type="checkbox" name="remember" value="forever" checked> <?php _e('Remember me', 'caretochina-booking'); ?>
                             </label>
                         </div>
+
+                        <?php if (class_exists('CareToChina_Recaptcha')) echo CareToChina_Recaptcha::render_field('login'); ?>
+
                         <button type="submit" id="login_submit_btn" class="auth-submit-btn">
                             <i class="fa-solid fa-right-to-bracket"></i> <?php _e('Sign In to Account', 'caretochina-booking'); ?>
                         </button>
@@ -332,6 +337,8 @@ class CareToChina_Booking_Auth {
                             </div>
                         </div>
 
+                        <?php if (class_exists('CareToChina_Recaptcha')) echo CareToChina_Recaptcha::render_field('register'); ?>
+
                         <button type="submit" id="reg_submit_btn" class="auth-submit-btn">
                             <i class="fa-solid fa-user-plus"></i> <?php _e('Register Patient Account', 'caretochina-booking'); ?>
                         </button>
@@ -372,6 +379,15 @@ class CareToChina_Booking_Auth {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
         }
 
+        // Google reCAPTCHA Verification (if enabled for login)
+        if (class_exists('CareToChina_Recaptcha')) {
+            $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
+            $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, 'login');
+            if (is_wp_error($rc_check)) {
+                wp_send_json_error(['message' => $rc_check->get_error_message()]);
+            }
+        }
+
         $log      = sanitize_text_field($_POST['log'] ?? '');
         $pwd      = $_POST['pwd'] ?? '';
         $remember = isset($_POST['remember']) && $_POST['remember'] === 'forever';
@@ -385,9 +401,10 @@ class CareToChina_Booking_Auth {
         if (is_wp_error($user)) {
             wp_send_json_error(['message' => __('Invalid credentials. Please check your username/email and password.', 'caretochina-booking')]);
         } else {
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
             wp_send_json_success([
                 'message'  => __('Login successful! Redirecting to Patient Dashboard...', 'caretochina-booking'),
-                'redirect' => home_url('/patient-dashboard/')
+                'redirect' => $dash_url
             ]);
         }
     }
@@ -396,6 +413,15 @@ class CareToChina_Booking_Auth {
         $nonce = $_POST['nonce'] ?? '';
         if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
+        }
+
+        // Google reCAPTCHA Verification (if enabled for register)
+        if (class_exists('CareToChina_Recaptcha')) {
+            $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
+            $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, 'register');
+            if (is_wp_error($rc_check)) {
+                wp_send_json_error(['message' => $rc_check->get_error_message()]);
+            }
         }
 
         $name         = sanitize_text_field($_POST['user_name'] ?? '');
@@ -457,9 +483,10 @@ class CareToChina_Booking_Auth {
             wp_set_current_user($user_id);
             wp_set_auth_cookie($user_id, true);
 
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
             wp_send_json_success([
                 'message'  => __('Patient Account created successfully! Redirecting to Patient Dashboard...', 'caretochina-booking'),
-                'redirect' => home_url('/patient-dashboard/')
+                'redirect' => $dash_url
             ]);
         }
     }

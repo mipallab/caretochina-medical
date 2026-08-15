@@ -317,7 +317,8 @@ class CareToChina_Google_Login {
         wp_set_auth_cookie($user->ID, true);
         do_action('wp_login', $user->user_login, $user);
 
-        wp_safe_redirect(home_url('/patient-dashboard/'));
+        $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+        wp_safe_redirect($dash_url);
         exit;
     }
 

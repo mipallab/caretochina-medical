@@ -34,7 +34,8 @@ class CareToChina_Patient_Dashboard {
 
     public function restrict_guest_access() {
         if (!is_user_logged_in()) {
-            if (is_page('patient-dashboard') || strpos($_SERVER['REQUEST_URI'], 'patient-dashboard') !== false) {
+            $configured_id = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_id('patient_dashboard') : 0;
+            if (($configured_id > 0 && is_page($configured_id)) || is_page('patient-dashboard') || strpos($_SERVER['REQUEST_URI'], 'patient-dashboard') !== false) {
                 wp_redirect(home_url('/patient-login/'));
                 exit;
             }

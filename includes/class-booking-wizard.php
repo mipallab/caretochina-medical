@@ -332,6 +332,8 @@ class CareToChina_Booking_Wizard {
                             </div>
                         </div>
 
+                        <?php if (class_exists('CareToChina_Recaptcha')) echo CareToChina_Recaptcha::render_field('booking'); ?>
+
                         <div class="wiz-action-footer">
                             <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(4)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
                             <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fa-solid fa-check-circle"></i> <?php echo $is_logged_in ? __('Confirm & Proceed to Payment', 'caretochina-booking') : __('Sign In & Confirm Booking', 'caretochina-booking'); ?></button>
@@ -453,6 +455,15 @@ class CareToChina_Booking_Wizard {
             wp_send_json_error(['message' => __('Please fill in all required fields (Specialty, Timing, Quote Details, Full Name, Gender, Email, Phone).', 'caretochina-booking')]);
         }
 
+        // Google reCAPTCHA Verification (if enabled for booking submission)
+        if (class_exists('CareToChina_Recaptcha')) {
+            $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
+            $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, 'booking');
+            if (is_wp_error($rc_check)) {
+                wp_send_json_error(['message' => $rc_check->get_error_message()]);
+            }
+        }
+
         $booking_code = 'CTC-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
         
         $patient_id = 0;
@@ -529,10 +540,11 @@ class CareToChina_Booking_Wizard {
     }
 
     private function send_notifications($booking_code, $name, $email, $hospital, $specialty, $timing) {
+        $dashboard_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
         $subject_patient = sprintf(__('CareToChina Medical Quote Confirmation - Case #%s', 'caretochina-booking'), $booking_code);
         $message_patient = sprintf(
             __("Dear %s,\n\nYour medical consultation and quote request has been received!\n\nBooking Details:\n- Care Case Code: %s\n- Hospital Preferred: %s\n- Required Specialties: %s\n- Treatment Timing: %s\n\nOur Care Coordinator will review your medical information and match you with our expert surgeons within 24 hours. You can track your treatment roadmap and access the live patient portal at:\n%s\n\nBest regards,\nCareToChina International Concierge Team", 'caretochina-booking'),
-            $name, $booking_code, $hospital, $specialty, $timing, home_url('/patient-dashboard/')
+            $name, $booking_code, $hospital, $specialty, $timing, $dashboard_url
         );
 
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: CareToChina <care@caretochina.com>'];

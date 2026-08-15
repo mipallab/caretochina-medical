@@ -2,15 +2,36 @@
 /**
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
- * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, and Coordinator Portal.
+ * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, Coordinator Portal, and Headless WooCommerce Payments.
  * Version: 1.6.0
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
+ * Tested up to: 6.7
  * Author: SM Mart
+ * Author URI: https://caretochina.com
+ * License: Proprietary
  * Text Domain: caretochina-medical
  * Domain Path: /languages
  */
 
 if (!defined('ABSPATH')) {
     exit;
+}
+
+// Runtime Environment Compatibility Check
+if (version_compare(PHP_VERSION, '7.4', '<')) {
+    add_action('admin_notices', function() {
+        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html__('This plugin requires PHP version 7.4 or higher. Your server is running PHP ' . PHP_VERSION . '.', 'caretochina-medical') . '</p></div>';
+    });
+    return;
+}
+
+global $wp_version;
+if (isset($wp_version) && version_compare($wp_version, '6.0', '<')) {
+    add_action('admin_notices', function() {
+        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html__('This plugin requires WordPress version 6.0 or higher.', 'caretochina-medical') . '</p></div>';
+    });
+    return;
 }
 
 // Unified Constants
@@ -38,11 +59,23 @@ if (!defined('CAREYOU_STAFF_URL')) define('CAREYOU_STAFF_URL', CARETOCHINA_MEDIC
 require_once CARETOCHINA_MEDICAL_PATH . 'hospitals-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'booking-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'staff-main.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-page-manager.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-recaptcha.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-data-exporter.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-setup-wizard.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/payments/loader.php';
 
-// Activation hook for DB tables & Capabilities
+// Instantiate Core Services
+CareToChina_Page_Manager::instance();
+CareToChina_Recaptcha::instance();
+CareToChina_Setup_Wizard::instance();
+
+// Activation hook for DB tables, Capabilities & Setup Wizard Redirect
 register_activation_hook(__FILE__, function() {
     CareToChina_Booking_DB::create_tables();
+
+    // Set 60-second transient for first-run setup wizard redirect
+    set_transient('ctc_activation_redirect', true, 60);
 
     // Grant caretochina_manage_bookings capability strictly to admin and medical_staff
     $admin_role = get_role('administrator');
@@ -53,6 +86,31 @@ register_activation_hook(__FILE__, function() {
     if ($staff_role) {
         $staff_role->add_cap('caretochina_manage_bookings');
     }
+});
+
+// Single-load First-Run Admin Redirect to Setup Wizard
+add_action('admin_init', function() {
+    if (!get_transient('ctc_activation_redirect')) {
+        return;
+    }
+
+    delete_transient('ctc_activation_redirect');
+
+    // Do not redirect on bulk plugin activation or background contexts
+    if (isset($_GET['activate-multi'])) {
+        return;
+    }
+
+    if (wp_doing_ajax() || wp_doing_cron() || (defined('REST_REQUEST') && REST_REQUEST) || defined('WP_CLI')) {
+        return;
+    }
+
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    wp_safe_redirect(admin_url('admin.php?page=caretochina-setup-wizard'));
+    exit;
 });
 
 // Prevent accidental deactivation with a warning popup

@@ -109,8 +109,36 @@ class CareToChina_Payment_Admin_Settings {
             update_option('ctc_google_client_secret', $enc);
         }
 
+        // Google reCAPTCHA Settings
+        if (isset($_POST['ctc_recaptcha_version'])) {
+            update_option('ctc_recaptcha_version', sanitize_text_field($_POST['ctc_recaptcha_version']));
+        }
+        if (isset($_POST['ctc_recaptcha_v2_site_key'])) {
+            update_option('ctc_recaptcha_v2_site_key', sanitize_text_field($_POST['ctc_recaptcha_v2_site_key']));
+        }
+        if (!empty($_POST['ctc_recaptcha_v2_secret_key']) && strpos($_POST['ctc_recaptcha_v2_secret_key'], '••••') === false) {
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_recaptcha_v2_secret_key']));
+            update_option('ctc_recaptcha_v2_secret_key', $enc);
+        }
+        if (isset($_POST['ctc_recaptcha_v3_site_key'])) {
+            update_option('ctc_recaptcha_v3_site_key', sanitize_text_field($_POST['ctc_recaptcha_v3_site_key']));
+        }
+        if (!empty($_POST['ctc_recaptcha_v3_secret_key']) && strpos($_POST['ctc_recaptcha_v3_secret_key'], '••••') === false) {
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_recaptcha_v3_secret_key']));
+            update_option('ctc_recaptcha_v3_secret_key', $enc);
+        }
+        if (isset($_POST['ctc_recaptcha_v3_threshold'])) {
+            update_option('ctc_recaptcha_v3_threshold', floatval($_POST['ctc_recaptcha_v3_threshold']));
+        }
+        update_option('ctc_recaptcha_enable_login', isset($_POST['ctc_recaptcha_enable_login']) ? 1 : 0);
+        update_option('ctc_recaptcha_enable_register', isset($_POST['ctc_recaptcha_enable_register']) ? 1 : 0);
+        update_option('ctc_recaptcha_enable_booking', isset($_POST['ctc_recaptcha_enable_booking']) ? 1 : 0);
+
+        // Data Safety / Uninstall Option
+        update_option('ctc_delete_data_on_uninstall', isset($_POST['ctc_delete_data_on_uninstall']) ? 1 : 0);
+
         add_action('admin_notices', function() {
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Payment & Google login settings saved successfully (secrets encrypted at rest).', 'caretochina-medical') . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Payment, Security & Google login settings saved successfully (secrets encrypted at rest).', 'caretochina-medical') . '</p></div>';
         });
     }
 
@@ -136,12 +164,25 @@ class CareToChina_Payment_Admin_Settings {
         $google_client_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_google_client_secret', ''));
         $google_redirect_uri = home_url('/?ctc_google_callback=1');
 
+        $recaptcha_ver = get_option('ctc_recaptcha_version', 'v2');
+        $rc_v2_site = get_option('ctc_recaptcha_v2_site_key', '');
+        $rc_v2_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_recaptcha_v2_secret_key', ''));
+        $rc_v3_site = get_option('ctc_recaptcha_v3_site_key', '');
+        $rc_v3_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_recaptcha_v3_secret_key', ''));
+        $rc_v3_threshold = floatval(get_option('ctc_recaptcha_v3_threshold', 0.5));
+        $rc_login = intval(get_option('ctc_recaptcha_enable_login', 0));
+        $rc_reg = intval(get_option('ctc_recaptcha_enable_register', 0));
+        $rc_book = intval(get_option('ctc_recaptcha_enable_booking', 0));
+
+        $delete_on_uninstall = intval(get_option('ctc_delete_data_on_uninstall', 0));
+        $export_nonce = wp_create_nonce('ctc_export_data_nonce');
+
         $constant_override = defined('CARETOCHINA_STRIPE_SECRET_KEY') || defined('CARETOCHINA_STRIPE_TEST_SECRET_KEY');
 
         ?>
         <div class="wrap" style="max-width: 960px; font-family:'Manrope', sans-serif;">
             <h1 style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-credit-card" style="color:#0F766E;"></i> <?php _e('CareToChina Payment & Auth Settings', 'caretochina-medical'); ?></h1>
-            <p><?php _e('Configure Stripe, PayPal gateways, and Google Sign-In for patients. Secrets are automatically encrypted at rest in the database.', 'caretochina-medical'); ?></p>
+            <p><?php _e('Configure Stripe, PayPal gateways, Google Sign-In, and Google reCAPTCHA protection. Secrets are automatically encrypted at rest in the database.', 'caretochina-medical'); ?></p>
 
             <?php if ($constant_override) : ?>
                 <div class="notice notice-info inline" style="margin-bottom:20px;">
@@ -207,8 +248,60 @@ class CareToChina_Payment_Admin_Settings {
                         <tr>
                             <th scope="row"><label for="ctc_google_client_secret"><?php _e('Google Client Secret', 'caretochina-medical'); ?></label></th>
                             <td>
-                                <input type="text" name="ctc_google_client_secret" id="ctc_google_client_secret" value="<?php echo esc_attr($google_client_sec_masked); ?>" class="regular-text" placeholder="GOCSPX-..." />
+                                <input type="password" name="ctc_google_client_secret" id="ctc_google_client_secret" value="<?php echo esc_attr($google_client_sec_masked); ?>" class="regular-text" placeholder="GOCSPX-..." />
                                 <p class="description"><?php _e('Encrypted at rest in database using AES-256-GCM / Sodium.', 'caretochina-medical'); ?></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-shield-halved" style="color:#0F766E; font-size:22px;"></i> <?php _e('Google reCAPTCHA Protection', 'caretochina-medical'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><?php _e('reCAPTCHA Version', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="margin-right:20px; font-weight:600;">
+                                    <input type="radio" name="ctc_recaptcha_version" value="v2" <?php checked($recaptcha_ver, 'v2'); ?> onchange="jQuery('#rc-v2-row').show(); jQuery('#rc-v3-row').hide();">
+                                    <?php _e('v2 (Checkbox)', 'caretochina-medical'); ?>
+                                </label>
+                                <label style="font-weight:600;">
+                                    <input type="radio" name="ctc_recaptcha_version" value="v3" <?php checked($recaptcha_ver, 'v3'); ?> onchange="jQuery('#rc-v3-row').show(); jQuery('#rc-v2-row').hide();">
+                                    <?php _e('v3 (Invisible / Score-based)', 'caretochina-medical'); ?>
+                                </label>
+                            </td>
+                        </tr>
+
+                        <!-- v2 keys -->
+                        <tr id="rc-v2-row" style="<?php echo $recaptcha_ver === 'v2' ? '' : 'display:none;'; ?>">
+                            <th scope="row"><?php _e('reCAPTCHA v2 Credentials', 'caretochina-medical'); ?></th>
+                            <td>
+                                <input type="text" name="ctc_recaptcha_v2_site_key" value="<?php echo esc_attr($rc_v2_site); ?>" class="regular-text" placeholder="v2 Site Key" style="margin-bottom:8px; display:block;" />
+                                <input type="password" name="ctc_recaptcha_v2_secret_key" value="<?php echo esc_attr($rc_v2_sec_masked); ?>" class="regular-text" placeholder="v2 Secret Key" />
+                            </td>
+                        </tr>
+
+                        <!-- v3 keys -->
+                        <tr id="rc-v3-row" style="<?php echo $recaptcha_ver === 'v3' ? '' : 'display:none;'; ?>">
+                            <th scope="row"><?php _e('reCAPTCHA v3 Credentials & Threshold', 'caretochina-medical'); ?></th>
+                            <td>
+                                <input type="text" name="ctc_recaptcha_v3_site_key" value="<?php echo esc_attr($rc_v3_site); ?>" class="regular-text" placeholder="v3 Site Key" style="margin-bottom:8px; display:block;" />
+                                <input type="password" name="ctc_recaptcha_v3_secret_key" value="<?php echo esc_attr($rc_v3_sec_masked); ?>" class="regular-text" placeholder="v3 Secret Key" style="margin-bottom:8px; display:block;" />
+                                <label style="font-size:12px; color:#64748B;">
+                                    <?php _e('Pass Score Threshold (Default 0.5):', 'caretochina-medical'); ?>
+                                    <input type="number" step="0.05" min="0.1" max="1.0" name="ctc_recaptcha_v3_threshold" value="<?php echo esc_attr($rc_v3_threshold); ?>" style="width:100px; margin-left:8px;" />
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row"><?php _e('Form Protection Locations', 'caretochina-medical'); ?></th>
+                            <td>
+                                <fieldset>
+                                    <label style="display:block; margin-bottom:6px;"><input type="checkbox" name="ctc_recaptcha_enable_login" value="1" <?php checked($rc_login, 1); ?>> <?php _e('Patient Login Form', 'caretochina-medical'); ?></label>
+                                    <label style="display:block; margin-bottom:6px;"><input type="checkbox" name="ctc_recaptcha_enable_register" value="1" <?php checked($rc_reg, 1); ?>> <?php _e('Patient Registration Form', 'caretochina-medical'); ?></label>
+                                    <label style="display:block;"><input type="checkbox" name="ctc_recaptcha_enable_booking" value="1" <?php checked($rc_book, 1); ?>> <?php _e('Booking Wizard Final Submission', 'caretochina-medical'); ?></label>
+                                </fieldset>
                             </td>
                         </tr>
                     </tbody>
@@ -264,6 +357,31 @@ class CareToChina_Payment_Admin_Settings {
                         <tr>
                             <th scope="row"><label for="ctc_paypal_live_client_secret"><?php _e('Live Client Secret', 'caretochina-medical'); ?></label></th>
                             <td><input type="text" name="ctc_paypal_live_client_secret" id="ctc_paypal_live_client_secret" value="<?php echo esc_attr($paypal_live_sec_masked); ?>" class="regular-text" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-database" style="color:#0F766E; font-size:22px;"></i> <?php _e('Data Safety & Uninstall Management', 'caretochina-medical'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><?php _e('Export Plugin Database Dump', 'caretochina-medical'); ?></th>
+                            <td>
+                                <a href="<?php echo esc_url(admin_url('admin-post.php?action=ctc_export_plugin_data&_wpnonce=' . $export_nonce)); ?>" class="button button-secondary" style="font-weight:700;">
+                                    <i class="fa-solid fa-download"></i> <?php _e('Export Data Now (SQL)', 'caretochina-medical'); ?>
+                                </a>
+                                <p class="description"><?php _e('Generates a full SQL dump of bookings, pricing plans, chat payment requests, and audit logs.', 'caretochina-medical'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php _e('Uninstall Data Cleanup', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; color:#B91C1C;">
+                                    <input type="checkbox" name="ctc_delete_data_on_uninstall" value="1" <?php checked($delete_on_uninstall, 1); ?> />
+                                    <?php _e('Delete all plugin tables and settings when uninstalling plugin', 'caretochina-medical'); ?>
+                                </label>
+                                <p class="description" style="color:#64748B;"><?php _e('Default is OFF (data preserved). If enabled, a verified safety-net backup is created in <code>wp-content/uploads/caretochina-backups/</code> before tables are dropped.', 'caretochina-medical'); ?></p>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

@@ -33,7 +33,8 @@ class CareToChina_WooCommerce_Headless {
         }
 
         if (is_cart() || is_checkout() || is_shop() || is_product() || is_account_page() || is_woocommerce()) {
-            wp_redirect(home_url('/patient-dashboard/'));
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+            wp_redirect($dash_url);
             exit;
         }
     }

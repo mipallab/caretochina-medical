@@ -1123,9 +1123,10 @@ class CareToChina_Staff_Portal {
             // 3. Send email to patient
             $email = $booking->email;
             $subject = sprintf(__('Your CareToChina Booking Has Been Verified - Case #%s', 'caretochina-staff'), $booking->booking_code);
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
             $message = sprintf(
                 __("Dear %s,\n\nWe are pleased to inform you that your booking request with CareToChina has been verified by our medical coordinators.\n\nYou can now log in to your Patient Dashboard and message your coordinator directly in the live chat tab at:\n%s\n\nBest regards,\nCareToChina Medical Travel Desk", 'caretochina-staff'),
-                $booking->full_name, home_url('/patient-dashboard/')
+                $booking->full_name, $dash_url
             );
             $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: CareToChina Health <care@caretochina.com>'];
             
