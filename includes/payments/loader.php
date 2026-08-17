@@ -12,6 +12,7 @@ require_once __DIR__ . '/class-paypal-gateway.php';
 require_once __DIR__ . '/class-payment-manager.php';
 require_once __DIR__ . '/class-payment-reconciliation.php';
 require_once __DIR__ . '/class-woocommerce-headless.php';
+require_once __DIR__ . '/class-woocommerce-admin-cleanup.php';
 require_once __DIR__ . '/class-payment-api.php';
 require_once __DIR__ . '/class-payment-admin-settings.php';
 require_once __DIR__ . '/class-payment-request-manager.php';
@@ -28,6 +29,7 @@ add_action('plugins_loaded', function() {
     CareToChina_Payment_Manager::instance();
     CareToChina_Payment_Reconciliation::instance();
     CareToChina_WooCommerce_Headless::instance();
+    CareToChina_WooCommerce_Admin_Cleanup::instance();
     CareToChina_Payment_API::instance();
     CareToChina_Payment_Admin_Settings::instance();
     CareToChina_Payment_Request_Manager::instance();

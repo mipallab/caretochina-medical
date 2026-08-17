@@ -8,6 +8,12 @@ This document details the architecture, security model, and developer extension 
 
 `caretochina-medical` uses WooCommerce **headlessly** as a backend payment and order engine:
 - **No Native Storefront/Checkout**: All standard WooCommerce pages (`/cart`, `/checkout`, `/shop`, `/product/*`) are unhooked and redirected to `/patient-dashboard/` for non-admin users via `CareToChina_WooCommerce_Headless`.
+- **Admin Sidebar Cleanup (`CareToChina_WooCommerce_Admin_Cleanup`)**:
+  - Hides unused WooCommerce admin menu items entirely (**Products**, **Analytics**, **Marketing**) for all users to provide a clutter-free medical administration interface.
+  - Hides **Orders** from non-administrators while preserving it for Administrators (`manage_options`) as a fallback/raw debugging view into `WC_Order` data.
+  - **Settings** (`wc-settings`) and payment gateway settings remain fully visible and operational.
+  - **Zero Data Impact**: All underlying post types (`product`, `shop_order`), HPOS tables, webhooks, REST APIs, and gateway integrations remain 100% active and registered. This change is purely presentational/cosmetic.
+  - Features dual fast-path slug removal and fallback title-matching with an administrator-gated self-check (`ctc_wc_menu_cleanup_warning`).
 - **Custom UI Layer**: Patients interact exclusively via the custom Patient Dashboard (`CareToChina_Patient_Dashboard`), while staff manage payments, refunds, and cancellations inside the Staff Desk (`CareToChina_Staff_Portal`).
 - **Source of Truth**: `WC_Order` is the single authoritative source of financial truth (totals, currency, fees, refunds, and gateway transaction IDs). `caretochina_bookings` stores a read-only denormalized cache (`amount`, `currency`, `payment_gateway`, `status`) written immediately from `WC_Order` after state transitions.
 

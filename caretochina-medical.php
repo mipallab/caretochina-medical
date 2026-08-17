@@ -7,7 +7,7 @@
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Tested up to: 6.7
- * Author: SM Mart
+ * Author: CareToChina Team
  * Author URI: https://caretochina.com
  * License: Proprietary
  * Text Domain: caretochina-medical
