@@ -18,6 +18,9 @@ class CareToChina_Recaptcha {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('login_enqueue_scripts', [$this, 'enqueue_scripts']);
+        add_action('wp_head', [$this, 'output_badge_hide_css'], 9999);
+        add_action('login_head', [$this, 'output_badge_hide_css'], 9999);
+        add_action('admin_head', [$this, 'output_badge_hide_css'], 9999);
     }
 
     public static function get_version() {
@@ -101,7 +104,16 @@ class CareToChina_Recaptcha {
         if (self::is_badge_hidden()) {
             wp_register_style('ctc-recaptcha-badge-hide', false);
             wp_enqueue_style('ctc-recaptcha-badge-hide');
-            wp_add_inline_style('ctc-recaptcha-badge-hide', '.grecaptcha-badge { visibility: hidden !important; }');
+            wp_add_inline_style('ctc-recaptcha-badge-hide', '.grecaptcha-badge { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }');
+        }
+    }
+
+    /**
+     * Direct HTML head output for badge hide CSS to ensure 100% reliability across all cache/theme configs
+     */
+    public function output_badge_hide_css() {
+        if (self::is_badge_hidden()) {
+            echo "\n" . '<style id="ctc-recaptcha-badge-hide-direct-css">.grecaptcha-badge { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }</style>' . "\n";
         }
     }
 
