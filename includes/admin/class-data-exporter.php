@@ -58,6 +58,7 @@ class CareToChina_Data_Exporter {
             'ctc_recaptcha_enable_login',
             'ctc_recaptcha_enable_register',
             'ctc_recaptcha_enable_booking',
+            'ctc_recaptcha_hide_badge',
             'ctc_page_patient_dashboard',
             'ctc_page_staff_portal',
             'ctc_page_privacy_policy',

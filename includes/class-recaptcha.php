@@ -17,6 +17,7 @@ class CareToChina_Recaptcha {
     public function __construct() {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+        add_action('login_enqueue_scripts', [$this, 'enqueue_scripts']);
     }
 
     public static function get_version() {
@@ -39,6 +40,15 @@ class CareToChina_Recaptcha {
 
     public static function get_threshold() {
         return floatval(get_option('ctc_recaptcha_v3_threshold', 0.5));
+    }
+
+    /**
+     * Check if floating reCAPTCHA badge should be hidden
+     *
+     * @return bool
+     */
+    public static function is_badge_hidden() {
+        return (bool) intval(get_option('ctc_recaptcha_hide_badge', 0));
     }
 
     public static function is_configured() {
@@ -87,6 +97,44 @@ class CareToChina_Recaptcha {
                 true
             );
         }
+
+        if (self::is_badge_hidden()) {
+            wp_register_style('ctc-recaptcha-badge-hide', false);
+            wp_enqueue_style('ctc-recaptcha-badge-hide');
+            wp_add_inline_style('ctc-recaptcha-badge-hide', '.grecaptcha-badge { visibility: hidden !important; }');
+        }
+    }
+
+    /**
+     * Get the attribution text required by Google Terms of Service when badge is hidden
+     *
+     * @return string
+     */
+    public static function get_attribution_html() {
+        return '<div class="ctc-recaptcha-attribution" style="font-size: 11px; color: #64748b; line-height: 1.4; margin-top: 8px; margin-bottom: 12px;">' .
+            sprintf(
+                /* translators: %1$s: Privacy Policy link, %2$s: Terms of Service link */
+                __('This site is protected by reCAPTCHA and the Google %1$s and %2$s apply.', 'caretochina-medical'),
+                '<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">' . __('Privacy Policy', 'caretochina-medical') . '</a>',
+                '<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">' . __('Terms of Service', 'caretochina-medical') . '</a>'
+            ) .
+        '</div>';
+    }
+
+    /**
+     * Helper to render attribution text conditionally for a location
+     *
+     * @param string $location 'login' | 'register' | 'booking'
+     * @return string
+     */
+    public static function render_attribution($location = '') {
+        if (!empty($location) && !self::is_enabled_for($location)) {
+            return '';
+        }
+        if (!self::is_badge_hidden()) {
+            return '';
+        }
+        return self::get_attribution_html();
     }
 
     /**
@@ -102,14 +150,19 @@ class CareToChina_Recaptcha {
 
         $ver = self::get_version();
         $site_key = self::get_site_key();
+        $output = '';
 
         if ($ver === 'v2') {
-            return '<div class="ctc-recaptcha-container" style="margin: 12px 0;"><div class="g-recaptcha" data-sitekey="' . esc_attr($site_key) . '"></div></div>';
+            $output .= '<div class="ctc-recaptcha-container" style="margin: 12px 0;"><div class="g-recaptcha" data-sitekey="' . esc_attr($site_key) . '"></div></div>';
         } elseif ($ver === 'v3') {
-            return '<input type="hidden" name="g-recaptcha-response" class="ctc-recaptcha-v3-token" value=""><script>if(typeof grecaptcha!=="undefined"){grecaptcha.ready(function(){grecaptcha.execute("' . esc_js($site_key) . '",{action:"' . esc_js($location) . '"}).then(function(token){document.querySelectorAll(".ctc-recaptcha-v3-token").forEach(function(el){el.value=token;});});});}</script>';
+            $output .= '<input type="hidden" name="g-recaptcha-response" class="ctc-recaptcha-v3-token" value=""><script>if(typeof grecaptcha!=="undefined"){grecaptcha.ready(function(){grecaptcha.execute("' . esc_js($site_key) . '",{action:"' . esc_js($location) . '"}).then(function(token){document.querySelectorAll(".ctc-recaptcha-v3-token").forEach(function(el){el.value=token;});});});}</script>';
         }
 
-        return '';
+        if (self::is_badge_hidden()) {
+            $output .= self::get_attribution_html();
+        }
+
+        return $output;
     }
 
     /**

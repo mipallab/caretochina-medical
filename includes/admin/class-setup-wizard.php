@@ -106,6 +106,7 @@ class CareToChina_Setup_Wizard {
             update_option('ctc_recaptcha_enable_login', isset($_POST['ctc_recaptcha_enable_login']) ? 1 : 0);
             update_option('ctc_recaptcha_enable_register', isset($_POST['ctc_recaptcha_enable_register']) ? 1 : 0);
             update_option('ctc_recaptcha_enable_booking', isset($_POST['ctc_recaptcha_enable_booking']) ? 1 : 0);
+            update_option('ctc_recaptcha_hide_badge', isset($_POST['ctc_recaptcha_hide_badge']) ? 1 : 0);
 
             wp_safe_redirect($this->get_step_url(5));
             exit;
@@ -528,6 +529,7 @@ class CareToChina_Setup_Wizard {
         $en_login = intval(get_option('ctc_recaptcha_enable_login', 0));
         $en_reg   = intval(get_option('ctc_recaptcha_enable_register', 0));
         $en_book  = intval(get_option('ctc_recaptcha_enable_booking', 0));
+        $hide_badge = CareToChina_Recaptcha::is_badge_hidden();
         ?>
         <form method="post" action="">
             <?php wp_nonce_field('ctc_setup_wizard_action', 'ctc_wizard_nonce'); ?>
@@ -585,7 +587,7 @@ class CareToChina_Setup_Wizard {
             </div>
 
             <!-- LOCATION TOGGLES -->
-            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:24px;">
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:20px;">
                 <strong style="display:block; font-size:13px; color:#334155; margin-bottom:10px;"><?php _e('Enable reCAPTCHA on Forms:', 'caretochina-medical'); ?></strong>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
                     <label style="cursor:pointer; font-weight:600;">
@@ -604,6 +606,20 @@ class CareToChina_Setup_Wizard {
                 <p style="margin:10px 0 0 0; font-size:11px; color:#64748B;">
                     <i class="fa-solid fa-circle-info"></i> <?php _e('Note: "Continue with Google" OAuth is authenticated directly through Google and is automatically excluded from reCAPTCHA challenges.', 'caretochina-medical'); ?>
                 </p>
+            </div>
+
+            <!-- BADGE HIDE / TERMS COMPLIANCE -->
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:24px;">
+                <strong style="display:block; font-size:13px; color:#334155; margin-bottom:10px;"><?php _e('Badge Display & Google Attribution:', 'caretochina-medical'); ?></strong>
+                <label style="cursor:pointer; font-weight:600; display:flex; align-items:flex-start; gap:8px;">
+                    <input type="checkbox" name="ctc_recaptcha_hide_badge" value="1" <?php checked($hide_badge, true); ?> style="margin-top:2px;">
+                    <span>
+                        <?php _e('Hide floating reCAPTCHA badge', 'caretochina-medical'); ?>
+                        <span style="display:block; margin-top:4px; font-weight:normal; font-size:12px; color:#64748B; line-height:1.4;">
+                            <?php _e('Hides the floating bottom-right badge via CSS and automatically displays Google\'s required attribution text ("This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply") below active protected forms to comply with Google Terms of Service.', 'caretochina-medical'); ?>
+                        </span>
+                    </span>
+                </label>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:20px;">

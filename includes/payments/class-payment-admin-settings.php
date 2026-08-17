@@ -133,6 +133,7 @@ class CareToChina_Payment_Admin_Settings {
         update_option('ctc_recaptcha_enable_login', isset($_POST['ctc_recaptcha_enable_login']) ? 1 : 0);
         update_option('ctc_recaptcha_enable_register', isset($_POST['ctc_recaptcha_enable_register']) ? 1 : 0);
         update_option('ctc_recaptcha_enable_booking', isset($_POST['ctc_recaptcha_enable_booking']) ? 1 : 0);
+        update_option('ctc_recaptcha_hide_badge', isset($_POST['ctc_recaptcha_hide_badge']) ? 1 : 0);
 
         // Data Safety / Uninstall Option
         update_option('ctc_delete_data_on_uninstall', isset($_POST['ctc_delete_data_on_uninstall']) ? 1 : 0);
@@ -173,6 +174,7 @@ class CareToChina_Payment_Admin_Settings {
         $rc_login = intval(get_option('ctc_recaptcha_enable_login', 0));
         $rc_reg = intval(get_option('ctc_recaptcha_enable_register', 0));
         $rc_book = intval(get_option('ctc_recaptcha_enable_booking', 0));
+        $rc_hide_badge = intval(get_option('ctc_recaptcha_hide_badge', 0));
 
         $delete_on_uninstall = intval(get_option('ctc_delete_data_on_uninstall', 0));
         $export_nonce = wp_create_nonce('ctc_export_data_nonce');
@@ -302,6 +304,21 @@ class CareToChina_Payment_Admin_Settings {
                                     <label style="display:block; margin-bottom:6px;"><input type="checkbox" name="ctc_recaptcha_enable_register" value="1" <?php checked($rc_reg, 1); ?>> <?php _e('Patient Registration Form', 'caretochina-medical'); ?></label>
                                     <label style="display:block;"><input type="checkbox" name="ctc_recaptcha_enable_booking" value="1" <?php checked($rc_book, 1); ?>> <?php _e('Booking Wizard Final Submission', 'caretochina-medical'); ?></label>
                                 </fieldset>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row"><?php _e('Badge Visibility & Attribution', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" name="ctc_recaptcha_hide_badge" value="1" <?php checked($rc_hide_badge, 1); ?> style="margin-top:2px;">
+                                    <span>
+                                        <?php _e('Hide floating reCAPTCHA badge', 'caretochina-medical'); ?>
+                                        <span class="description" style="display:block; margin-top:4px; font-weight:normal; color:#64748B;">
+                                            <?php _e('Enabling this hides the floating badge via CSS and automatically displays the required Google attribution text ("This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply") below active protected forms in compliance with Google Terms of Service.', 'caretochina-medical'); ?>
+                                        </span>
+                                    </span>
+                                </label>
                             </td>
                         </tr>
                     </tbody>

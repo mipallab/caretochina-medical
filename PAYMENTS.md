@@ -211,10 +211,13 @@ Staff can send direct payment requests to patients inside existing chat threads 
   - `ctc_recaptcha_enable_login`
   - `ctc_recaptcha_enable_register`
   - `ctc_recaptcha_enable_booking`
+- **Badge Visibility & Terms Compliance (`ctc_recaptcha_hide_badge`)**:
+  - Checkbox option (default OFF / 0).
+  - When enabled, enqueues `.grecaptcha-badge { visibility: hidden !important; }` and automatically displays Google's required legal attribution links (*"This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply."*) directly below active protected forms in strict compliance with Google Terms of Service.
 - **Google OAuth Exemption**: "Continue with Google" is handled directly by Google authentication and is exempt from reCAPTCHA.
 
 ### 12.2 Server-Side Verification
-- Form submissions verify the client token server-side against `https://www.google.com/recaptcha/api/siteverify` using `wp_remote_post()`. Submissions failing verification or scoring below the threshold are rejected with an explicit `WP_Error`.
+- Form submissions verify the client token server-side against `https://www.google.com/recaptcha/api/siteverify` using `wp_remote_post()`. Submissions failing verification or scoring below the threshold are rejected with an explicit `WP_Error`. Verification logic is independent of badge visibility.
 
 ---
 
