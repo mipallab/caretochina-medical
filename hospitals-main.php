@@ -18,6 +18,7 @@ class CareToChina_Hospitals_Plugin {
         add_action('plugins_loaded', [$this, 'load_textdomain']);
         add_action('init', [$this, 'register_cpt_and_taxonomies']);
         add_action('init', [$this, 'register_polylang_strings']);
+        add_action('init', [$this, 'clean_legacy_hospital_contact_meta']);
         add_action('add_meta_boxes', [$this, 'add_hospital_metaboxes']);
         add_action('save_post_hospital', [$this, 'save_hospital_metaboxes']);
         add_filter('single_template', [$this, 'hospital_single_template']);
@@ -34,6 +35,14 @@ class CareToChina_Hospitals_Plugin {
 
         // Enqueue Assets
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
+    }
+
+    public function clean_legacy_hospital_contact_meta() {
+        if (!get_option('caretochina_hospital_contact_meta_cleaned_v2')) {
+            global $wpdb;
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_hospital_address', '_hospital_phone_main', '_hospital_phone_appointment', '_hospital_phone_dept', '_hospital_phone_emergency', '_hospital_website')");
+            update_option('caretochina_hospital_contact_meta_cleaned_v2', 1);
+        }
     }
 
     
@@ -144,14 +153,8 @@ class CareToChina_Hospitals_Plugin {
 
         $type               = get_post_meta($post->ID, '_hospital_type', true);
         $location           = get_post_meta($post->ID, '_hospital_location', true);
-        $address            = get_post_meta($post->ID, '_hospital_address', true);
         $rating             = get_post_meta($post->ID, '_hospital_rating', true);
         $certification      = get_post_meta($post->ID, '_hospital_certification', true);
-        $phone_main         = get_post_meta($post->ID, '_hospital_phone_main', true);
-        $phone_appointment  = get_post_meta($post->ID, '_hospital_phone_appointment', true);
-        $phone_dept         = get_post_meta($post->ID, '_hospital_phone_dept', true);
-        $phone_emergency    = get_post_meta($post->ID, '_hospital_phone_emergency', true);
-        $website            = get_post_meta($post->ID, '_hospital_website', true);
         $quote_url          = get_post_meta($post->ID, '_hospital_quote_url', true);
         ?>
         <style>
@@ -160,41 +163,15 @@ class CareToChina_Hospitals_Plugin {
             .ctc-mb-field.full { grid-column: span 2; }
             .ctc-mb-field label { font-weight: 600; font-size: 13px; color: #1e293b; }
             .ctc-mb-field input { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; width: 100%; }
-                    /* Override theme reset.css #c36 red focus/hover color */
-            .ctc-hosp-btn:focus, .ctc-hosp-btn:focus-visible, .ctc-hosp-btn:active {
-                background-color: #c7f8cef2 !important;
-                color: #0c0707 !important;
-                border-color: transparent !important;
-                outline: none !important;
-                box-shadow: none !important;
-                }
-            .ctc-hosp-btn:hover {
-                background-color: #0f766e !important;
-                color: #ffffff !important;
-                border-color: #0f766e !important;
-                box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
-            }
-            html.dark-theme .ctc-hosp-btn:focus, body.dark-theme .ctc-hosp-btn:focus,
-            html.dark-theme .ctc-hosp-btn:focus-visible, body.dark-theme .ctc-hosp-btn:focus-visible,
-            html.dark-theme .ctc-hosp-btn:active, body.dark-theme .ctc-hosp-btn:active {
-                background-color: #2d3748 !important;
-                color: #f8fafc !important;
-                border-color: #475569 !important;
-                outline: none !important;
-            }
         </style>
         <div class="ctc-mb-grid">
             <div class="ctc-mb-field">
                 <label><?php _e('Hospital Type', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_type" value="<?php echo esc_attr($type); ?>">
+                <input type="text" name="hospital_type" value="<?php echo esc_attr($type); ?>" placeholder="e.g. JCI Accredited Multi-Specialty Hospital Center">
             </div>
             <div class="ctc-mb-field">
                 <label><?php _e('Location Badge', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_location" value="<?php echo esc_attr($location); ?>">
-            </div>
-            <div class="ctc-mb-field full">
-                <label><?php _e('Full Street Address', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_address" value="<?php echo esc_attr($address); ?>">
+                <input type="text" name="hospital_location" value="<?php echo esc_attr($location); ?>" placeholder="e.g. Shanghai, China">
             </div>
             <div class="ctc-mb-field">
                 <label><?php _e('Rating & Reviews', 'caretochina-hospitals'); ?></label>
@@ -204,27 +181,7 @@ class CareToChina_Hospitals_Plugin {
                 <label><?php _e('Accreditation Badge', 'caretochina-hospitals'); ?></label>
                 <input type="text" name="hospital_certification" value="<?php echo esc_attr($certification ? $certification : 'JCI Certified'); ?>">
             </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Main Line Phone', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_phone_main" value="<?php echo esc_attr($phone_main); ?>">
-            </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Appointment Line Phone', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_phone_appointment" value="<?php echo esc_attr($phone_appointment); ?>">
-            </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Department Line Phone', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_phone_dept" value="<?php echo esc_attr($phone_dept); ?>">
-            </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Emergency Hotline Phone', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_phone_emergency" value="<?php echo esc_attr($phone_emergency); ?>">
-            </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Official Website URL', 'caretochina-hospitals'); ?></label>
-                <input type="url" name="hospital_website" value="<?php echo esc_url($website); ?>">
-            </div>
-            <div class="ctc-mb-field">
+            <div class="ctc-mb-field full">
                 <label><?php _e('Free Quote Button Link', 'caretochina-hospitals'); ?></label>
                 <input type="text" name="hospital_quote_url" value="<?php echo esc_attr($quote_url ? $quote_url : '#booking'); ?>">
             </div>
@@ -238,28 +195,26 @@ class CareToChina_Hospitals_Plugin {
         if (!current_user_can('edit_post', $post_id)) return;
 
         $fields = [
-            'hospital_type'              => '_hospital_type',
-            'hospital_location'          => '_hospital_location',
-            'hospital_address'           => '_hospital_address',
-            'hospital_rating'            => '_hospital_rating',
-            'hospital_certification'     => '_hospital_certification',
-            'hospital_phone_main'        => '_hospital_phone_main',
-            'hospital_phone_appointment' => '_hospital_phone_appointment',
-            'hospital_phone_dept'        => '_hospital_phone_dept',
-            'hospital_phone_emergency'   => '_hospital_phone_emergency',
-            'hospital_website'           => '_hospital_website',
-            'hospital_quote_url'         => '_hospital_quote_url',
+            'hospital_type'          => '_hospital_type',
+            'hospital_location'      => '_hospital_location',
+            'hospital_rating'        => '_hospital_rating',
+            'hospital_certification' => '_hospital_certification',
+            'hospital_quote_url'     => '_hospital_quote_url',
         ];
 
         foreach ($fields as $input_key => $meta_key) {
             if (isset($_POST[$input_key])) {
-                if ($input_key === 'hospital_website') {
-                    update_post_meta($post_id, $meta_key, esc_url_raw($_POST[$input_key]));
-                } else {
-                    update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$input_key]));
-                }
+                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$input_key]));
             }
         }
+
+        // Clean up legacy direct contact fields from database for this hospital
+        delete_post_meta($post_id, '_hospital_address');
+        delete_post_meta($post_id, '_hospital_phone_main');
+        delete_post_meta($post_id, '_hospital_phone_appointment');
+        delete_post_meta($post_id, '_hospital_phone_dept');
+        delete_post_meta($post_id, '_hospital_phone_emergency');
+        delete_post_meta($post_id, '_hospital_website');
     }
 
     public function enqueue_scripts() {

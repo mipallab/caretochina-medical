@@ -46,9 +46,9 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
         );
 
         $this->add_control(
-            'show_phone_lines',
+            'show_concierge_sidebar',
             [
-                'label'        => __('Show Contact Phone Lines Sidebar', 'caretochina-hospitals'),
+                'label'        => __('Show CareToChina Concierge Sidebar', 'caretochina-hospitals'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
             ]
@@ -104,14 +104,8 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
 
         $type               = get_post_meta($post_id, '_hospital_type', true);
         $location           = get_post_meta($post_id, '_hospital_location', true);
-        $address            = get_post_meta($post_id, '_hospital_address', true);
         $rating             = get_post_meta($post_id, '_hospital_rating', true);
         $certification      = get_post_meta($post_id, '_hospital_certification', true);
-        $phone_main         = get_post_meta($post_id, '_hospital_phone_main', true);
-        $phone_appointment  = get_post_meta($post_id, '_hospital_phone_appointment', true);
-        $phone_dept         = get_post_meta($post_id, '_hospital_phone_dept', true);
-        $phone_emergency    = get_post_meta($post_id, '_hospital_phone_emergency', true);
-        $website            = get_post_meta($post_id, '_hospital_website', true);
         $quote_url          = get_post_meta($post_id, '_hospital_quote_url', true);
 
         if (!$location) $location = 'Shanghai, China';
@@ -122,6 +116,7 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
 
         $specialties = get_the_terms($post_id, 'hospital_specialty');
         $departments = get_the_terms($post_id, 'hospital_department');
+        $show_sidebar = !empty($settings['show_concierge_sidebar']) ? $settings['show_concierge_sidebar'] : ($settings['show_phone_lines'] ?? 'yes');
         ?>
 
         <div class="ctc-single-hosp-wrapper post-<?php echo $post_id; ?>">
@@ -146,21 +141,11 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                         <span class="ctc-hero-rating"><i class="fa fa-star"></i> <?php echo esc_html($rating); ?></span>
                     </div>
                     <h1 class="cy-heading ctc-hero-title"><?php echo esc_html($title); ?></h1>
-                    
-                    <?php if (!empty($address)) : ?>
-                        <p class="ctc-hero-address"><i class="fas fa-location-arrow"></i> <?php echo esc_html($address); ?></p>
-                    <?php endif; ?>
 
                     <div class="ctc-hero-cta-row">
                         <?php if ($settings['show_quote_btn'] === 'yes') : ?>
                             <a href="<?php echo esc_attr($quote_url); ?>" class="ctc-quote-btn">
                                 <i class="fas fa-paper-plane"></i> <?php _e('Request Free Quote & Consultation', 'caretochina-hospitals'); ?>
-                            </a>
-                        <?php endif; ?>
-
-                        <?php if (!empty($website)) : ?>
-                            <a href="<?php echo esc_url($website); ?>" target="_blank" rel="noopener noreferrer" class="ctc-website-btn">
-                                <i class="fas fa-external-link-alt"></i> <?php _e('Official Website', 'caretochina-hospitals'); ?>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -207,39 +192,34 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                     <?php endif; ?>
                 </div>
 
-                <?php if ($settings['show_phone_lines'] === 'yes') : ?>
+                <?php if ($show_sidebar === 'yes') : ?>
                     <div class="ctc-hosp-sidebar-col">
                         <div class="ctc-hosp-card-box ctc-sidebar-card">
-                            <h3 class="cy-heading ctc-sidebar-title"><i class="fas fa-phone-alt"></i> <?php _e('Hospital Phone Lines', 'caretochina-hospitals'); ?></h3>
+                            <h3 class="cy-heading ctc-sidebar-title"><i class="fas fa-user-nurse"></i> <?php _e('CareToChina Concierge', 'caretochina-hospitals'); ?></h3>
                             <ul class="ctc-phone-list">
-                                <?php if (!empty($phone_main)) : ?>
-                                    <li>
-                                        <span class="ctc-phone-label"><?php _e('Main Line:', 'caretochina-hospitals'); ?></span>
-                                        <a href="tel:<?php echo esc_attr($phone_main); ?>" class="ctc-phone-val"><i class="fas fa-phone"></i> <?php echo esc_html($phone_main); ?></a>
-                                    </li>
-                                <?php endif; ?>
-
-                                <?php if (!empty($phone_appointment)) : ?>
-                                    <li>
-                                        <span class="ctc-phone-label"><?php _e('Appointments:', 'caretochina-hospitals'); ?></span>
-                                        <a href="tel:<?php echo esc_attr($phone_appointment); ?>" class="ctc-phone-val"><i class="fas fa-calendar-check"></i> <?php echo esc_html($phone_appointment); ?></a>
-                                    </li>
-                                <?php endif; ?>
-
-                                <?php if (!empty($phone_dept)) : ?>
-                                    <li>
-                                        <span class="ctc-phone-label"><?php _e('Department Desk:', 'caretochina-hospitals'); ?></span>
-                                        <a href="tel:<?php echo esc_attr($phone_dept); ?>" class="ctc-phone-val"><i class="fas fa-building"></i> <?php echo esc_html($phone_dept); ?></a>
-                                    </li>
-                                <?php endif; ?>
-
-                                <?php if (!empty($phone_emergency)) : ?>
-                                    <li class="ctc-emergency-item">
-                                        <span class="ctc-phone-label"><?php _e('24/7 Emergency:', 'caretochina-hospitals'); ?></span>
-                                        <a href="tel:<?php echo esc_attr($phone_emergency); ?>" class="ctc-phone-val ctc-emer-val"><i class="fas fa-ambulance"></i> <?php echo esc_html($phone_emergency); ?></a>
-                                    </li>
-                                <?php endif; ?>
+                                <li>
+                                    <span class="ctc-phone-label"><?php _e('Care Coordination:', 'caretochina-hospitals'); ?></span>
+                                    <span class="ctc-phone-val"><i class="fas fa-headset"></i> <?php _e('24/7 Dedicated Support', 'caretochina-hospitals'); ?></span>
+                                </li>
+                                <li>
+                                    <span class="ctc-phone-label"><?php _e('Medical Translation:', 'caretochina-hospitals'); ?></span>
+                                    <span class="ctc-phone-val"><i class="fas fa-language"></i> <?php _e('Full Concierge In-Hospital', 'caretochina-hospitals'); ?></span>
+                                </li>
+                                <li>
+                                    <span class="ctc-phone-label"><?php _e('Travel & Visa Help:', 'caretochina-hospitals'); ?></span>
+                                    <span class="ctc-phone-val"><i class="fas fa-passport"></i> <?php _e('Complete Medical Visa Aid', 'caretochina-hospitals'); ?></span>
+                                </li>
                             </ul>
+                        </div>
+
+                        <div class="ctc-hosp-card-box ctc-sidebar-card ctc-quote-promo">
+                            <h3 class="cy-heading ctc-sidebar-title" style="color: #FFFFFF;"><?php _e('Need Treatment Assistance?', 'caretochina-hospitals'); ?></h3>
+                            <p style="color: #CCFBF1; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px;">
+                                <?php _e('Get matched with top doctors and receive a transparent treatment cost estimate in 24 hours.', 'caretochina-hospitals'); ?>
+                            </p>
+                            <a href="<?php echo esc_attr($quote_url); ?>" class="ctc-sidebar-quote-btn">
+                                <i class="fas fa-paper-plane"></i> <?php _e('Get Free Quote', 'caretochina-hospitals'); ?>
+                            </a>
                         </div>
                     </div>
                 <?php endif; ?>
