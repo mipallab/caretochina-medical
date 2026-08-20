@@ -28,7 +28,13 @@ class CareToChina_Payment_Request_Manager {
      */
     public function handle_create_payment_request() {
         $nonce = $_POST['nonce'] ?? '';
-        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
+        if (
+            !wp_verify_nonce($nonce, 'caretochina_staff_nonce') &&
+            !wp_verify_nonce($nonce, 'careyou_staff_nonce') &&
+            !wp_verify_nonce($nonce, 'caretochina_booking_nonce') &&
+            !wp_verify_nonce($nonce, 'careyou_booking_nonce') &&
+            !wp_verify_nonce($nonce, 'wp_rest')
+        ) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-medical')]);
         }
 
@@ -225,7 +231,13 @@ class CareToChina_Payment_Request_Manager {
      */
     public function handle_cancel_payment_request() {
         $nonce = $_POST['nonce'] ?? '';
-        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
+        if (
+            !wp_verify_nonce($nonce, 'caretochina_staff_nonce') &&
+            !wp_verify_nonce($nonce, 'careyou_staff_nonce') &&
+            !wp_verify_nonce($nonce, 'caretochina_booking_nonce') &&
+            !wp_verify_nonce($nonce, 'careyou_booking_nonce') &&
+            !wp_verify_nonce($nonce, 'wp_rest')
+        ) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-medical')]);
         }
 
@@ -279,7 +291,14 @@ class CareToChina_Payment_Request_Manager {
      */
     public function handle_accept_payment_request() {
         $nonce = $_POST['nonce'] ?? '';
-        if (!wp_verify_nonce($nonce, 'caretochina_patient_nonce') && !wp_verify_nonce($nonce, 'careyou_patient_nonce') && !wp_verify_nonce($nonce, 'wp_rest')) {
+        if (
+            !wp_verify_nonce($nonce, 'caretochina_patient_nonce') &&
+            !wp_verify_nonce($nonce, 'careyou_patient_nonce') &&
+            !wp_verify_nonce($nonce, 'caretochina_booking_nonce') &&
+            !wp_verify_nonce($nonce, 'careyou_booking_nonce') &&
+            !wp_verify_nonce($nonce, 'caretochina_staff_nonce') &&
+            !wp_verify_nonce($nonce, 'wp_rest')
+        ) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-medical')]);
         }
 

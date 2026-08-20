@@ -85,6 +85,8 @@ class CareToChina_Medical_Booking {
         $localized_data = [
             'ajax_url'           => wp_parse_url(admin_url('admin-ajax.php'), PHP_URL_PATH),
             'nonce'              => wp_create_nonce('caretochina_booking_nonce'),
+            'booking_nonce'      => wp_create_nonce('caretochina_booking_nonce'),
+            'patient_nonce'      => wp_create_nonce('caretochina_patient_nonce'),
             'rest_url'           => esc_url_raw(rest_url()),
             'rest_nonce'         => wp_create_nonce('wp_rest'),
             'dashboard_url'      => class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/'),
@@ -113,6 +115,7 @@ class CareToChina_Medical_Booking {
         wp_localize_script('caretochina-booking-script', 'caretochina_obj', $localized_data);
         wp_localize_script('caretochina-booking-script', 'careyou_obj', $localized_data);
         wp_localize_script('caretochina-payment-handler', 'caretochina_obj', $localized_data);
+        wp_localize_script('caretochina-payment-handler', 'careyou_obj', $localized_data);
     }
 
     public function enqueue_admin_assets($hook) {

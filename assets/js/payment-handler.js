@@ -211,12 +211,22 @@
      * Patient accepts a payment request in chat
      */
     window.ctcAcceptPaymentRequest = function(requestId) {
-        var ajaxUrl = (window.caretochina_obj && window.caretochina_obj.ajax_url) || (window.ajaxurl) || '/wp-admin/admin-ajax.php';
-        var nonce = (window.caretochina_obj && window.caretochina_obj.nonce) || (window.caretochina_obj && window.caretochina_obj.patient_nonce) || '';
+        var ajaxUrl = (window.caretochina_obj && window.caretochina_obj.ajax_url) || 
+                      (window.careyou_obj && window.careyou_obj.ajax_url) || 
+                      (window.caretochina_staff_obj && window.caretochina_staff_obj.ajax_url) || 
+                      (window.ajaxurl) || 
+                      '/wp-admin/admin-ajax.php';
+
+        var nonce = (window.caretochina_obj && (window.caretochina_obj.patient_nonce || window.caretochina_obj.nonce || window.caretochina_obj.booking_nonce)) ||
+                    (window.careyou_obj && (window.careyou_obj.patient_nonce || window.careyou_obj.nonce || window.careyou_obj.booking_nonce)) ||
+                    (window.caretochina_staff_obj && window.caretochina_staff_obj.nonce) ||
+                    (window.careyou_staff_obj && window.careyou_staff_obj.nonce) || '';
 
         var $card = $('[data-request-id="' + requestId + '"]');
         var $btn = $card.find('.ctc-btn-accept-pay');
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Initializing...');
+        if ($btn.length) {
+            $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Initializing...');
+        }
 
         $.ajax({
             url: ajaxUrl,
@@ -235,11 +245,15 @@
                 } else {
                     alert((res.data && res.data.message) || 'Failed to accept payment request. Please refresh and try again.');
                 }
-                $btn.prop('disabled', false).html('<i class="fa-solid fa-lock"></i> Accept & Pay Online');
+                if ($btn.length) {
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-lock"></i> Accept & Pay Online');
+                }
             },
             error: function() {
                 alert('Network error communicating with server. Please try again.');
-                $btn.prop('disabled', false).html('<i class="fa-solid fa-lock"></i> Accept & Pay Online');
+                if ($btn.length) {
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-lock"></i> Accept & Pay Online');
+                }
             }
         });
     };
@@ -252,8 +266,15 @@
             return;
         }
 
-        var ajaxUrl = (window.caretochina_obj && window.caretochina_obj.ajax_url) || (window.ajaxurl) || '/wp-admin/admin-ajax.php';
-        var nonce = (window.caretochina_obj && window.caretochina_obj.staff_nonce) || (window.caretochina_obj && window.caretochina_obj.nonce) || '';
+        var ajaxUrl = (window.caretochina_staff_obj && window.caretochina_staff_obj.ajax_url) || 
+                      (window.careyou_staff_obj && window.careyou_staff_obj.ajax_url) || 
+                      (window.caretochina_obj && window.caretochina_obj.ajax_url) || 
+                      (window.ajaxurl) || 
+                      '/wp-admin/admin-ajax.php';
+
+        var nonce = (window.caretochina_staff_obj && window.caretochina_staff_obj.nonce) || 
+                    (window.careyou_staff_obj && window.careyou_staff_obj.nonce) || 
+                    (window.caretochina_obj && (window.caretochina_obj.staff_nonce || window.caretochina_obj.nonce)) || '';
 
         $.ajax({
             url: ajaxUrl,
@@ -276,7 +297,7 @@
                 }
             },
             error: function() {
-                alert('Server error while cancelling request.');
+                alert('Network error communicating with server.');
             }
         });
     };
