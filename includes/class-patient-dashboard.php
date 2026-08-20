@@ -274,7 +274,11 @@ class CareToChina_Patient_Dashboard {
                                         </div>
                                         <div>
                                             <strong class="ctc-deposit-title"><?php _e('Booking Deposit Required', 'caretochina-booking'); ?></strong>
-                                            <div class="ctc-deposit-desc"><?php printf(__('Deposit of %s is pending for Case #%s. Pay now to lock in your appointment.', 'caretochina-booking'), '$' . number_format((float)$active_booking->amount, 2) . ' ' . esc_html($active_booking->currency ?: 'USD'), esc_html($active_booking->booking_code)); ?></div>
+                                            <div class="ctc-deposit-desc"><?php 
+                                                $active_curr = $active_booking->currency ?: 'USD';
+                                                $active_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($active_curr) : '$';
+                                                printf(__('Deposit of %s is pending for Case #%s. Pay now to lock in your appointment.', 'caretochina-booking'), $active_sym . number_format((float)$active_booking->amount, 2) . ' ' . esc_html($active_curr), esc_html($active_booking->booking_code)); 
+                                            ?></div>
                                         </div>
                                     </div>
                                     <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($active_booking->id); ?>, <?php echo esc_attr($active_booking->amount); ?>, '<?php echo esc_attr($active_booking->currency ?: 'USD'); ?>', '<?php echo esc_attr($active_booking->specialty); ?>')" class="ctc-solid-btn btn-teal-primary ctc-deposit-btn">
@@ -456,7 +460,11 @@ class CareToChina_Patient_Dashboard {
                                                             <br><span style="font-size:11px; color:#0F766E;"><i class="fa-solid fa-headset"></i> <?php _e('Staff Payment Request', 'caretochina-booking'); ?></span>
                                                         </td>
                                                         <td style="font-weight:700; color:#0F766E;">
-                                                            <?php echo esc_html('$' . number_format((float)$pr->amount, 2) . ' ' . ($pr->currency ?: 'USD')); ?>
+                                                            <?php 
+                                                            $pr_curr = $pr->currency ?: 'USD';
+                                                            $pr_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($pr_curr) : '$';
+                                                            echo esc_html($pr_sym . number_format((float)$pr->amount, 2) . ' ' . $pr_curr); 
+                                                            ?>
                                                         </td>
                                                         <td>
                                                             <?php if ($pr_status === 'accepted_paid') : ?>
@@ -526,7 +534,11 @@ class CareToChina_Patient_Dashboard {
                                                             <?php endif; ?>
                                                         </td>
                                                         <td style="font-weight:700; color:#0F766E;">
-                                                            <?php echo esc_html('$' . number_format((float)$pb->amount, 2) . ' ' . ($pb->currency ?: 'USD')); ?>
+                                                            <?php 
+                                                            $pb_curr = $pb->currency ?: 'USD';
+                                                            $pb_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($pb_curr) : '$';
+                                                            echo esc_html($pb_sym . number_format((float)$pb->amount, 2) . ' ' . $pb_curr); 
+                                                            ?>
                                                         </td>
                                                         <td>
                                                             <?php 
@@ -1006,7 +1018,11 @@ class CareToChina_Patient_Dashboard {
                         </div>
                         <div class="ctc-summary-row">
                             <span class="ctc-summary-row-lbl"><?php _e('Estimated Package', 'caretochina-booking'); ?></span>
-                            <span class="ctc-summary-row-val ctc-highlight-price"><?php echo esc_html('$' . number_format($guest_booking->amount, 2) . ' ' . $guest_booking->currency); ?></span>
+                            <span class="ctc-summary-row-val ctc-highlight-price"><?php 
+                                $g_curr = $guest_booking->currency ?: 'USD';
+                                $g_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($g_curr) : '$';
+                                echo esc_html($g_sym . number_format($guest_booking->amount, 2) . ' ' . $g_curr); 
+                            ?></span>
                         </div>
 
                         <div class="ctc-guest-continuity-notice">

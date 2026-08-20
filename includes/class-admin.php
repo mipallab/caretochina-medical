@@ -492,7 +492,9 @@ class CareToChina_Booking_Admin {
             // Format cost
             $cost_display = '—';
             if (floatval($b->amount) > 0) {
-                $cost_display = '$' . number_format((float)$b->amount, 2) . ' ' . esc_html($b->currency ?: 'USD');
+                $b_curr = $b->currency ?: 'USD';
+                $b_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($b_curr) : '$';
+                $cost_display = $b_sym . number_format((float)$b->amount, 2) . ' ' . esc_html($b_curr);
             } elseif (!empty($b->quote_details)) {
                 // If quote details contains a cost snippet
                 if (preg_match('/Cost:\s*([^|]+)/i', $b->quote_details, $matches)) {
