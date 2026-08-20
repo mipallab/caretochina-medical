@@ -124,8 +124,8 @@ class CareToChina_Staff_Portal {
     }
 
     public function render_admin_staff_desk() {
-        echo '<div class="wrap" style="padding:20px; font-family:\'Inter\', sans-serif;">';
-        echo '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">';
+        echo '<div class="wrap caretochina-admin-staff-wrap" style="padding:10px 0; margin:10px 20px 0 2px; font-family:\'Inter\', sans-serif; max-width:100%; box-sizing:border-box;">';
+        echo '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">';
         echo '<h1 class="wp-heading-inline" style="margin:0;"><i class="fa-solid fa-user-doctor text-teal"></i> ' . __('Medical Technical Person Portal', 'caretochina-staff') . '</h1>';
         if (current_user_can('manage_options')) {
             echo '<button type="button" onclick="jQuery(\'#admin-create-staff-modal\').css(\'display\', \'flex\')" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700;"><i class="fa-solid fa-user-plus"></i> + ' . __('Create New Staff Account', 'caretochina-staff') . '</button>';
@@ -422,12 +422,16 @@ class CareToChina_Staff_Portal {
             $unread_messages_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_messages WHERE sender_type = 'patient' AND is_read = 0"));
         }
 
-        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings ORDER BY id DESC LIMIT 10");
+        $chat_conversations = $this->get_chat_conversations(30);
+        $all_bookings = $wpdb->get_results("SELECT * FROM $table_bookings ORDER BY id DESC LIMIT 10");
+        $bookings = !empty($all_bookings) ? $all_bookings : [];
 
         if (empty($bookings)) {
             $bookings = [
                 (object)[
                     'id' => 1,
+                    'patient_id' => 0,
+                    'is_guest' => 1,
                     'booking_code' => 'CTC-89420',
                     'full_name' => 'Sarah Jenkins',
                     'age' => 28,
@@ -450,37 +454,41 @@ class CareToChina_Staff_Portal {
             ];
         }
 
-        $active_b = $bookings[0];
+        $active_b = !empty($chat_conversations) ? $chat_conversations[0] : (!empty($bookings) ? $bookings[0] : null);
+        $store_currency = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_store_currency() : get_option('ctc_payment_currency', 'USD');
+        $currency_symbol = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($store_currency) : '$';
         ?>
-        <div class="careyou-staff-portal-wrapper caretochina-staff-portal-wrapper" data-booking-id="<?php echo esc_attr($active_b->id); ?>" data-booking-count="<?php echo count($bookings); ?>">
+        <div class="careyou-staff-portal-wrapper caretochina-staff-portal-wrapper" data-booking-id="<?php echo esc_attr($active_b ? $active_b->id : 0); ?>" data-booking-count="<?php echo count($bookings); ?>">
             <!-- STAFF BANNER HEADER -->
             <div class="staff-header-banner">
                 <div style="display:flex; align-items:center; gap:18px;">
-                    <div style="width:58px; height:58px; border-radius:50%; background:#CCFBF1; color:#0F766E; display:flex; align-items:center; justify-content:center; font-size:26px; border:2.5px solid #FFF;">
+                    <div style="width:58px; height:58px; border-radius:50%; background:#CCFBF1; color:#0F766E; display:flex; align-items:center; justify-content:center; font-size:26px; border:2.5px solid #FFF; flex-shrink:0;">
                         <i class="fa-solid fa-user-nurse"></i>
                     </div>
                     <div>
                         <h2><?php _e('Medical Coordinator Control Desk', 'caretochina-staff'); ?></h2>
-                        <p><i class="fa-solid fa-circle text-success" style="color:#10B981;"></i> <?php _e('Active Duty • Selected Case:', 'caretochina-staff'); ?> <strong id="header-active-case-code">#<?php echo esc_html($active_b->booking_code); ?></strong> (<span id="header-active-patient-name"><?php echo esc_html($active_b->full_name); ?></span>)</p>
+                        <p><i class="fa-solid fa-circle text-success" style="color:#10B981;"></i> <?php _e('Active Duty • Selected Case:', 'caretochina-staff'); ?> <strong id="header-active-case-code">#<?php echo esc_html($active_b ? $active_b->booking_code : '---'); ?></strong> (<span id="header-active-patient-name"><?php echo esc_html($active_b ? $active_b->full_name : __('No Active Case', 'caretochina-staff')); ?></span>)</p>
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:16px;">
-                    <!-- Theme Toggle Button -->
-                    <button type="button" class="staff-theme-toggle-btn" onclick="window.appToggleTheme()" style="background:rgba(255,255,255,0.15); border:none; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#FFF; font-size:18px; transition:all 0.2s;" title="<?php _e('Toggle Dark/Light Mode', 'caretochina-staff'); ?>">
-                        <i class="fa-solid fa-circle-half-stroke"></i>
-                    </button>
-                    <div id="staff-header-bell" style="position:relative; width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; color:#FFF; cursor:pointer; transition:all 0.2s;" onclick="appStaff.handleNotificationClick(event)">
+                    <!-- NOTIFICATION BELL & DROPDOWN -->
+                    <div id="staff-header-bell" style="position:relative; width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; color:#FFF; cursor:pointer; transition:all 0.2s;" onclick="appStaff.handleNotificationClick(event)" title="<?php esc_attr_e('Notifications', 'caretochina-staff'); ?>">
                         <i class="fa-solid fa-bell"></i>
                         <span id="staff-header-bell-badge" style="position:absolute; top:-4px; right:-4px; background:#EF4444; color:#FFF; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border:2px solid #0F766E; <?php echo (($pending_bookings_count + $unread_messages_count) === 0) ? 'display:none;' : ''; ?>"><?php echo ($pending_bookings_count + $unread_messages_count); ?></span>
                         
                         <!-- NOTIFICATION DROPDOWN -->
-                        <div id="staff-bell-dropdown" style="display:none; position:absolute; top:48px; right:0; width:320px; background:#FFF; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.15); border:1px solid #E2E8F0; z-index:9999; color:#0F172A; text-align:left; font-family:'Inter', sans-serif;">
-                            <div style="padding:12px 16px; border-bottom:1px solid #F1F5F9; font-weight:700; font-size:14px; color:#0F766E; display:flex; justify-content:space-between; align-items:center;">
-                                <span><?php _e('Notifications', 'caretochina-staff'); ?></span>
-                                <span style="font-size:11px; background:#FFE4E6; color:#E11D48; padding:2px 8px; border-radius:10px; font-weight:600;"><?php _e('Unread', 'caretochina-staff'); ?></span>
+                        <div id="staff-bell-dropdown" style="display:none; position:absolute; top:48px; right:0; width:350px; background:#FFFFFF; border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,0.2); border:1px solid #E2E8F0; z-index:99999; color:#0F172A; text-align:left; font-family:'Inter', sans-serif; cursor:default;" onclick="event.stopPropagation();">
+                            <div style="padding:14px 18px; border-bottom:1px solid #F1F5F9; font-weight:800; font-size:14px; color:#0F766E; display:flex; justify-content:space-between; align-items:center; font-family:'Manrope', sans-serif;">
+                                <span><i class="fa-solid fa-bell" style="margin-right:6px;"></i> <?php _e('Notifications', 'caretochina-staff'); ?></span>
+                                <span id="staff-bell-unread-tag" style="font-size:11px; background:#FFE4E6; color:#E11D48; padding:2px 8px; border-radius:10px; font-weight:700; <?php echo (($pending_bookings_count + $unread_messages_count) === 0) ? 'display:none;' : ''; ?>"><?php echo ($pending_bookings_count + $unread_messages_count); ?> <?php _e('New', 'caretochina-staff'); ?></span>
                             </div>
-                            <div id="staff-bell-dropdown-list" style="max-height:280px; overflow-y:auto; font-size:12px;">
-                                <div style="padding:20px; text-align:center; color:#94A3B8;"><?php _e('Loading notifications...', 'caretochina-staff'); ?></div>
+                            <div id="staff-bell-dropdown-list" style="max-height:300px; overflow-y:auto; font-size:12px;">
+                                <?php echo $this->generate_notifications_dropdown_html(); ?>
+                            </div>
+                            <div style="padding:10px 16px; border-top:1px solid #F1F5F9; text-align:center; background:#F8FAFC; border-radius:0 0 14px 14px;">
+                                <a href="javascript:void(0)" onclick="appStaff.switchTab(jQuery('.staff-tab[onclick*=\'bookings\']')[0], 'bookings'); jQuery('#staff-bell-dropdown').hide();" style="color:#0F766E; font-size:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <?php _e('View All Bookings & Approvals', 'caretochina-staff'); ?> &rarr;
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -566,51 +574,57 @@ class CareToChina_Staff_Portal {
 
                     <!-- TAB 2: LIVE PATIENT CHAT (SIDEBAR LAYOUT) -->
                     <div class="staff-panel" id="staff-panel-chat">
-                        <div class="glass-card" style="padding:0; overflow:hidden;">
-                            <div class="staff-chat-layout" style="display:flex; height:500px; background:#FFF; font-family:'Inter', sans-serif;">
+                        <div class="glass-card" style="padding:0; overflow:hidden; width:100%; box-sizing:border-box;">
+                            <div class="staff-chat-layout" style="display:flex; height:520px; background:#FFF; font-family:'Inter', sans-serif; width:100%; box-sizing:border-box; overflow:hidden;">
                                 <!-- Left Sidebar: Patients List -->
-                                <div class="staff-chat-sidebar" style="width:240px; border-right:1px solid #E2E8F0; display:flex; flex-direction:column; background:#F8FAFC;">
+                                <div class="staff-chat-sidebar" style="width:230px; min-width:180px; max-width:240px; border-right:1px solid #E2E8F0; display:flex; flex-direction:column; background:#F8FAFC; flex-shrink:0; box-sizing:border-box;">
                                     <div style="padding:16px; border-bottom:1px solid #E2E8F0; font-weight:700; font-family:'Manrope'; color:#0F172A;"><?php _e('Patient Chats', 'caretochina-staff'); ?></div>
                                     <div class="staff-chat-patient-list" style="flex:1; overflow-y:auto;">
-                                        <?php foreach ($bookings as $index => $b): ?>
-                                            <div class="staff-chat-patient-item <?php echo $index === 0 ? 'active' : ''; ?>" 
-                                                 data-booking-id="<?php echo $b->id; ?>" 
-                                                 data-patient-id="<?php echo $b->patient_id; ?>" 
-                                                 onclick="appStaff.selectPatientChat(this, <?php echo $b->id; ?>, '<?php echo esc_js($b->full_name); ?>', '<?php echo esc_js($b->booking_code); ?>')" 
-                                                 style="padding:12px 16px; border-bottom:1px solid #E2E8F0; cursor:pointer; transition:all 0.2s; <?php echo $index === 0 ? 'background:#CCFBF1; border-left:4px solid #0F766E;' : ''; ?>">
-                                                <div style="font-weight:700; color:#0F172A; font-size:13px;"><?php echo esc_html($b->full_name); ?></div>
-                                                <div style="font-size:11px; color:#64748B; margin-top:2px; display:flex; justify-content:space-between; align-items:center;">
-                                                    <span>#<?php echo esc_html($b->booking_code); ?></span>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                                        <?php echo $this->generate_chat_patient_list_html($chat_conversations, $active_b ? $active_b->id : 0); ?>
                                     </div>
                                 </div>
                                 <!-- Right Area: Messaging -->
-                                <div class="staff-chat-thread" style="flex:1; display:flex; flex-direction:column;">
-                                    <div class="staff-chat-thread-header" style="padding:16px; border-bottom:1px solid #E2E8F0; background:#FFF; display:flex; justify-content:space-between; align-items:center;">
-                                        <div>
-                                            <strong id="chat-active-patient-name" style="font-family:'Manrope'; color:#0F172A;"><?php echo esc_html($active_b->full_name); ?></strong>
-                                            <span id="chat-active-patient-code" style="font-size:12px; color:#64748B; margin-left:8px;">#<?php echo esc_html($active_b->booking_code); ?></span>
+                                <div class="staff-chat-thread" style="flex:1; display:flex; flex-direction:column; min-width:0; width:100%; box-sizing:border-box; overflow:hidden;">
+                                    <div class="staff-chat-thread-header" style="padding:16px; border-bottom:1px solid #E2E8F0; background:#FFF; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; box-sizing:border-box;">
+                                        <div style="display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap;">
+                                            <strong id="chat-active-patient-name" style="font-family:'Manrope'; color:#0F172A;"><?php echo esc_html($active_b ? $active_b->full_name : __('No Approved Patient Selected', 'caretochina-staff')); ?></strong>
+                                            <span id="chat-active-patient-code" style="font-size:12px; color:#64748B;"><?php echo $active_b ? '#' . esc_html($active_b->booking_code) : ''; ?></span>
+                                            <?php $is_active_b_guest = $active_b ? (intval($active_b->patient_id ?? 0) === 0 || intval($active_b->is_guest ?? 0) === 1) : false; ?>
+                                            <span id="chat-active-guest-badge" style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; <?php echo (!$is_active_b_guest || !$active_b) ? 'display:none;' : ''; ?>"><i class="fa-solid fa-user-clock"></i> <?php _e('Guest', 'caretochina-staff'); ?></span>
                                         </div>
                                         <span style="font-size:12px; color:#10B981; font-weight:600;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> <?php _e('Live', 'caretochina-staff'); ?></span>
                                     </div>
-                                    <div id="staff-chat-box" class="dash-chat-box" style="flex:1; overflow-y:auto; padding:20px; background:#F8FAFC; max-height: 330px;">
-                                        <!-- Loaded dynamically via AJAX Polling -->
+                                    <div id="staff-chat-box" class="dash-chat-box" style="flex:1; overflow-y:auto; overflow-x:hidden; padding:16px 20px; background:#F8FAFC; width:100%; box-sizing:border-box;">
+                                        <?php if (empty($active_b) || empty($chat_conversations)) : ?>
+                                            <div style="padding:50px 20px; text-align:center; color:#94A3B8;">
+                                                <i class="fa-solid fa-user-clock" style="font-size:36px; margin-bottom:12px; display:block; color:#CBD5E1;"></i>
+                                                <strong style="font-size:15px; color:#475569;"><?php _e('No Approved Patient Selected', 'caretochina-staff'); ?></strong>
+                                                <p style="margin:6px 0 0 0; font-size:13px;"><?php _e('Approve a pending booking from the Bookings & Approvals tab to start live consultation.', 'caretochina-staff'); ?></p>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div id="staff-chat-typing-indicator" style="padding:4px 20px; font-size:12px; color:#64748B; font-style:italic; display:none; background:#F8FAFC;"></div>
-                                    <?php $is_active_b_guest = ($active_b->patient_id == 0); ?>
-                                    <form id="staff-chat-form" style="padding:12px 16px; border-top:1px solid #E2E8F0; background:#FFF; display:flex; gap:12px; align-items:center; margin:0; <?php echo $is_active_b_guest ? 'display:none;' : ''; ?>">
-                                        <input type="hidden" name="booking_id" id="staff_chat_booking_id" value="<?php echo esc_attr($active_b->id); ?>">
-                                        <input type="text" name="message" id="staff_chat_input" class="form-input" placeholder="<?php _e('Type a response to patient...', 'caretochina-staff'); ?>" required style="flex:1; padding:11px; border-radius:10px; border:1px solid #cbd5e1; font-size:14px;">
-                                        <button type="button" onclick="window.ctcOpenStaffPaymentReqModal()" class="ctc-solid-btn" style="background:#0F766E; color:#FFF; padding:11px 16px; font-size:13px; font-weight:700; border-radius:10px; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap;" title="<?php _e('Create & Send Payment Request', 'caretochina-staff'); ?>">
+                                    
+                                    <div id="staff_attachment_preview" style="display:none; padding:6px 16px; background:#F1F5F9; border-top:1px solid #E2E8F0; font-size:12px; align-items:center; justify-content:space-between; gap:8px;">
+                                        <span id="staff_attachment_name" style="color:#0F172A; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+                                        <button type="button" onclick="appStaff.clearAttachment()" style="background:none; border:none; color:#EF4444; cursor:pointer; font-weight:800; font-size:14px; line-height:1;">&times;</button>
+                                    </div>
+
+                                    <form id="staff-chat-form" enctype="multipart/form-data" style="padding:12px 16px; border-top:1px solid #E2E8F0; background:#FFF; display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0; width:100%; box-sizing:border-box; min-width:0; <?php echo empty($active_b) ? 'display:none;' : ''; ?>">
+                                        <input type="hidden" name="booking_id" id="staff_chat_booking_id" value="<?php echo esc_attr($active_b ? $active_b->id : 0); ?>">
+                                        
+                                        <label for="staff_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-staff'); ?>" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px; background:#F1F5F9; border:1px solid #CBD5E1; color:#475569; cursor:pointer; font-size:16px; transition:all 0.2s; flex-shrink:0;">
+                                            <i class="fa-solid fa-paperclip"></i>
+                                        </label>
+                                        <input type="file" id="staff_chat_file_input" name="attachment" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none;" onchange="appStaff.handleFileSelected(this)">
+
+                                        <input type="text" name="message" id="staff_chat_input" class="form-input" placeholder="<?php _e('Type a response to patient...', 'caretochina-staff'); ?>" autocomplete="off" style="flex:1 1 140px; min-width:110px; padding:10px 14px; border-radius:10px; border:1px solid #cbd5e1; font-size:14px; box-sizing:border-box;">
+                                        
+                                        <button type="button" id="staff-chat-req-pay-btn" onclick="window.ctcOpenStaffPaymentReqModal()" class="ctc-solid-btn" style="background:#0F766E; color:#FFF; padding:10px 14px; font-size:13px; font-weight:700; border-radius:10px; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; flex-shrink:0; <?php echo $is_active_b_guest ? 'opacity:0.45; cursor:not-allowed;' : ''; ?>" title="<?php echo $is_active_b_guest ? esc_attr__('Payment requests can only be sent to registered patients. Ask guest to register first.', 'caretochina-staff') : esc_attr__('Create & Send Payment Request', 'caretochina-staff'); ?>">
                                             <i class="fa-solid fa-file-invoice-dollar"></i> <?php _e('Request Payment', 'caretochina-staff'); ?>
                                         </button>
-                                        <button type="submit" class="ctc-solid-btn btn-teal-primary" style="padding:11px 22px; font-size:14px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i> <?php _e('Send', 'caretochina-staff'); ?></button>
+                                        <button type="submit" class="ctc-solid-btn btn-teal-primary" style="padding:10px 20px; font-size:14px; border-radius:10px; cursor:pointer; flex-shrink:0; white-space:nowrap;"><i class="fa-solid fa-paper-plane"></i> <?php _e('Send', 'caretochina-staff'); ?></button>
                                     </form>
-                                    <div id="staff-chat-guest-notice" style="padding:16px; background:#FEF3C7; color:#B45309; text-align:center; font-size:13px; font-weight:600; border-top:1px solid #FCD34D; width:100%; box-sizing:border-box; <?php echo !$is_active_b_guest ? 'display:none;' : ''; ?>">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> <?php _e('This patient is an unregistered guest user. Live chat will be enabled once they register their account.', 'caretochina-staff'); ?>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -763,7 +777,7 @@ class CareToChina_Staff_Portal {
                                 <input type="text" name="plan_name" id="req_plan_name_input" class="form-input" placeholder="e.g. Standard VIP Package" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                             </div>
                             <div style="margin-bottom:14px;">
-                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Locked Amount ($ USD) *', 'caretochina-staff'); ?></label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php printf(__('Locked Amount (%s %s) *', 'caretochina-staff'), esc_html($currency_symbol), esc_html($store_currency)); ?></label>
                                 <input type="number" step="0.01" name="plan_custom_amount" id="req_plan_amount" class="form-input" placeholder="0.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                             </div>
                         </div>
@@ -775,7 +789,7 @@ class CareToChina_Staff_Portal {
                                 <input type="text" name="custom_amount_title" class="form-input" placeholder="e.g. Specialist Consultation & Second Opinion" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                             </div>
                             <div style="margin-bottom:14px;">
-                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Fee Amount ($ USD) *', 'caretochina-staff'); ?></label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php printf(__('Fee Amount (%s %s) *', 'caretochina-staff'), esc_html($currency_symbol), esc_html($store_currency)); ?></label>
                                 <input type="number" step="0.01" name="custom_fee_amount" class="form-input" placeholder="e.g. 150.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                             </div>
                         </div>
@@ -791,7 +805,7 @@ class CareToChina_Staff_Portal {
                                 <textarea name="custom_treatment_content" rows="3" class="form-input" placeholder="Include treatment scope, hospital inclusion, concierge services..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;"></textarea>
                             </div>
                             <div style="margin-bottom:14px;">
-                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Total Package Price ($ USD) *', 'caretochina-staff'); ?></label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php printf(__('Total Package Price (%s %s) *', 'caretochina-staff'), esc_html($currency_symbol), esc_html($store_currency)); ?></label>
                                 <input type="number" step="0.01" name="custom_treatment_amount" class="form-input" placeholder="e.g. 5000.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                             </div>
                         </div>
@@ -846,17 +860,18 @@ class CareToChina_Staff_Portal {
                 );
             }
 
+            $b_patient_id = intval($b->patient_id ?? 0);
             $is_restricted = false;
-            if ($b->patient_id > 0) {
-                $is_restricted = get_user_meta($b->patient_id, 'patient_restricted', true) ? true : false;
+            if ($b_patient_id > 0) {
+                $is_restricted = get_user_meta($b_patient_id, 'patient_restricted', true) ? true : false;
             }
 
             $restrict_btn = '';
-            if ($b->patient_id > 0) {
+            if ($b_patient_id > 0) {
                 $restrict_btn = sprintf(
                     '<button type="button" class="btn-action-restrict" onclick="appStaff.toggleRestrictPatient(%d, %d)" style="background:%s; color:#FFF; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="%s"><i class="fa-solid fa-ban"></i></button>',
                     $b->id,
-                    $b->patient_id,
+                    $b_patient_id,
                     $is_restricted ? '#EF4444' : '#F59E0B',
                     $is_restricted ? __('Unrestrict Patient Chat', 'caretochina-staff') : __('Restrict Patient Chat', 'caretochina-staff')
                 );
@@ -916,6 +931,227 @@ class CareToChina_Staff_Portal {
                 $b->id, __('View Details', 'caretochina-staff'),
                 $restrict_btn,
                 $delete_btn
+            );
+        }
+        return $html;
+    }
+
+    /**
+     * Generate HTML for Staff Header Notification Dropdown
+     */
+    public function generate_notifications_dropdown_html() {
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        $table_messages = $wpdb->prefix . 'caretochina_messages';
+
+        $items = [];
+
+        // 1. Pending Bookings (New Bookings requiring approval)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
+            $pending_list = $wpdb->get_results("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM $table_bookings WHERE status = 'pending' ORDER BY id DESC LIMIT 6");
+            if (!empty($pending_list)) {
+                foreach ($pending_list as $b) {
+                    $items[] = [
+                        'type'     => 'booking',
+                        'id'       => intval($b->id),
+                        'code'     => $b->booking_code,
+                        'name'     => $b->full_name,
+                        'title'    => sprintf(__('New Booking: #%s', 'caretochina-staff'), $b->booking_code),
+                        'subtitle' => $b->full_name . ' • ' . ($b->specialty ?: ($b->hospital_name ?: __('Medical Care', 'caretochina-staff'))),
+                        'time'     => human_time_diff(strtotime($b->created_at), current_time('timestamp')) . ' ' . __('ago', 'caretochina-staff'),
+                        'ts'       => strtotime($b->created_at)
+                    ];
+                }
+            }
+        }
+
+        // 2. Unread Messages from Patients
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages) {
+            $unread_msg_list = $wpdb->get_results("
+                SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
+                FROM $table_messages m 
+                JOIN $table_bookings b ON m.booking_id = b.id 
+                WHERE m.sender_type = 'patient' AND m.is_read = 0 
+                ORDER BY m.id DESC LIMIT 6
+            ");
+            if (!empty($unread_msg_list)) {
+                foreach ($unread_msg_list as $m) {
+                    $items[] = [
+                        'type'     => 'message',
+                        'id'       => intval($m->booking_id),
+                        'code'     => $m->booking_code,
+                        'name'     => $m->patient_name,
+                        'title'    => sprintf(__('Message from %s', 'caretochina-staff'), $m->patient_name),
+                        'subtitle' => wp_html_excerpt($m->message, 34, '...'),
+                        'time'     => human_time_diff(strtotime($m->created_at), current_time('timestamp')) . ' ' . __('ago', 'caretochina-staff'),
+                        'ts'       => strtotime($m->created_at)
+                    ];
+                }
+            }
+        }
+
+        if (empty($items)) {
+            return '<div style="padding:28px 16px; text-align:center; color:#94A3B8;"><i class="fa-regular fa-bell-slash" style="font-size:26px; margin-bottom:8px; display:block; color:#CBD5E1;"></i> ' . esc_html__('No new notifications', 'caretochina-staff') . '</div>';
+        }
+
+        // Sort by timestamp desc
+        usort($items, function($a, $b) {
+            return ($b['ts'] ?? 0) - ($a['ts'] ?? 0);
+        });
+
+        $html = '';
+        foreach ($items as $item) {
+            $icon = ($item['type'] === 'booking') ? 'fa-calendar-plus' : 'fa-comments';
+            $icon_bg = ($item['type'] === 'booking') ? '#FEF3C7' : '#CCFBF1';
+            $icon_color = ($item['type'] === 'booking') ? '#D97706' : '#0F766E';
+            $badge_tag = ($item['type'] === 'booking') 
+                ? '<span style="font-size:10px; background:#FEF3C7; color:#92400E; padding:2px 7px; border-radius:6px; font-weight:700; flex-shrink:0;">' . esc_html__('Approve', 'caretochina-staff') . '</span>' 
+                : '<span style="font-size:10px; background:#CCFBF1; color:#0F766E; padding:2px 7px; border-radius:6px; font-weight:700; flex-shrink:0;">' . esc_html__('Chat', 'caretochina-staff') . '</span>';
+
+            $html .= sprintf(
+                '<div class="staff-dropdown-item" onclick="appStaff.handleDropdownItemClick(\'%s\', %d, \'%s\', \'%s\')" style="padding:12px 16px; border-bottom:1px solid #F1F5F9; cursor:pointer; display:flex; gap:12px; align-items:flex-start; transition:background 0.2s;">
+                    <div style="width:34px; height:34px; border-radius:50%%; background:%s; color:%s; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; margin-top:2px;">
+                        <i class="fa-solid %s"></i>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:2px;">
+                            <span style="font-weight:700; color:#0F172A; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">%s</span>
+                            %s
+                        </div>
+                        <div style="font-size:12px; color:#64748B; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">%s</div>
+                        <div style="font-size:11px; color:#94A3B8; margin-top:4px;"><i class="fa-regular fa-clock" style="font-size:10px;"></i> %s</div>
+                    </div>
+                </div>',
+                esc_attr($item['type']),
+                intval($item['id']),
+                esc_js($item['name']),
+                esc_js($item['code']),
+                $icon_bg,
+                $icon_color,
+                $icon,
+                esc_html($item['title']),
+                $badge_tag,
+                esc_html($item['subtitle']),
+                esc_html($item['time'])
+            );
+        }
+        return $html;
+    }
+
+    public function get_chat_conversations($limit = 50) {
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        $table_messages = $wpdb->prefix . 'caretochina_messages';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") !== $table_bookings) {
+            return [];
+        }
+
+        $has_messages = ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages);
+
+        if ($has_messages) {
+            $query = "
+                SELECT b.*,
+                       m.message as last_msg_text,
+                       m.attachment_type as last_msg_att_type,
+                       m.attachment_name as last_msg_att_name,
+                       m.sender_type as last_msg_sender,
+                       m.message_type as last_msg_type,
+                       m.created_at as last_msg_time,
+                       (SELECT COUNT(*) FROM $table_messages WHERE booking_id = b.id AND sender_type = 'patient' AND is_read = 0) as unread_count
+                FROM $table_bookings b
+                LEFT JOIN $table_messages m ON m.id = (
+                    SELECT id FROM $table_messages WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
+                )
+                WHERE b.status IN ('confirmed', 'completed', 'waiting')
+                ORDER BY COALESCE(m.created_at, b.created_at) DESC
+                LIMIT %d
+            ";
+            return $wpdb->get_results($wpdb->prepare($query, $limit));
+        } else {
+            return $wpdb->get_results($wpdb->prepare("SELECT b.*, NULL as last_msg_text, NULL as last_msg_att_type, NULL as last_msg_att_name, NULL as last_msg_sender, NULL as last_msg_type, NULL as last_msg_time, 0 as unread_count FROM $table_bookings b WHERE b.status IN ('confirmed', 'completed', 'waiting') ORDER BY b.id DESC LIMIT %d", $limit));
+        }
+    }
+
+    public function generate_chat_patient_list_html($bookings, $active_id = 0) {
+        if (empty($bookings)) {
+            return '<div style="padding:20px; text-align:center; color:#94A3B8; font-size:13px;">' . esc_html__('No patient chats found', 'caretochina-staff') . '</div>';
+        }
+
+        $html = '';
+        foreach ($bookings as $index => $b) {
+            $b_id = intval($b->id);
+            $b_patient_id = intval($b->patient_id ?? 0);
+            $is_guest = (intval($b->is_guest ?? 0) === 1 || $b_patient_id === 0);
+            $is_active = ($active_id > 0) ? ($b_id === $active_id) : ($index === 0);
+            $unread_count = intval($b->unread_count ?? 0);
+
+            // Determine latest message preview snippet
+            $msg_preview = '';
+            if (isset($b->last_msg_type) && $b->last_msg_type === 'payment_request') {
+                $prefix = ($b->last_msg_sender === 'coordinator') ? __('You: ', 'caretochina-staff') : '';
+                $msg_preview = $prefix . '💳 ' . __('Payment Request', 'caretochina-staff');
+            } elseif (!empty($b->last_msg_text)) {
+                $prefix = ($b->last_msg_sender === 'coordinator') ? __('You: ', 'caretochina-staff') : '';
+                $msg_preview = $prefix . esc_html(wp_html_excerpt($b->last_msg_text, 28, '...'));
+            } elseif (!empty($b->last_msg_att_type)) {
+                $prefix = ($b->last_msg_sender === 'coordinator') ? __('You: ', 'caretochina-staff') : '';
+                $icon = ($b->last_msg_att_type === 'image') ? '📷 ' . __('Photo', 'caretochina-staff') : '📄 ' . __('Document', 'caretochina-staff');
+                $msg_preview = $prefix . $icon;
+            } else {
+                $msg_preview = '<span style="color:#94A3B8; font-style:italic;">' . __('Case created', 'caretochina-staff') . '</span>';
+            }
+
+            // Determine formatted time
+            $time_str = '';
+            if (!empty($b->last_msg_time)) {
+                $msg_ts = strtotime($b->last_msg_time);
+                if (date('Y-m-d', $msg_ts) === current_time('Y-m-d')) {
+                    $time_str = date_i18n('g:i A', $msg_ts);
+                } else {
+                    $time_str = human_time_diff($msg_ts, current_time('timestamp')) . ' ago';
+                }
+            } elseif (!empty($b->created_at)) {
+                $time_str = date_i18n('M d', strtotime($b->created_at));
+            }
+
+            $guest_badge = $is_guest ? '<span class="staff-chat-item-guest-tag">' . esc_html__('Guest', 'caretochina-staff') . '</span>' : '';
+            $unread_badge = ($unread_count > 0) ? sprintf('<span class="staff-chat-item-unread-badge">%d</span>', $unread_count) : '';
+            $active_class = $is_active ? 'active' : '';
+
+            $html .= sprintf('
+                <div class="staff-chat-patient-item %s" 
+                     data-booking-id="%d" 
+                     data-patient-id="%d" 
+                     data-is-guest="%d"
+                     onclick="appStaff.selectPatientChat(this, %d, \'%s\', \'%s\')">
+                    <div class="staff-chat-item-top">
+                        <div class="staff-chat-item-name-wrap">
+                            <strong class="staff-chat-item-name">%s</strong>
+                            %s
+                        </div>
+                        <span class="staff-chat-item-time">%s</span>
+                    </div>
+                    <div class="staff-chat-item-bottom">
+                        <span class="staff-chat-item-code">#%s</span>
+                        <div class="staff-chat-item-snippet %s">%s</div>
+                        %s
+                    </div>
+                </div>',
+                esc_attr($active_class),
+                $b_id,
+                $b_patient_id,
+                $is_guest ? 1 : 0,
+                $b_id,
+                esc_js($b->full_name),
+                esc_js($b->booking_code),
+                esc_html($b->full_name),
+                $guest_badge,
+                esc_html($time_str),
+                esc_html($b->booking_code),
+                ($unread_count > 0) ? 'has-unread' : '',
+                $msg_preview,
+                $unread_badge
             );
         }
         return $html;
@@ -1120,19 +1356,35 @@ class CareToChina_Staff_Portal {
                 'is_read'     => 0
             ]);
 
-            // 3. Send email to patient
+            // 3. Send email to patient (Non-blocking async)
             $email = $booking->email;
-            $subject = sprintf(__('Your CareToChina Booking Has Been Verified - Case #%s', 'caretochina-staff'), $booking->booking_code);
+            if (!empty($email)) {
             $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
-            $message = sprintf(
-                __("Dear %s,\n\nWe are pleased to inform you that your booking request with CareToChina has been verified by our medical coordinators.\n\nYou can now log in to your Patient Dashboard and message your coordinator directly in the live chat tab at:\n%s\n\nBest regards,\nCareToChina Medical Travel Desk", 'caretochina-staff'),
-                $booking->full_name, $dash_url
-            );
-            $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: CareToChina Health <care@caretochina.com>'];
-            
-            wp_mail($email, $subject, $message, $headers);
+            $chat_url = !empty($booking->guest_token) ? home_url('/guest-chat/?token=' . $booking->guest_token) : ($booking->is_guest ? add_query_arg(['booking_code' => $booking->booking_code], $dash_url) : add_query_arg(['tab' => 'messages'], $dash_url));
 
-            wp_send_json_success();
+            $email_data = [
+                'patient_name'    => $booking->full_name,
+                'full_name'       => $booking->full_name,
+                'patient_email'   => $email,
+                'patient_phone'   => $booking->phone ?? '',
+                'booking_code'    => $booking->booking_code,
+                'specialty'       => $booking->specialty ?? 'General Medical Care',
+                'hospital_name'   => $booking->hospital_name ?? 'Assigned Hospital',
+                'status'          => 'Verified & Approved',
+                'chat_url'        => $chat_url,
+                'dashboard_url'   => $dash_url,
+            ];
+
+            if (class_exists('CareToChina_Email_Templates')) {
+                CareToChina_Email_Templates::send_notification('status_update', $email, $email_data);
+            }
+        }
+
+            wp_send_json_success([
+                'booking_id' => $id,
+                'status'     => 'confirmed',
+                'message'    => __('Booking verified successfully.', 'caretochina-staff')
+            ]);
         }
         wp_send_json_error(['message' => __('Invalid booking.', 'caretochina-staff')]);
     }
@@ -1162,22 +1414,36 @@ class CareToChina_Staff_Portal {
                     }
                 }
 
+                // Render File Attachment if present
+                $attachment_html = '';
+                if (!empty($m->attachment_url)) {
+                    if ($m->attachment_type === 'image' || preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $m->attachment_url)) {
+                        $attachment_html = '<div class="chat-attachment-image" style="margin-top:8px;"><a href="' . esc_url($m->attachment_url) . '" target="_blank" rel="noopener noreferrer"><img src="' . esc_url($m->attachment_url) . '" alt="' . esc_attr($m->attachment_name ?: 'Image Attachment') . '" style="max-width:240px; max-height:180px; border-radius:10px; object-fit:cover; display:block; border:1px solid rgba(0,0,0,0.1);"></a></div>';
+                    } elseif ($m->attachment_type === 'pdf' || preg_match('/\.pdf$/i', $m->attachment_url)) {
+                        $attachment_html = '<div class="chat-attachment-pdf" style="margin-top:8px;"><a href="' . esc_url($m->attachment_url) . '" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.95); color:#0F172A; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:600; border:1px solid #CBD5E1;"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size:16px;"></i> <span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' . esc_html($m->attachment_name ?: 'Medical_Document.pdf') . '</span> <i class="fa-solid fa-arrow-down-to-bracket" style="color:#0F766E;"></i></a></div>';
+                    }
+                }
+
                 if ($m->sender_type === 'coordinator') {
                     $name = 'roji';
                     if (preg_match('/Staff \((.+)\)/', $m->sender_name, $matches)) {
                         $name = $matches[1];
                     }
-                    $chat_html .= '<div class="chat-msg coordinator mb-14" style="display:flex; justify-content:flex-end; margin-bottom:14px; text-align:right; font-family:\'Inter\', sans-serif; width:100%;">
-                        <div class="msg-bubble" style="background:#0F766E; color:#FFF; padding:10px 16px; border-radius:18px 18px 2px 18px; font-size:13px; max-width:80%; line-height:1.4; display:inline-block; text-align:left; border:none;">
-                            ' . esc_html($m->message) . ' <span style="font-size:11px; font-weight:700; color:#CCFBF1; margin-left:6px;">:Staff(' . esc_html($name) . ')</span>
+                    $msg_text_html = !empty($m->message) ? esc_html($m->message) : '';
+                    $chat_html .= '<div class="chat-msg coordinator mb-14" style="display:flex; justify-content:flex-end; margin-bottom:14px; text-align:right; font-family:\'Inter\', sans-serif; width:100%; box-sizing:border-box;">
+                        <div class="msg-bubble" style="background:#0F766E; color:#FFF; padding:10px 16px; border-radius:18px 18px 2px 18px; font-size:13px; max-width:82%; line-height:1.4; display:inline-block; text-align:left; border:none; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;">
+                            ' . $msg_text_html . ' <span style="font-size:11px; font-weight:700; color:#CCFBF1; margin-left:6px;">:Staff(' . esc_html($name) . ')</span>
+                            ' . $attachment_html . '
                             <div style="font-size:9px; text-align:right; margin-top:4px; opacity:0.8;">' . $read_tick . '</div>
                         </div>
                     </div>';
                 } else {
-                    $pat_name = $m->sender_name;
-                    $chat_html .= '<div class="chat-msg patient mb-14" style="display:flex; justify-content:flex-start; margin-bottom:14px; font-family:\'Inter\', sans-serif; width:100%;">
-                        <div class="msg-bubble" style="background:#FFFFFF; color:#0F172A; border:1px solid #E2E8F0; padding:10px 16px; border-radius:18px 18px 18px 2px; font-size:13px; max-width:80%; line-height:1.4;">
-                            <span style="font-weight:700; color:#0F766E; margin-right:4px;">Patient(' . esc_html($pat_name) . '):</span> ' . esc_html($m->message) . '
+                    $pat_name = $m->sender_name ?: 'Patient';
+                    $msg_text_html = !empty($m->message) ? esc_html($m->message) : '';
+                    $chat_html .= '<div class="chat-msg patient mb-14" style="display:flex; justify-content:flex-start; margin-bottom:14px; font-family:\'Inter\', sans-serif; width:100%; box-sizing:border-box;">
+                        <div class="msg-bubble" style="background:#FFFFFF; color:#0F172A; border:1px solid #E2E8F0; padding:10px 16px; border-radius:18px 18px 18px 2px; font-size:13px; max-width:82%; line-height:1.4; word-break:break-word; overflow-wrap:anywhere; box-sizing:border-box;">
+                            <span style="font-weight:700; color:#0F766E; margin-right:4px;">Patient(' . esc_html($pat_name) . '):</span> ' . $msg_text_html . '
+                            ' . $attachment_html . '
                         </div>
                     </div>';
                 }
@@ -1198,23 +1464,84 @@ class CareToChina_Staff_Portal {
         $id = intval($_POST['booking_id'] ?? 0);
         $message = sanitize_textarea_field($_POST['message'] ?? '');
 
+        // Check if booking exists and is approved (confirmed/completed)
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $id));
+        if (!$booking) {
+            wp_send_json_error(['message' => __('Patient booking record not found.', 'caretochina-staff')]);
+        }
+        if ($booking->status === 'pending') {
+            wp_send_json_error(['message' => __('Please approve this patient booking from the Bookings tab before sending messages.', 'caretochina-staff')]);
+        }
+
         $current_user = wp_get_current_user();
         $staff_name = $current_user->exists() ? 'Staff (' . $current_user->display_name . ')' : 'Staff (Coordinator)';
 
-        if ($id > 0 && !empty($message)) {
+        // Handle File Attachment (Max 2MB, Images & PDF)
+        $attachment_url = '';
+        $attachment_name = '';
+        $attachment_type = '';
+
+        if (!empty($_FILES['attachment']) && !empty($_FILES['attachment']['name'])) {
+            $file = $_FILES['attachment'];
+
+            // 1. Check size (max 2MB = 2097152 bytes)
+            if ($file['size'] > 2097152) {
+                wp_send_json_error(['message' => __('Attachment file size exceeds the 2MB limit.', 'caretochina-staff')]);
+            }
+
+            // 2. Validate MIME type
+            $allowed_mimes = [
+                'jpg|jpeg|jpe' => 'image/jpeg',
+                'png'          => 'image/png',
+                'webp'         => 'image/webp',
+                'gif'          => 'image/gif',
+                'pdf'          => 'application/pdf',
+            ];
+
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            $file_check = wp_check_filetype_and_ext($file['tmp_name'], $file['name'], $allowed_mimes);
+
+            if (empty($file_check['ext']) || empty($file_check['type'])) {
+                wp_send_json_error(['message' => __('Invalid file format. Only images (JPG, PNG, WEBP, GIF) and PDF documents up to 2MB are allowed.', 'caretochina-staff')]);
+            }
+
+            // 3. Upload file
+            $upload_overrides = ['test_form' => false, 'mimes' => $allowed_mimes];
+            $movefile = wp_handle_upload($file, $upload_overrides);
+
+            if ($movefile && !isset($movefile['error'])) {
+                $attachment_url  = esc_url_raw($movefile['url']);
+                $attachment_name = sanitize_file_name($file['name']);
+                $attachment_type = (strpos($file_check['type'], 'image/') === 0) ? 'image' : 'pdf';
+            } else {
+                wp_send_json_error(['message' => __('Failed to upload file: ', 'caretochina-staff') . ($movefile['error'] ?? 'Unknown error')]);
+            }
+        }
+
+        if ($id > 0 && (!empty($message) || !empty($attachment_url))) {
             $wpdb->insert($table_messages, [
-                'booking_id'  => $id,
-                'sender_type' => 'coordinator',
-                'sender_name' => $staff_name,
-                'message'     => $message,
-                'is_read'     => 0,
-                'created_at'  => current_time('mysql'),
+                'booking_id'      => $id,
+                'sender_type'     => 'coordinator',
+                'sender_name'     => $staff_name,
+                'message'         => $message,
+                'attachment_url'  => $attachment_url,
+                'attachment_name' => $attachment_name,
+                'attachment_type' => $attachment_type,
+                'is_read'         => 0,
+                'created_at'      => current_time('mysql'),
             ]);
             
             $html = $this->get_staff_chat_html($id);
-            wp_send_json_success(['sender' => $staff_name, 'message' => $message, 'html' => $html]);
+            $chat_sidebar_html = $this->generate_chat_patient_list_html($this->get_chat_conversations(30), $id);
+            wp_send_json_success([
+                'sender' => $staff_name,
+                'message' => $message,
+                'html' => $html,
+                'chat_sidebar_html' => $chat_sidebar_html
+            ]);
         }
-        wp_send_json_error(['message' => __('Invalid chat submission.', 'caretochina-staff')]);
+        wp_send_json_error(['message' => __('Please enter a message or select a file to send.', 'caretochina-staff')]);
     }
 
     public function handle_get_staff_chat() {
@@ -1443,14 +1770,15 @@ class CareToChina_Staff_Portal {
         
         // Fetch pending bookings list
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-            $pending_list = $wpdb->get_results("SELECT id, booking_code, full_name, created_at FROM $table_bookings WHERE status = 'pending' ORDER BY id DESC LIMIT 5");
+            $pending_list = $wpdb->get_results("SELECT id, booking_code, full_name, specialty, created_at FROM $table_bookings WHERE status = 'pending' ORDER BY id DESC LIMIT 5");
             foreach ($pending_list as $item) {
                 $unread_items[] = [
                     'type' => 'booking',
                     'id' => intval($item->id),
                     'code' => $item->booking_code,
                     'name' => $item->full_name,
-                    'title' => sprintf(__('New Booking: #%s (%s)', 'caretochina-staff'), $item->booking_code, $item->full_name),
+                    'title' => sprintf(__('New Booking: #%s', 'caretochina-staff'), $item->booking_code),
+                    'subtitle' => $item->full_name . ' • ' . ($item->specialty ?: __('Medical Consultation', 'caretochina-staff')),
                     'time' => human_time_diff(strtotime($item->created_at), current_time('timestamp')) . ' ago'
                 ];
             }
@@ -1471,11 +1799,17 @@ class CareToChina_Staff_Portal {
                     'id' => intval($item->booking_id),
                     'code' => $item->booking_code,
                     'name' => $item->patient_name,
-                    'title' => sprintf(__('Msg from %s: "%s"', 'caretochina-staff'), $item->patient_name, wp_html_excerpt($item->message, 30)),
+                    'title' => sprintf(__('Message from %s', 'caretochina-staff'), $item->patient_name),
+                    'subtitle' => wp_html_excerpt($item->message, 34, '...'),
                     'time' => human_time_diff(strtotime($item->created_at), current_time('timestamp')) . ' ago'
                 ];
             }
         }
+
+        $active_booking_id = intval($_POST['active_booking_id'] ?? 0);
+        $conversations = $this->get_chat_conversations(30);
+        $chat_sidebar_html = $this->generate_chat_patient_list_html($conversations, $active_booking_id);
+        $dropdown_html = $this->generate_notifications_dropdown_html();
 
         wp_send_json_success([
             'bookings_count' => $bookings_count,
@@ -1488,7 +1822,9 @@ class CareToChina_Staff_Portal {
             'latest_message_code' => $latest_message ? $latest_message->booking_code : '',
             'latest_message_text' => $latest_message ? wp_html_excerpt($latest_message->message, 40) : '',
             'latest_message_booking_id' => $latest_message ? intval($latest_message->booking_id) : 0,
-            'unread_items' => $unread_items
+            'unread_items' => $unread_items,
+            'dropdown_html' => $dropdown_html,
+            'chat_sidebar_html' => $chat_sidebar_html
         ]);
     }
 

@@ -131,12 +131,13 @@ class CareToChina_Booking_Wizard {
     public function render_booking_modal_in_footer() {
         $is_logged_in = is_user_logged_in();
         $current_user = wp_get_current_user();
+        $user_id = ($is_logged_in && $current_user) ? $current_user->ID : 0;
         
         $profile_name = $is_logged_in ? $current_user->display_name : '';
         $profile_email = $is_logged_in ? $current_user->user_email : '';
-        $profile_phone = $is_logged_in ? get_user_meta($current_user->ID, 'patient_phone', true) : '';
-        $profile_gender = $is_logged_in ? get_user_meta($current_user->ID, 'patient_gender', true) : '';
-        $profile_age = $is_logged_in ? get_user_meta($current_user->ID, 'patient_age', true) : '';
+        $profile_phone = $user_id ? get_user_meta($user_id, 'patient_phone', true) : '';
+        $profile_gender = $user_id ? get_user_meta($user_id, 'patient_gender', true) : '';
+        $profile_age = $user_id ? get_user_meta($user_id, 'patient_age', true) : '';
         
         ?>
         <!-- CARETOCHINA BOOKING MODAL POPUP -->
@@ -145,18 +146,28 @@ class CareToChina_Booking_Wizard {
                 <button type="button" class="ctc-booking-modal-close" onclick="appWizard.closeModal()">&times;</button>
                 
                 <div class="wiz-header text-center" style="text-align:center; margin-bottom: 24px;">
+                    <?php $brand_logo = get_option('ctc_brand_logo_url', ''); if (!empty($brand_logo)) : ?>
+                        <div style="margin-bottom:12px; display:flex; justify-content:center;">
+                            <img src="<?php echo esc_url($brand_logo); ?>" alt="CareToChina Logo" style="max-height:42px; max-width:200px; object-fit:contain;">
+                        </div>
+                    <?php endif; ?>
                     <span class="badge-pill" style="background:#CCFBF1; color:#0F766E; padding:6px 14px; font-weight:700; font-size:12px; border-radius:999px;"><i class="fa-solid fa-wand-magic-sparkles"></i> <?php _e('CareToChina Consultation Wizard', 'caretochina-booking'); ?></span>
-                    <h2 class="section-title" style="font-family:var(--cymb-font-heading); color:var(--cymb-text-dark); margin: 34px 0 20px 0; font-size:26px; font-weight:800;"><?php _e('Instant Medical Travel Booking', 'caretochina-booking'); ?></h2>
-                    <p class="section-subtitle text-muted" style="margin-bottom:40px; font-size:16px; color:#64748B;"><?php _e('Lock in guaranteed treatment packages in 4 easy steps.', 'caretochina-booking'); ?></p>
+                    <h2 class="section-title" style="font-family:var(--cymb-font-heading); color:var(--cymb-text-dark); margin: 24px 0 16px 0; font-size:26px; font-weight:800;"><?php _e('Instant Medical Travel Booking', 'caretochina-booking'); ?></h2>
+                    <p class="section-subtitle text-muted" style="margin-bottom:30px; font-size:15px; color:#64748B;">
+                        <?php echo $is_logged_in ? __('Lock in guaranteed treatment packages in 4 easy steps.', 'caretochina-booking') : __('Submit your medical travel inquiry in 3 quick steps. Our coordinators will review your case and send a tailored package.', 'caretochina-booking'); ?>
+                    </p>
                 </div>
 
                 <!-- STEP INDICATORS -->
                 <div class="wizard-steps-indicator" style="display:flex; justify-content:space-between; margin-bottom:30px; border: 1px solid transparent; border-bottom:1px solid var(--cymb-border-color); padding-bottom:12px; font-family:var(--cymb-font-heading);">
                     <div class="wiz-step active" data-step="1" style="font-size:12px;"><?php _e('1. Hospital', 'caretochina-booking'); ?></div>
-                    <div class="wiz-step" data-step="2" style="font-size:12px;"><?php _e('2. Specialty', 'caretochina-booking'); ?></div>
-                    <div class="wiz-step" data-step="3" style="font-size:12px;"><?php _e('3. Pricing Plan', 'caretochina-booking'); ?></div>
-                    <div class="wiz-step" data-step="4" style="font-size:12px;"><?php _e('4. Patient Details', 'caretochina-booking'); ?></div>
-                    <div class="wiz-step" data-step="5" style="font-size:12px;"><?php _e('5. Review & Submit', 'caretochina-booking'); ?></div>
+                    <div class="wiz-step" data-step="2" style="font-size:12px;"><?php _e('2. Specialty & Timing', 'caretochina-booking'); ?></div>
+                    <?php if ($is_logged_in) : ?>
+                        <div class="wiz-step" data-step="3" style="font-size:12px;"><?php _e('3. Pricing Plan', 'caretochina-booking'); ?></div>
+                        <div class="wiz-step" data-step="4" style="font-size:12px;"><?php _e('4. Patient Details & Confirm', 'caretochina-booking'); ?></div>
+                    <?php else : ?>
+                        <div class="wiz-step" data-step="3" style="font-size:12px;"><?php _e('3. Patient Details & Submit', 'caretochina-booking'); ?></div>
+                    <?php endif; ?>
                 </div>
 
                 <form id="ctc-booking-wizard-form">
@@ -209,31 +220,33 @@ class CareToChina_Booking_Wizard {
 
                         <div class="wiz-action-footer">
                             <button type="button" class="ctc-solid-btn btn-wiz-secondary" id="wiz-back-btn-step-2" onclick="appWizard.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(3)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
+                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(<?php echo $is_logged_in ? '3' : '4'; ?>)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
 
-                    <!-- STEP 3: SELECT PRICING PLAN (NEW) -->
-                    <div class="wiz-page" id="wiz-step-3" style="display:none;">
-                        <div class="form-group mb-16">
-                            <label class="form-label" style="font-weight:700; font-size:15px; margin-bottom:4px;"><?php _e('Select Your Treatment Tier / Package *', 'caretochina-booking'); ?></label>
-                            <p style="font-size:13px; color:#64748B; margin-top:0; margin-bottom:16px;"><?php _e('Choose an authorized treatment package. All prices are guaranteed and locked onto your booking.', 'caretochina-booking'); ?></p>
-                            <div id="wiz-pricing-plans-grid" style="display:grid; grid-template-columns:1fr; gap:12px; max-height:280px; overflow-y:auto; padding-right:4px; margin-bottom:10px;">
-                                <!-- Loaded dynamically via AJAX ctc_get_treatment_plans -->
+                    <?php if ($is_logged_in) : ?>
+                        <!-- STEP 3: SELECT PRICING PLAN (LOGGED-IN ONLY) -->
+                        <div class="wiz-page" id="wiz-step-3" style="display:none;">
+                            <div class="form-group mb-16">
+                                <label class="form-label wiz-plan-title" style="font-weight:700; font-size:15px; margin-bottom:4px;"><?php _e('Select Your Treatment Tier / Package *', 'caretochina-booking'); ?></label>
+                                <p class="wiz-plan-subtext" style="font-size:13px; margin-top:0; margin-bottom:16px;"><?php _e('Choose an authorized treatment package. All prices are guaranteed and locked onto your booking.', 'caretochina-booking'); ?></p>
+                                <div id="wiz-pricing-plans-grid" class="wiz-pricing-plans-grid" style="display:grid; grid-template-columns:1fr; gap:12px; max-height:280px; overflow-y:auto; padding-right:4px; margin-bottom:10px;">
+                                    <!-- Loaded dynamically via AJAX ctc_get_treatment_plans -->
+                                </div>
+                                <div id="wiz-pricing-plans-empty" class="wiz-pricing-plans-empty-box" style="display:none;">
+                                    <i class="fa-solid fa-tags wiz-pricing-plans-empty-icon"></i>
+                                    <span class="wiz-pricing-plans-empty-text"><?php _e('Standard Consultation Package ($500.00 Deposit) will be applied for this inquiry.', 'caretochina-booking'); ?></span>
+                                </div>
                             </div>
-                            <div id="wiz-pricing-plans-empty" style="display:none; text-align:center; padding:24px; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:12px; color:#64748B; font-size:13px;">
-                                <i class="fa-solid fa-tags" style="font-size:24px; margin-bottom:6px; color:#94A3B8; display:block;"></i>
-                                <?php _e('Standard Consultation Package ($500.00 Deposit) will be applied for this inquiry.', 'caretochina-booking'); ?>
+
+                            <div class="wiz-action-footer">
+                                <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(2)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
+                                <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(4)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
                             </div>
                         </div>
+                    <?php endif; ?>
 
-                        <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(2)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(4)"><?php _e('Next Step', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- STEP 4: PATIENT INFO & QUOTE REQUEST -->
+                    <!-- STEP 4: PATIENT DETAILS & DIRECT CONFIRMATION -->
                     <div class="wiz-page" id="wiz-step-4" style="display:none;">
                         <div class="form-group mb-12">
                             <label class="form-label" style="font-weight:700;"><?php _e('Briefly describe your condition or medical needs *', 'caretochina-booking'); ?></label>
@@ -266,19 +279,7 @@ class CareToChina_Booking_Wizard {
                             </div>
                         </div>
 
-                        <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(3)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(5)"><?php _e('Review & Book', 'caretochina-booking'); ?> <i class="fa-solid fa-arrow-right"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- STEP 5: CONTACT INFO, SUMMARY & LOGIN-GATED SUBMISSION -->
-                    <div class="wiz-page" id="wiz-step-5" style="display:none;">
                         <?php if (!$is_logged_in) : ?>
-                            <div class="auth-header" style="text-align:left; margin-bottom:14px;">
-                                <h4 style="margin: 0 0 6px 0; font-family:var(--cymb-font-heading); font-size:15px; border-bottom: 1px solid var(--cymb-border-color); padding-bottom: 4px; color: var(--cymb-text-dark);"><?php _e('Enter Contact Information', 'caretochina-booking'); ?></h4>
-                            </div>
-                            
                             <div class="ctc-form-grid-2">
                                 <div class="form-group">
                                     <label class="form-label"><?php _e('Email Address *', 'caretochina-booking'); ?></label>
@@ -286,132 +287,40 @@ class CareToChina_Booking_Wizard {
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label"><?php _e('Phone Number *', 'caretochina-booking'); ?></label>
-                                    <input type="tel" name="phone" id="wiz_phone" class="form-input" required placeholder="+1 (800) 555-0199">
+                                    <?php echo class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::render_phone_input_group('phone', '', true, '+1 (800) 555-0199', 'wiz_phone') : '<input type="tel" name="phone" id="wiz_phone" class="form-input" required placeholder="+1 (800) 555-0199">'; ?>
                                 </div>
                             </div>
 
                             <div class="ctc-form-grid-2">
                                 <div class="form-group">
-                                    <label class="form-label"><?php _e('WhatsApp Number', 'caretochina-booking'); ?></label>
-                                    <input type="text" name="whatsapp" id="wiz_whatsapp" class="form-input" placeholder="+1 (800) 555-0199">
+                                    <label class="form-label"><?php _e('WhatsApp Number (Optional)', 'caretochina-booking'); ?></label>
+                                    <?php echo class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::render_phone_input_group('whatsapp', '', false, '+1 (800) 555-0199', 'wiz_whatsapp') : '<input type="tel" name="whatsapp" id="wiz_whatsapp" class="form-input" placeholder="+1 (800) 555-0199">'; ?>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label"><?php _e('WeChat ID', 'caretochina-booking'); ?></label>
-                                    <input type="text" name="wechat" id="wiz_wechat" class="form-input" placeholder="WeChat ID">
+                                    <label class="form-label"><?php _e('WeChat / Messenger ID (Optional)', 'caretochina-booking'); ?></label>
+                                    <input type="text" name="wechat" id="wiz_wechat" class="form-input" placeholder="WeChat ID or Messenger">
                                 </div>
                             </div>
-
-                            <div class="ctc-form-grid-2">
-                                <div class="form-group">
-                                    <label class="form-label"><?php _e('Messenger ID', 'caretochina-booking'); ?></label>
-                                    <input type="text" name="messenger" id="wiz_messenger" class="form-input" placeholder="Messenger Handle / ID">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label"><?php _e('LinkedIn URL', 'caretochina-booking'); ?></label>
-                                    <input type="text" name="linkedin" id="wiz_linkedin" class="form-input" placeholder="LinkedIn Profile URL">
-                                </div>
-                            </div>
+                            <input type="hidden" name="messenger" id="wiz_messenger" value="">
+                            <input type="hidden" name="linkedin" id="wiz_linkedin" value="">
                         <?php else : ?>
                             <input type="hidden" name="email" id="wiz_email" value="<?php echo esc_attr($profile_email); ?>">
                             <input type="hidden" name="phone" id="wiz_phone" value="<?php echo esc_attr($profile_phone); ?>">
-                            
-                            <div class="ctc-summary-logged-in-box" style="background:#F0FDF4; border:1px solid #BBF7D0; padding:18px; border-radius:12px; margin-bottom:20px; color:#166534; font-size:14px;">
-                                <i class="fa-solid fa-circle-check"></i> <?php printf(__('You are logged in as %s. Your verified profile will be linked to this booking.', 'caretochina-booking'), esc_html($profile_name)); ?>
-                            </div>
+                            <input type="hidden" name="whatsapp" id="wiz_whatsapp" value="<?php echo esc_attr(get_user_meta($user_id, 'patient_whatsapp', true)); ?>">
+                            <input type="hidden" name="wechat" id="wiz_wechat" value="<?php echo esc_attr(get_user_meta($user_id, 'patient_wechat', true)); ?>">
+                            <input type="hidden" name="messenger" id="wiz_messenger" value="<?php echo esc_attr(get_user_meta($user_id, 'patient_messenger', true)); ?>">
+                            <input type="hidden" name="linkedin" id="wiz_linkedin" value="<?php echo esc_attr(get_user_meta($user_id, 'patient_linkedin', true)); ?>">
                         <?php endif; ?>
 
-                        <div class="wiz-summary-card" style="padding:20px; border-radius:14px; margin-bottom:20px; background:#F8FAFC; border:1px solid #E2E8F0;">
-                            <h4 style="margin:0 0 12px 0; font-size:14px; font-weight:700; color:var(--cymb-text-dark);"><?php _e('Summary of Booking Request:', 'caretochina-booking'); ?></h4>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px; color:var(--cymb-text-dark);">
-                                <div><strong><?php _e('Selected Hospital:', 'caretochina-booking'); ?></strong> <span id="wiz-sum-hospital">Hospital</span></div>
-                                <div><strong><?php _e('Treatment / Specialty:', 'caretochina-booking'); ?></strong> <span id="wiz-sum-specialties">Specialties</span></div>
-                                <div><strong><?php _e('Pricing Plan:', 'caretochina-booking'); ?></strong> <span id="wiz-sum-plan" style="color:#0F766E; font-weight:700;">Standard Plan</span></div>
-                                <div><strong><?php _e('Total Package Cost:', 'caretochina-booking'); ?></strong> <span id="wiz-sum-cost" style="color:#0F766E; font-weight:800; font-size:15px;">$500.00 USD</span></div>
-                                <div><strong><?php _e('Treatment Timing:', 'caretochina-booking'); ?></strong> <span id="wiz-sum-timing">Timing</span></div>
-                                <div><strong><?php _e('Patient Name:', 'caretochina-booking'); ?></strong> <span id="wiz-sum-patient">Patient</span></div>
-                            </div>
-                        </div>
+                        <?php if (class_exists('CareToChina_Recaptcha')) echo CareToChina_Recaptcha::render_field($is_logged_in ? 'booking' : 'guest_booking'); ?>
 
-                        <?php if (class_exists('CareToChina_Recaptcha')) echo CareToChina_Recaptcha::render_field('booking'); ?>
-
-                        <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(4)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
-                            <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fa-solid fa-check-circle"></i> <?php echo $is_logged_in ? __('Confirm & Proceed to Payment', 'caretochina-booking') : __('Sign In & Confirm Booking', 'caretochina-booking'); ?></button>
+                        <div class="wiz-action-footer" style="margin-top:20px;">
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(<?php echo $is_logged_in ? '3' : '2'; ?>)"><i class="fa-solid fa-arrow-left"></i> <?php _e('Back', 'caretochina-booking'); ?></button>
+                            <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fa-solid fa-check-circle"></i> <?php echo $is_logged_in ? __('Confirm & Submit Booking', 'caretochina-booking') : __('Complete Booking', 'caretochina-booking'); ?></button>
                         </div>
                     </div>
                 </form>
                 <div id="ctc-wizard-status" style="display:none; margin-top:20px; text-align:center;"></div>
-            </div>
-        </div>
-
-        <!-- AUTH GATE MODAL (TRIGGERED AT FINAL STEP IF GUEST) -->
-        <div id="wiz-auth-gate-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); z-index:9999999; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
-            <div style="background:#FFF; border-radius:20px; max-width:460px; width:100%; padding:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); font-family:'Manrope', sans-serif; position:relative; max-height:90vh; overflow-y:auto;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
-                    <h3 style="margin:0; font-size:17px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;">
-                        <i class="fa-solid fa-shield-halved" style="color:#0F766E;"></i> <?php _e('Patient Authentication', 'caretochina-booking'); ?>
-                    </h3>
-                    <button type="button" onclick="jQuery('#wiz-auth-gate-modal').hide()" style="background:none; border:none; font-size:18px; color:#94A3B8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-
-                <div style="background:#F0FDFA; border:1px solid #CCFBF1; border-radius:10px; padding:12px; margin-bottom:18px; font-size:12px; color:#0F766E; line-height:1.4;">
-                    <i class="fa-solid fa-circle-check"></i> <?php _e('Your medical itinerary & pricing selections are safely saved. Sign in or register below to finalize your booking.', 'caretochina-booking'); ?>
-                </div>
-
-                <div id="wiz-auth-modal-notice" style="display:none; padding:10px; border-radius:8px; margin-bottom:14px; font-size:13px;"></div>
-
-                <?php if (class_exists('CareToChina_Google_Login') && CareToChina_Google_Login::is_enabled()) : ?>
-                    <div style="margin-bottom:18px; text-align:center;">
-                        <a href="<?php echo esc_url(CareToChina_Google_Login::get_auth_url()); ?>" class="ctc-google-btn" style="display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:#FFFFFF; color:#1F2937; border:1.5px solid #E5E7EB; padding:11px 16px; border-radius:10px; font-weight:700; font-size:13px; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-                            <?php _e('Continue with Google', 'caretochina-booking'); ?>
-                        </a>
-                        <div style="display:flex; align-items:center; gap:8px; margin:14px 0; color:#94A3B8; font-size:12px;">
-                            <div style="flex:1; height:1px; background:#E2E8F0;"></div>
-                            <span><?php _e('OR', 'caretochina-booking'); ?></span>
-                            <div style="flex:1; height:1px; background:#E2E8F0;"></div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <div style="display:flex; gap:8px; margin-bottom:16px;">
-                    <button type="button" id="wiz-auth-tab-login" onclick="appWizard.switchAuthModalTab('login')" style="flex:1; padding:8px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; background:#0F766E; color:#FFF; border:none;"><?php _e('Sign In', 'caretochina-booking'); ?></button>
-                    <button type="button" id="wiz-auth-tab-reg" onclick="appWizard.switchAuthModalTab('reg')" style="flex:1; padding:8px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; background:#F1F5F9; color:#475569; border:none;"><?php _e('Register', 'caretochina-booking'); ?></button>
-                </div>
-
-                <!-- AJAX LOGIN FORM -->
-                <form id="wiz-ajax-login-form">
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Email Address *', 'caretochina-booking'); ?></label>
-                        <input type="email" name="log_email" id="wiz_auth_log_email" class="form-input" style="width:100%; padding:9px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;" required>
-                    </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Password *', 'caretochina-booking'); ?></label>
-                        <input type="password" name="log_pass" id="wiz_auth_log_pass" class="form-input" style="width:100%; padding:9px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;" required>
-                    </div>
-                    <button type="submit" id="btn-wiz-ajax-login" class="ctc-solid-btn btn-teal-primary" style="width:100%; padding:11px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer;">
-                        <i class="fa-solid fa-right-to-bracket"></i> <?php _e('Sign In & Complete Booking', 'caretochina-booking'); ?>
-                    </button>
-                </form>
-
-                <!-- AJAX REGISTER FORM -->
-                <form id="wiz-ajax-reg-form" style="display:none;">
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Full Name *', 'caretochina-booking'); ?></label>
-                        <input type="text" name="reg_name" id="wiz_auth_reg_name" class="form-input" style="width:100%; padding:9px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;" required>
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Email Address *', 'caretochina-booking'); ?></label>
-                        <input type="email" name="reg_email" id="wiz_auth_reg_email" class="form-input" style="width:100%; padding:9px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;" required>
-                    </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Choose Password *', 'caretochina-booking'); ?></label>
-                        <input type="password" name="reg_pass" id="wiz_auth_reg_pass" class="form-input" style="width:100%; padding:9px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;" required>
-                    </div>
-                    <button type="submit" id="btn-wiz-ajax-reg" class="ctc-solid-btn btn-teal-primary" style="width:100%; padding:11px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer;">
-                        <i class="fa-solid fa-user-plus"></i> <?php _e('Register & Complete Booking', 'caretochina-booking'); ?>
-                    </button>
-                </form>
             </div>
         </div>
         <?php
@@ -421,6 +330,17 @@ class CareToChina_Booking_Wizard {
         $nonce = $_POST['nonce'] ?? '';
         if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
+        }
+
+        // Rate limiting for guest submissions
+        if (!is_user_logged_in()) {
+            $ip = sanitize_text_field($_SERVER['REMOTE_ADDR'] ?? '');
+            $rate_key = 'ctc_rate_limit_guest_booking_' . md5($ip);
+            $count = intval(get_transient($rate_key) ?: 0);
+            if ($count >= 6) {
+                wp_send_json_error(['message' => __('Too many booking attempts. Please wait 10 minutes and try again.', 'caretochina-booking')]);
+            }
+            set_transient($rate_key, $count + 1, 600);
         }
 
         global $wpdb;
@@ -443,9 +363,9 @@ class CareToChina_Booking_Wizard {
         $gender            = sanitize_text_field($_POST['gender'] ?? '');
         
         $email             = sanitize_email($_POST['email'] ?? '');
-        $phone             = sanitize_text_field($_POST['phone'] ?? '');
+        $phone             = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'phone') : sanitize_text_field($_POST['phone'] ?? '');
         
-        $whatsapp          = sanitize_text_field($_POST['whatsapp'] ?? '');
+        $whatsapp          = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'whatsapp') : sanitize_text_field($_POST['whatsapp'] ?? '');
         $wechat            = sanitize_text_field($_POST['wechat'] ?? '');
         $messenger         = sanitize_text_field($_POST['messenger'] ?? '');
         $linkedin          = sanitize_text_field($_POST['linkedin'] ?? '');
@@ -455,10 +375,11 @@ class CareToChina_Booking_Wizard {
             wp_send_json_error(['message' => __('Please fill in all required fields (Specialty, Timing, Quote Details, Full Name, Gender, Email, Phone).', 'caretochina-booking')]);
         }
 
-        // Google reCAPTCHA Verification (if enabled for booking submission)
+        // Google reCAPTCHA Verification
         if (class_exists('CareToChina_Recaptcha')) {
             $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
-            $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, 'booking');
+            $rc_loc = is_user_logged_in() ? 'booking' : 'guest_booking';
+            $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, $rc_loc);
             if (is_wp_error($rc_check)) {
                 wp_send_json_error(['message' => $rc_check->get_error_message()]);
             }
@@ -467,36 +388,46 @@ class CareToChina_Booking_Wizard {
         $booking_code = 'CTC-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
         
         $patient_id = 0;
+        $is_guest   = 1;
+        $raw_guest_token = '';
+        $guest_token_hash = '';
+        $snapshotted_price = 0.00;
+        $currency = CareToChina_Pricing_Plans::get_store_currency();
+        $invoice_status = 'Pending Quote / Assessment';
+
         if (is_user_logged_in()) {
             $patient_id = get_current_user_id();
+            $is_guest   = 0;
+            $invoice_status = 'Pending Deposit';
+            $snapshotted_price = 500.00; // Standard fallback consultation & deposit fee
+
+            if ($pricing_plan_id > 0 && class_exists('CareToChina_Pricing_Plans')) {
+                $plan = CareToChina_Pricing_Plans::instance()->get_plan($pricing_plan_id);
+                if ($plan && $plan->is_active) {
+                    $snapshotted_price = floatval($plan->price);
+                    $currency = $plan->currency ?: $currency;
+                    $quote_details .= ' [Selected Plan: ' . $plan->name . ']';
+                }
+            } elseif ($hospital_id > 0) {
+                $hosp_price = get_post_meta($hospital_id, '_hospital_package_price', true);
+                if ($hosp_price && is_numeric($hosp_price)) {
+                    $snapshotted_price = floatval($hosp_price);
+                }
+            }
         } else {
-            $user = get_user_by('email', $email);
-            if ($user) {
-                $patient_id = $user->ID;
-            }
-        }
-
-        // Authoritative price snapshotting at booking creation time
-        $snapshotted_price = 500.00; // Standard fallback consultation & deposit fee
-        $currency = CareToChina_Pricing_Plans::get_store_currency();
-
-        if ($pricing_plan_id > 0 && class_exists('CareToChina_Pricing_Plans')) {
-            $plan = CareToChina_Pricing_Plans::instance()->get_plan($pricing_plan_id);
-            if ($plan && $plan->is_active) {
-                $snapshotted_price = floatval($plan->price);
-                $currency = $plan->currency ?: $currency;
-                $quote_details .= ' [Selected Plan: ' . $plan->name . ']';
-            }
-        } elseif ($hospital_id > 0) {
-            $hosp_price = get_post_meta($hospital_id, '_hospital_package_price', true);
-            if ($hosp_price && is_numeric($hosp_price)) {
-                $snapshotted_price = floatval($hosp_price);
-            }
+            // Guest booking: No upfront pricing plan; staff will review specialty & quote via coordinator desk
+            $pricing_plan_id = 0;
+            $snapshotted_price = 0.00;
+            $invoice_status = 'Pending Quote / Assessment';
+            $raw_guest_token = bin2hex(random_bytes(32));
+            $guest_token_hash = hash('sha256', $raw_guest_token);
         }
 
         $inserted = $wpdb->insert($table_bookings, [
             'booking_code'     => $booking_code,
             'patient_id'       => $patient_id,
+            'is_guest'         => $is_guest,
+            'guest_token_hash' => $guest_token_hash,
             'hospital_id'      => $hospital_id,
             'hospital_name'    => $hospital_name ?: __('General Enquiry (No Hospital Selected)', 'caretochina-booking'),
             'specialty'        => $specialty_str,
@@ -515,7 +446,7 @@ class CareToChina_Booking_Wizard {
             'linkedin'         => $linkedin,
             'status'           => 'pending',
             'timeline_stage'   => 1,
-            'invoice_status'   => 'Pending Deposit',
+            'invoice_status'   => $invoice_status,
             'amount'           => $snapshotted_price,
             'currency'         => $currency,
         ]);
@@ -523,54 +454,78 @@ class CareToChina_Booking_Wizard {
         if ($inserted) {
             $booking_id = $wpdb->insert_id;
 
+            // Set secure cookie for guest continuity
+            if ($is_guest && !headers_sent()) {
+                $expiry_days = intval(get_option('ctc_guest_token_expiry_days', 90));
+                $expiry_seconds = max(1, $expiry_days) * 86400;
+                setcookie('ctc_guest_token', $raw_guest_token, time() + $expiry_seconds, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+                setcookie('ctc_active_guest_token', $raw_guest_token, time() + $expiry_seconds, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+            }
+
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+            $guest_chat_url = $is_guest ? add_query_arg([
+                'booking_code' => $booking_code,
+                'token'        => $raw_guest_token,
+            ], $dash_url) : $dash_url;
+
             // Send Emails
-            $this->send_notifications($booking_code, $full_name, $email, $hospital_name, $specialty_str, $treatment_timing);
+            $this->send_notifications($booking_code, $full_name, $email, $hospital_name, $specialty_str, $treatment_timing, $guest_chat_url);
 
             wp_send_json_success([
                 'booking_id'      => $booking_id,
                 'booking_code'    => $booking_code,
+                'is_guest'        => (bool) $is_guest,
+                'guest_token'     => $raw_guest_token,
+                'chat_url'        => $guest_chat_url,
                 'amount'          => $snapshotted_price,
                 'currency'        => $currency,
                 'specialty'       => $specialty_str,
-                'message'         => sprintf(__('Booking request submitted! Your Case Code is %s. A confirmation email has been sent to %s.', 'caretochina-booking'), $booking_code, $email)
+                'message'         => sprintf(__('Booking request submitted! Your Case Code is %s. A confirmation email with live chat access has been sent to %s.', 'caretochina-booking'), $booking_code, $email)
             ]);
         } else {
             wp_send_json_error(['message' => __('Failed to record request into database. Please try again.', 'caretochina-booking')]);
         }
     }
 
-    private function send_notifications($booking_code, $name, $email, $hospital, $specialty, $timing) {
-        $dashboard_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
-        $subject_patient = sprintf(__('CareToChina Medical Quote Confirmation - Case #%s', 'caretochina-booking'), $booking_code);
-        $message_patient = sprintf(
-            __("Dear %s,\n\nYour medical consultation and quote request has been received!\n\nBooking Details:\n- Care Case Code: %s\n- Hospital Preferred: %s\n- Required Specialties: %s\n- Treatment Timing: %s\n\nOur Care Coordinator will review your medical information and match you with our expert surgeons within 24 hours. You can track your treatment roadmap and access the live patient portal at:\n%s\n\nBest regards,\nCareToChina International Concierge Team", 'caretochina-booking'),
-            $name, $booking_code, $hospital, $specialty, $timing, $dashboard_url
-        );
-
-        $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: CareToChina <care@caretochina.com>'];
-        
-        // 1. Send confirmation to Patient
-        wp_mail($email, $subject_patient, $message_patient, $headers);
-
-        // 2. Send alert to Admin & Staff
+    private function send_notifications($booking_code, $name, $email, $hospital, $specialty, $timing, $chat_url = '') {
+        $dashboard_url = !empty($chat_url) ? $chat_url : (class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/'));
+        $site_name = get_bloginfo('name') ?: 'CareToChina Medical';
         $admin_email = get_option('admin_email');
-        
-        // Fetch all staff users (Administrator, Editor, custom Medical Staff roles)
+
+        $email_data = [
+            'patient_name'    => $name,
+            'full_name'       => $name,
+            'patient_email'   => $email,
+            'booking_code'    => $booking_code,
+            'hospital_name'   => $hospital ?: __('Best Matched Medical Center', 'caretochina-booking'),
+            'specialty'       => $specialty ?: __('General Medical Consultation', 'caretochina-booking'),
+            'timing'          => $timing ?: __('Flexible / As soon as possible', 'caretochina-booking'),
+            'status'          => 'Pending Coordinator Review',
+            'chat_url'        => $dashboard_url,
+            'dashboard_url'   => $dashboard_url,
+            'staff_portal_url'=> admin_url('admin.php?page=caretochina-staff-desk'),
+        ];
+
+        // 1. Send confirmation to Patient / Guest via Template Engine
+        $patient_event = !empty($chat_url) ? 'guest_booking' : 'patient_booking';
+        if (class_exists('CareToChina_Email_Templates')) {
+            CareToChina_Email_Templates::send_notification($patient_event, $email, $email_data);
+        }
+
+        // 2. Send alert to Admin & Staff via Template Engine
         $staff_emails = [$admin_email];
-        $staff_users = get_users(['role__in' => ['administrator', 'editor', 'medical_staff']]);
+        $staff_users = get_users(['role__in' => ['administrator', 'editor', 'medical_staff'], 'fields' => ['user_email']]);
         foreach ($staff_users as $user) {
-            $staff_emails[] = $user->user_email;
+            if (!empty($user->user_email)) {
+                $staff_emails[] = $user->user_email;
+            }
         }
         $staff_emails = array_unique($staff_emails);
 
-        $subject_staff = __('Someone booked a request, please check.', 'caretochina-booking');
-        $message_staff = sprintf(
-            __("Hello,\n\nA new medical travel request has been submitted on the CareToChina Portal.\n\nCase Details:\n- Code: %s\n- Patient Name: %s\n- Patient Email: %s\n- Hospital: %s\n- Specialty: %s\n\nPlease log in to your Staff Dashboard to check details and reply to the patient:\n%s\n", 'caretochina-booking'),
-            $booking_code, $name, $email, $hospital, $specialty, admin_url('admin.php?page=caretochina-staff-desk')
-        );
-
-        foreach ($staff_emails as $staff_email) {
-            wp_mail($staff_email, $subject_staff, $message_staff, $headers);
+        if (class_exists('CareToChina_Email_Templates')) {
+            foreach ($staff_emails as $staff_to) {
+                CareToChina_Email_Templates::send_notification('admin_booking', $staff_to, $email_data);
+            }
         }
     }
 }

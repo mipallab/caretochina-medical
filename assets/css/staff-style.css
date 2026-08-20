@@ -33,11 +33,12 @@
   --cyms-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   width: 100% !important;
-  max-width: 1400px !important;
-  margin: 40px auto !important;
-  padding: 0 24px !important;
+  max-width: 100% !important;
+  margin: 15px auto !important;
+  padding: 0 10px !important;
   font-family: var(--cyms-font-body) !important;
   color: var(--cyms-text-dark) !important;
+  box-sizing: border-box !important;
 }
 
 /*Staff login page*/
@@ -52,29 +53,30 @@
   width: 100% !important;
   background: linear-gradient(135deg, var(--cyms-primary) 0%, var(--cyms-text-dark) 100%) !important;
   color: #FFF !important;
-  padding: 28px 36px !important;
+  padding: 24px 28px !important;
   border-radius: var(--cyms-radius-card) !important;
-  margin-bottom: 30px !important;
+  margin-bottom: 24px !important;
   box-shadow: 0 10px 25px -5px rgba(15, 118, 110, 0.25) !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
   flex-wrap: wrap !important;
-  gap: 20px !important;
+  gap: 16px !important;
+  box-sizing: border-box !important;
 }
 
 .careyou-staff-portal-wrapper .staff-header-banner h2,
 .caretochina-staff-portal-wrapper .staff-header-banner h2 {
   color: #FFF !important;
   font-family: var(--cyms-font-heading) !important;
-  font-size: 24px !important;
+  font-size: 22px !important;
   margin: 0 0 4px 0 !important;
 }
 
 .careyou-staff-portal-wrapper .staff-header-banner p,
 .caretochina-staff-portal-wrapper .staff-header-banner p {
   opacity: 0.95 !important;
-  font-size: 14px !important;
+  font-size: 13.5px !important;
   margin: 0 !important;
 }
 
@@ -82,18 +84,20 @@
 .careyou-staff-portal-wrapper .staff-container,
 .caretochina-staff-portal-wrapper .staff-container {
   display: grid !important;
-  grid-template-columns: 280px 1fr !important;
-  gap: 30px !important;
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+  gap: 20px !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  min-width: 0 !important;
 }
 
 .careyou-staff-portal-wrapper .staff-sidebar,
 .caretochina-staff-portal-wrapper .staff-sidebar {
   display: flex !important;
   flex-direction: column !important;
-  gap: 12px !important;
+  gap: 10px !important;
   width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .careyou-staff-portal-wrapper .staff-tab,
@@ -224,14 +228,6 @@
   }
 }
 
-@media (max-width: 991px) {
-
-  .careyou-staff-portal-wrapper .staff-container,
-  .caretochina-staff-portal-wrapper .staff-container {
-    grid-template-columns: 1fr !important;
-  }
-}
-
 /* STAFF PORTAL SIDEBAR COLLAPSE SYSTEM */
 .careyou-staff-portal-wrapper .staff-container,
 .caretochina-staff-portal-wrapper .staff-container {
@@ -248,14 +244,14 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 36px !important;
+  height: 36px !important;
   border-radius: 8px !important;
   border: 1px solid var(--cyms-border-color) !important;
   background: var(--cyms-bg-card) !important;
   color: var(--cyms-text-light) !important;
   cursor: pointer !important;
-  margin-bottom: 16px !important;
+  margin-bottom: 12px !important;
   align-self: flex-start !important;
   transition: all 0.2s ease !important;
 }
@@ -268,13 +264,13 @@
 /* Collapsed classes */
 .careyou-staff-portal-wrapper .staff-container.sidebar-collapsed,
 .caretochina-staff-portal-wrapper .staff-container.sidebar-collapsed {
-  grid-template-columns: 88px 1fr !important;
+  grid-template-columns: 88px minmax(0, 1fr) !important;
 }
 
 .careyou-staff-portal-wrapper .staff-sidebar.collapsed,
 .caretochina-staff-portal-wrapper .staff-sidebar.collapsed {
   width: 88px !important;
-  padding: 20px 12px !important;
+  padding: 16px 10px !important;
   align-items: center !important;
 }
 
@@ -307,4 +303,379 @@
   min-width: 0 !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* STAFF CHAT LAYOUT & THREAD */
+.staff-chat-layout {
+  display: flex !important;
+  height: 520px !important;
+  background: #FFF !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.staff-chat-sidebar {
+  width: 220px !important;
+  min-width: 180px !important;
+  max-width: 240px !important;
+  border-right: 1px solid #E2E8F0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #F8FAFC !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.staff-chat-thread {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+#staff-chat-box {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 16px 20px !important;
+  background: #F8FAFC !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.careyou-staff-portal-wrapper .chat-msg,
+.caretochina-staff-portal-wrapper .chat-msg {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.careyou-staff-portal-wrapper .chat-msg .msg-bubble,
+.caretochina-staff-portal-wrapper .chat-msg .msg-bubble {
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 82% !important;
+  box-sizing: border-box !important;
+}
+
+#staff-chat-form {
+  padding: 12px 16px !important;
+  border-top: 1px solid #E2E8F0 !important;
+  background: #FFF !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+
+#staff_chat_input {
+  flex: 1 1 140px !important;
+  min-width: 110px !important;
+  box-sizing: border-box !important;
+}
+
+#staff-chat-req-pay-btn,
+#staff-chat-form button[type="submit"] {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+.staff-chat-patient-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+}
+
+.staff-chat-patient-item {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: #FFFFFF !important;
+  border-left: 4px solid transparent !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  box-sizing: border-box !important;
+}
+
+.staff-chat-patient-item:hover {
+  background: #F1F5F9 !important;
+}
+
+.staff-chat-patient-item.active {
+  background: #CCFBF1 !important;
+  border-left: 4px solid #0F766E !important;
+}
+
+.staff-chat-item-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.staff-chat-item-name-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.staff-chat-item-name {
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  font-size: 13.5px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.staff-chat-item-guest-tag {
+  background: #FEF3C7 !important;
+  color: #92400E !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 1px 6px !important;
+  border-radius: 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.staff-chat-item-time {
+  font-size: 11px !important;
+  color: #64748B !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  font-weight: 500 !important;
+}
+
+.staff-chat-item-bottom {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+}
+
+.staff-chat-item-code {
+  font-size: 11px !important;
+  color: #0F766E !important;
+  font-weight: 700 !important;
+  font-family: monospace !important;
+  flex-shrink: 0 !important;
+}
+
+.staff-chat-item-snippet {
+  font-size: 12px !important;
+  color: #64748B !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex: 1 !important;
+  line-height: 1.3 !important;
+}
+
+.staff-chat-item-snippet.has-unread {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+.staff-chat-item-unread-badge {
+  background: #EF4444 !important;
+  color: #FFFFFF !important;
+  border-radius: 999px !important;
+  padding: 2px 7px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* DARK MODE CHAT LIST */
+html.dark-theme .staff-chat-sidebar,
+body.dark-theme .staff-chat-sidebar,
+html.dark .staff-chat-sidebar,
+body.dark .staff-chat-sidebar,
+body[data-theme="dark"] .staff-chat-sidebar,
+body.dark-mode .staff-chat-sidebar,
+body[data-bs-theme="dark"] .staff-chat-sidebar {
+  background: #0F172A !important;
+  border-color: #1E293B !important;
+}
+
+html.dark-theme .staff-chat-patient-item,
+body.dark-theme .staff-chat-patient-item,
+html.dark .staff-chat-patient-item,
+body.dark .staff-chat-patient-item,
+body[data-theme="dark"] .staff-chat-patient-item,
+body.dark-mode .staff-chat-patient-item,
+body[data-bs-theme="dark"] .staff-chat-patient-item {
+  background: #1E293B !important;
+  border-bottom-color: #334155 !important;
+}
+
+html.dark-theme .staff-chat-patient-item:hover,
+body.dark-theme .staff-chat-patient-item:hover,
+html.dark .staff-chat-patient-item:hover,
+body.dark .staff-chat-patient-item:hover,
+body[data-theme="dark"] .staff-chat-patient-item:hover,
+body.dark-mode .staff-chat-patient-item:hover,
+body[data-bs-theme="dark"] .staff-chat-patient-item:hover {
+  background: #283548 !important;
+}
+
+html.dark-theme .staff-chat-patient-item.active,
+body.dark-theme .staff-chat-patient-item.active,
+html.dark .staff-chat-patient-item.active,
+body.dark .staff-chat-patient-item.active,
+body[data-theme="dark"] .staff-chat-patient-item.active,
+body.dark-mode .staff-chat-patient-item.active,
+body[data-bs-theme="dark"] .staff-chat-patient-item.active {
+  background: #133E3A !important;
+  border-left-color: #14B8A6 !important;
+}
+
+html.dark-theme .staff-chat-item-name,
+body.dark-theme .staff-chat-item-name,
+html.dark .staff-chat-item-name,
+body.dark .staff-chat-item-name,
+body[data-theme="dark"] .staff-chat-item-name,
+body.dark-mode .staff-chat-item-name,
+body[data-bs-theme="dark"] .staff-chat-item-name {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .staff-chat-item-snippet,
+body.dark-theme .staff-chat-item-snippet,
+html.dark .staff-chat-item-snippet,
+body.dark .staff-chat-item-snippet,
+body[data-theme="dark"] .staff-chat-item-snippet,
+body.dark-mode .staff-chat-item-snippet,
+body[data-bs-theme="dark"] .staff-chat-item-snippet {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme .staff-chat-item-snippet.has-unread,
+body.dark-theme .staff-chat-item-snippet.has-unread,
+html.dark .staff-chat-item-snippet.has-unread,
+body.dark .staff-chat-item-snippet.has-unread,
+body[data-theme="dark"] .staff-chat-item-snippet.has-unread,
+body.dark-mode .staff-chat-item-snippet.has-unread,
+body[data-bs-theme="dark"] .staff-chat-item-snippet.has-unread {
+  color: #F1F5F9 !important;
+}
+
+/* RESPONSIVE LAYOUT SYSTEM FOR LAPTOP, TABLET & MOBILE */
+@media (max-width: 1200px) {
+  .careyou-staff-portal-wrapper .staff-container,
+  .caretochina-staff-portal-wrapper .staff-container {
+    grid-template-columns: 200px minmax(0, 1fr) !important;
+    gap: 16px !important;
+  }
+  .staff-chat-sidebar {
+    width: 200px !important;
+    min-width: 170px !important;
+  }
+  #staff-chat-req-pay-btn {
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .careyou-staff-portal-wrapper .staff-container,
+  .caretochina-staff-portal-wrapper .staff-container {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .careyou-staff-portal-wrapper .staff-sidebar,
+  .caretochina-staff-portal-wrapper .staff-sidebar {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+  }
+  .careyou-staff-portal-wrapper .staff-tab,
+  .caretochina-staff-portal-wrapper .staff-tab {
+    width: auto !important;
+    flex: 1 1 calc(50% - 8px) !important;
+  }
+  .staff-sidebar-toggle-btn {
+    display: none !important;
+  }
+  .staff-chat-layout {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .staff-chat-sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 170px !important;
+    border-right: none !important;
+    border-bottom: 1px solid #E2E8F0 !important;
+  }
+  #staff-chat-box {
+    height: 340px !important;
+    max-height: 340px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .careyou-staff-portal-wrapper .staff-tab,
+  .caretochina-staff-portal-wrapper .staff-tab {
+    flex: 1 1 100% !important;
+  }
+  #staff-chat-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #staff_chat_input {
+    width: 100% !important;
+  }
+  #staff-chat-req-pay-btn,
+  #staff-chat-form button[type="submit"] {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #staff-bell-dropdown {
+    width: calc(100vw - 32px) !important;
+    right: -70px !important;
+  }
+}
+
+/* NOTIFICATION DROPDOWN STYLES */
+#staff-bell-dropdown {
+  animation: ctcDropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes ctcDropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.staff-dropdown-item {
+  transition: background 0.15s ease, transform 0.15s ease !important;
+}
+
+.staff-dropdown-item:hover {
+  background: #F8FAFC !important;
+}
+
+.staff-dropdown-item:last-child {
+  border-bottom: none !important;
 }

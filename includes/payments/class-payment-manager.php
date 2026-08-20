@@ -455,14 +455,31 @@ class CareToChina_Payment_Manager {
      * Notification helper on payment receipt
      */
     private function send_payment_receipt_notifications($booking, $amount, $currency) {
-        $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
-        $subject = sprintf(__('Payment Received - CareToChina Case #%s', 'caretochina-medical'), $booking->booking_code);
-        $message = sprintf(
-            __("Dear %s,\n\nWe have received your payment of %s %.2f for your upcoming medical treatment!\n\nBooking Code: %s\nHospital: %s\nSpecialty: %s\n\nYour treatment plan is now fully confirmed. You can view your updated portal roadmap at:\n%s\n\nBest regards,\nCareToChina Medical Concierge", 'caretochina-medical'),
-            $booking->full_name, $currency, $amount, $booking->booking_code, $booking->hospital_name, $booking->specialty, $dash_url
-        );
+        if (empty($booking->email)) {
+            return;
+        }
 
-        $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: CareToChina <care@caretochina.com>'];
-        wp_mail($booking->email, $subject, $message, $headers);
+        $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+        $chat_url = !empty($booking->guest_token) ? home_url('/guest-chat/?token=' . $booking->guest_token) : home_url('/patient-dashboard/?tab=messages');
+
+        $email_data = [
+            'patient_name'    => $booking->full_name,
+            'full_name'       => $booking->full_name,
+            'patient_email'   => $booking->email,
+            'patient_phone'   => $booking->phone ?? '',
+            'booking_code'    => $booking->booking_code,
+            'specialty'       => $booking->specialty,
+            'hospital_name'   => $booking->hospital_name,
+            'amount'          => number_format(floatval($amount), 2),
+            'currency'        => $currency,
+            'payment_method'  => 'Online Payment Gateway',
+            'status'          => 'Payment Confirmed',
+            'dashboard_url'   => $dash_url,
+            'chat_url'        => $chat_url,
+        ];
+
+        if (class_exists('CareToChina_Email_Templates')) {
+            CareToChina_Email_Templates::send_notification('payment_success', $booking->email, $email_data);
+        }
     }
 }

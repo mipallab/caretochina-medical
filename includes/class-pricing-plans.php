@@ -36,6 +36,47 @@ class CareToChina_Pricing_Plans {
         return get_option('ctc_payment_currency', 'USD');
     }
 
+    public static function get_currency_symbol($currency = '') {
+        if (empty($currency)) {
+            $currency = self::get_store_currency();
+        }
+        if (function_exists('get_woocommerce_currency_symbol')) {
+            $symbol = get_woocommerce_currency_symbol($currency);
+            if (!empty($symbol)) {
+                return $symbol;
+            }
+        }
+        $symbols = [
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            'CNY' => '¥',
+            'RMB' => '¥',
+            'JPY' => '¥',
+            'AUD' => 'A$',
+            'CAD' => 'C$',
+            'SGD' => 'S$',
+            'HKD' => 'HK$',
+            'AED' => 'AED',
+            'SAR' => 'SAR',
+            'BDT' => '৳',
+            'INR' => '₹',
+            'MYR' => 'RM',
+            'THB' => '฿',
+            'PHP' => '₱',
+            'IDR' => 'Rp',
+            'VND' => '₫',
+            'KRW' => '₩',
+            'TRY' => '₺',
+            'RUB' => '₽',
+            'BRL' => 'R$',
+            'ZAR' => 'R',
+            'NZD' => 'NZ$',
+            'CHF' => 'CHF',
+        ];
+        return $symbols[strtoupper($currency)] ?? strtoupper($currency);
+    }
+
     /**
      * Fetch all plans for a specific treatment/specialty term
      */

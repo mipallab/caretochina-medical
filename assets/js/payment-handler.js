@@ -109,52 +109,83 @@
             });
         },
 
+        closePaymentModal: function() {
+            var modalId = 'ctc-patient-payment-modal';
+            $('#' + modalId).remove();
+            if (!window.appDash && !$('.caretochina-dashboard-wrapper').length) {
+                var dashUrl = (window.caretochina_obj && window.caretochina_obj.dashboard_url) || '/patient-dashboard/?tab=invoices';
+                window.location.href = dashUrl;
+            }
+        },
+
+        skipPaymentToDashboard: function() {
+            var modalId = 'ctc-patient-payment-modal';
+            $('#' + modalId).remove();
+            
+            if (window.appDash && typeof window.appDash.switchTabDirect === 'function') {
+                window.appDash.switchTabDirect('invoices');
+            } else {
+                var dashUrl = (window.caretochina_obj && window.caretochina_obj.dashboard_url) || '/patient-dashboard/?tab=invoices';
+                window.location.href = dashUrl;
+            }
+        },
+
         openPaymentModal: function(bookingId, amount, currency, title) {
             var self = this;
             var modalId = 'ctc-patient-payment-modal';
             var $modal = $('#' + modalId);
 
-            if (!$modal.length) {
-                var modalHtml = [
-                    '<div id="' + modalId + '" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:999999; display:flex; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">',
-                    '  <div style="background:#FFF; border-radius:20px; max-width:480px; width:100%; padding:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); font-family:\'Manrope\', sans-serif; position:relative; max-height:90vh; overflow-y:auto;">',
-                    '    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">',
-                    '      <h3 style="margin:0; font-size:18px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-lock" style="color:#0F766E;"></i> Secure Payment</h3>',
-                    '      <button type="button" onclick="jQuery(\'#' + modalId + '\').remove()" style="background:none; border:none; font-size:18px; color:#94A3B8; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>',
-                    '    </div>',
-                    '    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:14px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">',
-                    '      <div><span style="font-size:11px; color:#64748B; text-transform:uppercase; font-weight:700;">Service Total</span><div style="font-size:13px; font-weight:700; color:#0F172A;">' + (title || 'Medical Treatment') + '</div></div>',
-                    '      <div style="font-size:20px; font-weight:900; color:#0F766E;">$' + parseFloat(amount).toFixed(2) + ' ' + (currency || 'USD') + '</div>',
-                    '    </div>',
-                    '    <div id="ctc-payment-notice" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:13px;"></div>',
-                    '    <div style="display:flex; gap:10px; margin-bottom:16px;">',
-                    '      <button type="button" id="tab-opt-stripe" class="ctc-pay-tab-btn active" style="flex:1; padding:10px; border-radius:10px; border:2px solid #0F766E; background:#F0FDFA; color:#0F766E; font-weight:700; cursor:pointer; font-size:13px;"><i class="fa-brands fa-stripe"></i> Credit / Debit Card</button>',
-                    '      <button type="button" id="tab-opt-paypal" class="ctc-pay-tab-btn" style="flex:1; padding:10px; border-radius:10px; border:2px solid #CBD5E1; background:#FFF; color:#64748B; font-weight:700; cursor:pointer; font-size:13px;"><i class="fa-brands fa-paypal"></i> PayPal</button>',
-                    '    </div>',
-                    '    <div id="ctc-stripe-container">',
-                    '      <div id="ctc-stripe-element-mount" style="min-height:160px; margin-bottom:16px;"></div>',
-                    '      <button type="button" id="ctc-stripe-pay-btn" style="width:100%; background:#0F766E; color:#FFF; border:none; padding:14px; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fa-solid fa-lock"></i> Pay $' + parseFloat(amount).toFixed(2) + '</button>',
-                    '    </div>',
-                    '    <div id="ctc-paypal-container" style="display:none; min-height:160px;"></div>',
-                    '  </div>',
-                    '</div>'
-                ].join('');
-
-                $('body').append(modalHtml);
-                $modal = $('#' + modalId);
+            if ($modal.length) {
+                $modal.remove();
             }
+
+            var modalHtml = [
+                '<div id="' + modalId + '" class="ctc-payment-modal-overlay" style="display:flex;">',
+                '  <div class="ctc-payment-modal-dialog">',
+                '    <div class="wiz-auth-modal-header">',
+                '      <h3 class="wiz-auth-modal-title"><i class="fa-solid fa-shield-halved" style="color:#0F766E;"></i> Secure Payment</h3>',
+                '      <button type="button" class="wiz-auth-modal-close" onclick="CareToChinaPayment.closePaymentModal()"><i class="fa-solid fa-xmark"></i></button>',
+                '    </div>',
+                '    <div class="ctc-payment-summary-banner">',
+                '      <div>',
+                '        <span style="font-size:11px; text-transform:uppercase; font-weight:700; letter-spacing:0.5px; opacity:0.85;">Service Total</span>',
+                '        <div style="font-size:14px; font-weight:800; color:#0F172A; margin-top:2px;">' + (title || 'Medical Treatment') + '</div>',
+                '      </div>',
+                '      <div style="font-size:22px; font-weight:900; color:#0F766E; font-family:\'Manrope\', sans-serif;">$' + parseFloat(amount).toFixed(2) + ' <span style="font-size:13px; font-weight:700;">' + (currency || 'USD') + '</span></div>',
+                '    </div>',
+                '    <div id="ctc-payment-notice" class="wiz-auth-notice" style="display:none;"></div>',
+                '    <div class="ctc-pay-method-tabs">',
+                '      <button type="button" id="tab-opt-stripe" class="wiz-auth-tab-btn active"><i class="fa-solid fa-credit-card"></i> Credit / Debit Card</button>',
+                '      <button type="button" id="tab-opt-paypal" class="wiz-auth-tab-btn"><i class="fa-brands fa-paypal"></i> PayPal</button>',
+                '    </div>',
+                '    <div id="ctc-stripe-container">',
+                '      <div id="ctc-stripe-element-mount" style="min-height:140px; margin-bottom:16px;"></div>',
+                '      <button type="button" id="ctc-stripe-pay-btn" class="ctc-pay-submit-btn"><i class="fa-solid fa-lock"></i> Pay $' + parseFloat(amount).toFixed(2) + ' ' + (currency || 'USD') + '</button>',
+                '    </div>',
+                '    <div id="ctc-paypal-container" style="display:none; min-height:140px;"></div>',
+                '    <div class="wiz-auth-modal-footer" style="margin-top:18px; padding-top:14px; border-top:1px solid #E2E8F0; text-align:center;">',
+                '      <button type="button" class="ctc-btn-skip-pay" onclick="CareToChinaPayment.skipPaymentToDashboard()">',
+                '        <i class="fa-solid fa-clock-rotate-left"></i> Skip for now & Pay later from Patient Dashboard',
+                '      </button>',
+                '    </div>',
+                '  </div>',
+                '</div>'
+            ].join('');
+
+            $('body').append(modalHtml);
+            $modal = $('#' + modalId);
 
             // Tab Switchers
             $('#tab-opt-stripe').on('click', function() {
-                $(this).css({'border-color':'#0F766E', 'background':'#F0FDFA', 'color':'#0F766E'});
-                $('#tab-opt-paypal').css({'border-color':'#CBD5E1', 'background':'#FFF', 'color':'#64748B'});
+                $('#tab-opt-stripe').addClass('active');
+                $('#tab-opt-paypal').removeClass('active');
                 $('#ctc-stripe-container').show();
                 $('#ctc-paypal-container').hide();
             });
 
             $('#tab-opt-paypal').on('click', function() {
-                $(this).css({'border-color':'#0F766E', 'background':'#F0FDFA', 'color':'#0F766E'});
-                $('#tab-opt-stripe').css({'border-color':'#CBD5E1', 'background':'#FFF', 'color':'#64748B'});
+                $('#tab-opt-paypal').addClass('active');
+                $('#tab-opt-stripe').removeClass('active');
                 $('#ctc-stripe-container').hide();
                 $('#ctc-paypal-container').show();
 
@@ -171,7 +202,7 @@
                     self.initStripe(res.publishable_key, res.client_secret, 'ctc-stripe-element-mount', bookingId);
                 }
             }, function(errMsg) {
-                $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>' + errMsg + '</p>').show();
+                $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p style="margin:0;"><i class="fa-solid fa-circle-exclamation"></i> ' + errMsg + '</p>').show();
             });
         }
     };
@@ -197,6 +228,9 @@
             },
             success: function(res) {
                 if (res.success && res.data) {
+                    if (window.appDash && typeof window.appDash.switchTabDirect === 'function') {
+                        window.appDash.switchTabDirect('invoices');
+                    }
                     CareToChinaPayment.openPaymentModal(res.data.booking_id, res.data.amount, res.data.currency, res.data.title);
                 } else {
                     alert((res.data && res.data.message) || 'Failed to accept payment request. Please refresh and try again.');
@@ -248,9 +282,18 @@
     };
 
     /**
-     * Open Staff Payment Request Modal
+     * Open Staff Payment Request Modal (Registered Patients Only)
      */
     window.ctcOpenStaffPaymentReqModal = function() {
+        var $activeItem = $('.staff-chat-patient-item.active');
+        var patientId = parseInt($activeItem.attr('data-patient-id') || $activeItem.data('patient-id') || 0, 10);
+        var isGuest = ($activeItem.attr('data-is-guest') == '1' || $activeItem.data('is-guest') == 1);
+        
+        if (patientId <= 0 && isGuest) {
+            alert('Payment requests can only be sent to registered patient accounts. Guest users cannot receive payment requests. Please request the guest patient to save/register their account first.');
+            return;
+        }
+
         var activeId = $('#staff_chat_booking_id').val();
         $('#req_modal_booking_id').val(activeId);
         $('#staff-payment-request-modal').css('display', 'flex');
@@ -274,7 +317,7 @@
         var $planSelect = $('#req_plan_select');
         var $amountInput = $('#req_plan_amount');
         var $nameInput = $('#req_plan_name_input');
-        var ajaxUrl = (window.caretochina_obj && window.caretochina_obj.ajax_url) || (window.ajaxurl) || '/wp-admin/admin-ajax.php';
+        var ajaxUrl = (window.caretochina_staff_obj && window.caretochina_staff_obj.ajax_url) || (window.careyou_staff_obj && window.careyou_staff_obj.ajax_url) || (window.caretochina_obj && window.caretochina_obj.ajax_url) || (window.ajaxurl) || '/wp-admin/admin-ajax.php';
 
         if (!treatmentId || treatmentId == '0') {
             $planSelect.empty().append('<option value="0">-- Select Specialty First --</option>');
@@ -292,7 +335,7 @@
             if (res.success && res.data && res.data.plans && res.data.plans.length > 0) {
                 $planSelect.append('<option value="0">-- Select a Pricing Package --</option>');
                 res.data.plans.forEach(function(p, idx) {
-                    $planSelect.append('<option value="' + p.id + '" data-price="' + p.price + '" data-name="' + p.name + '">' + p.name + ' ($' + parseFloat(p.price).toFixed(2) + ' ' + p.currency + ')</option>');
+                    $planSelect.append('<option value="' + p.id + '" data-price="' + p.price + '" data-name="' + p.name + '">' + p.name + ' ($' + parseFloat(p.price).toFixed(2) + ' ' + (p.currency || 'USD') + ')</option>');
                 });
                 // Auto select first plan
                 $planSelect.val(res.data.plans[0].id).trigger('change');
@@ -324,8 +367,8 @@
         var $btn = $('#btn-submit-payment-req');
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Sending...');
 
-        var ajaxUrl = (window.caretochina_obj && window.caretochina_obj.ajax_url) || (window.ajaxurl) || '/wp-admin/admin-ajax.php';
-        var nonce = (window.caretochina_obj && window.caretochina_obj.staff_nonce) || (window.caretochina_obj && window.caretochina_obj.nonce) || '';
+        var ajaxUrl = (window.caretochina_staff_obj && window.caretochina_staff_obj.ajax_url) || (window.careyou_staff_obj && window.careyou_staff_obj.ajax_url) || (window.caretochina_obj && window.caretochina_obj.ajax_url) || (window.ajaxurl) || '/wp-admin/admin-ajax.php';
+        var nonce = (window.caretochina_staff_obj && window.caretochina_staff_obj.nonce) || (window.careyou_staff_obj && window.careyou_staff_obj.nonce) || (window.caretochina_obj && window.caretochina_obj.staff_nonce) || (window.caretochina_obj && window.caretochina_obj.nonce) || '';
 
         var pricingType = $('input[name="pricing_type"]:checked').val();
         var postData = {
@@ -358,9 +401,11 @@
                 if (res.success) {
                     $('#staff-payment-request-modal').hide();
                     $form[0].reset();
-                    if (window.appStaff && typeof window.appStaff.loadChatHistory === 'function') {
-                        var activeId = $('#staff_chat_booking_id').val();
-                        window.appStaff.loadChatHistory(activeId);
+                    if (window.appStaff && typeof window.appStaff.fetchStaffChat === 'function') {
+                        window.appStaff.fetchStaffChat();
+                    }
+                    if (window.appStaff && typeof window.appStaff.pollUpdates === 'function') {
+                        window.appStaff.pollUpdates();
                     }
                 } else {
                     alert((res.data && res.data.message) || 'Failed to send payment request.');

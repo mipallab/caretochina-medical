@@ -100,7 +100,8 @@ class CareToChina_Payment_Admin_Settings {
             update_option('ctc_paypal_live_client_secret', $enc);
         }
 
-        // Google OAuth 2.0 Keys
+        // Google OAuth 2.0 Keys & Toggle
+        update_option('ctc_google_login_enabled', isset($_POST['ctc_google_login_enabled']) ? 1 : 0);
         if (isset($_POST['ctc_google_client_id'])) {
             update_option('ctc_google_client_id', sanitize_text_field($_POST['ctc_google_client_id']));
         }
@@ -110,6 +111,7 @@ class CareToChina_Payment_Admin_Settings {
         }
 
         // Google reCAPTCHA Settings
+        update_option('ctc_recaptcha_master_enabled', isset($_POST['ctc_recaptcha_master_enabled']) ? 1 : 0);
         if (isset($_POST['ctc_recaptcha_version'])) {
             update_option('ctc_recaptcha_version', sanitize_text_field($_POST['ctc_recaptcha_version']));
         }
@@ -132,14 +134,32 @@ class CareToChina_Payment_Admin_Settings {
         }
         update_option('ctc_recaptcha_enable_login', isset($_POST['ctc_recaptcha_enable_login']) ? 1 : 0);
         update_option('ctc_recaptcha_enable_register', isset($_POST['ctc_recaptcha_enable_register']) ? 1 : 0);
-        update_option('ctc_recaptcha_enable_booking', isset($_POST['ctc_recaptcha_enable_booking']) ? 1 : 0);
+        update_option('ctc_recaptcha_enable_guest_booking', isset($_POST['ctc_recaptcha_enable_guest_booking']) ? 1 : 0);
         update_option('ctc_recaptcha_hide_badge', isset($_POST['ctc_recaptcha_hide_badge']) ? 1 : 0);
+
+        // Global Brand Logo & Assets
+        if (isset($_POST['ctc_brand_logo_url'])) {
+            update_option('ctc_brand_logo_url', esc_url_raw($_POST['ctc_brand_logo_url']));
+            update_option('ctc_email_logo_url', esc_url_raw($_POST['ctc_brand_logo_url']));
+        }
+
+        // Guest Token Expiration Setting (in Days)
+        if (isset($_POST['ctc_guest_token_expiry_days'])) {
+            $days = max(1, min(365, intval($_POST['ctc_guest_token_expiry_days'])));
+            update_option('ctc_guest_token_expiry_days', $days);
+        }
+
+        // International Telephone Input Feature Toggle
+        update_option('ctc_enable_intl_phone_flags', isset($_POST['ctc_enable_intl_phone_flags']) ? 1 : 0);
+        if (isset($_POST['ctc_phone_selector_format'])) {
+            update_option('ctc_phone_selector_format', sanitize_text_field($_POST['ctc_phone_selector_format']));
+        }
 
         // Data Safety / Uninstall Option
         update_option('ctc_delete_data_on_uninstall', isset($_POST['ctc_delete_data_on_uninstall']) ? 1 : 0);
 
         add_action('admin_notices', function() {
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Payment, Security & Google login settings saved successfully (secrets encrypted at rest).', 'caretochina-medical') . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Payment, Security, Input & Google login settings saved successfully (secrets encrypted at rest).', 'caretochina-medical') . '</p></div>';
         });
     }
 
@@ -161,10 +181,12 @@ class CareToChina_Payment_Admin_Settings {
         $paypal_live_client = get_option('ctc_paypal_live_client_id', '');
         $paypal_live_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_paypal_live_client_secret', ''));
 
+        $google_enabled = intval(get_option('ctc_google_login_enabled', 1));
         $google_client_id = get_option('ctc_google_client_id', '');
         $google_client_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_google_client_secret', ''));
         $google_redirect_uri = home_url('/?ctc_google_callback=1');
 
+        $rc_master_enabled = intval(get_option('ctc_recaptcha_master_enabled', 1));
         $recaptcha_ver = get_option('ctc_recaptcha_version', 'v2');
         $rc_v2_site = get_option('ctc_recaptcha_v2_site_key', '');
         $rc_v2_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_recaptcha_v2_secret_key', ''));
@@ -174,7 +196,10 @@ class CareToChina_Payment_Admin_Settings {
         $rc_login = intval(get_option('ctc_recaptcha_enable_login', 0));
         $rc_reg = intval(get_option('ctc_recaptcha_enable_register', 0));
         $rc_book = intval(get_option('ctc_recaptcha_enable_booking', 0));
+        $rc_guest_book = intval(get_option('ctc_recaptcha_enable_guest_booking', 0));
         $rc_hide_badge = intval(get_option('ctc_recaptcha_hide_badge', 0));
+
+        $intl_phone_enabled = intval(get_option('ctc_enable_intl_phone_flags', 1));
 
         $delete_on_uninstall = intval(get_option('ctc_delete_data_on_uninstall', 0));
         $export_nonce = wp_create_nonce('ctc_export_data_nonce');
@@ -242,6 +267,16 @@ class CareToChina_Payment_Admin_Settings {
                 <table class="form-table" role="presentation">
                     <tbody>
                         <tr>
+                            <th scope="row"><?php _e('Enable Google Sign-In', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:700; display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" name="ctc_google_login_enabled" value="1" <?php checked($google_enabled, 1); ?>>
+                                    <?php _e('Enable Google Sign-In on Patient Login & Registration', 'caretochina-medical'); ?>
+                                </label>
+                                <p class="description"><?php _e('Master switch. When disabled, "Continue with Google" buttons are hidden and OAuth callbacks are rejected, keeping your credentials intact.', 'caretochina-medical'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
                             <th scope="row"><label for="ctc_google_client_id"><?php _e('Google Client ID', 'caretochina-medical'); ?></label></th>
                             <td>
                                 <input type="text" name="ctc_google_client_id" id="ctc_google_client_id" value="<?php echo esc_attr($google_client_id); ?>" class="regular-text" placeholder="xxxx.apps.googleusercontent.com" />
@@ -260,6 +295,16 @@ class CareToChina_Payment_Admin_Settings {
                 <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-shield-halved" style="color:#0F766E; font-size:22px;"></i> <?php _e('Google reCAPTCHA Protection', 'caretochina-medical'); ?></h2>
                 <table class="form-table" role="presentation">
                     <tbody>
+                        <tr>
+                            <th scope="row"><?php _e('Master Protection Switch', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:700; display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" name="ctc_recaptcha_master_enabled" value="1" <?php checked($rc_master_enabled, 1); ?>>
+                                    <?php _e('Enable Google reCAPTCHA Protection System', 'caretochina-medical'); ?>
+                                </label>
+                                <p class="description"><?php _e('Global kill-switch. When disabled, reCAPTCHA verification is instantly bypassed across all forms on the site.', 'caretochina-medical'); ?></p>
+                            </td>
+                        </tr>
                         <tr>
                             <th scope="row"><?php _e('reCAPTCHA Version', 'caretochina-medical'); ?></th>
                             <td>
@@ -302,7 +347,8 @@ class CareToChina_Payment_Admin_Settings {
                                 <fieldset>
                                     <label style="display:block; margin-bottom:6px;"><input type="checkbox" name="ctc_recaptcha_enable_login" value="1" <?php checked($rc_login, 1); ?>> <?php _e('Patient Login Form', 'caretochina-medical'); ?></label>
                                     <label style="display:block; margin-bottom:6px;"><input type="checkbox" name="ctc_recaptcha_enable_register" value="1" <?php checked($rc_reg, 1); ?>> <?php _e('Patient Registration Form', 'caretochina-medical'); ?></label>
-                                    <label style="display:block;"><input type="checkbox" name="ctc_recaptcha_enable_booking" value="1" <?php checked($rc_book, 1); ?>> <?php _e('Booking Wizard Final Submission', 'caretochina-medical'); ?></label>
+                                    <label style="display:block; margin-bottom:6px;"><input type="checkbox" name="ctc_recaptcha_enable_booking" value="1" <?php checked($rc_book, 1); ?>> <?php _e('Booking Wizard Submission (Logged In)', 'caretochina-medical'); ?></label>
+                                    <label style="display:block;"><input type="checkbox" name="ctc_recaptcha_enable_guest_booking" value="1" <?php checked($rc_guest_book, 1); ?>> <?php _e('Guest Booking & Live Chat Submission', 'caretochina-medical'); ?></label>
                                 </fieldset>
                             </td>
                         </tr>
@@ -319,6 +365,69 @@ class CareToChina_Payment_Admin_Settings {
                                         </span>
                                     </span>
                                 </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-paintbrush" style="color:#0F766E; font-size:22px;"></i> <?php _e('Brand Assets & Global Logo', 'caretochina-medical'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="ctc_brand_logo_url"><?php _e('Global Brand Logo URL', 'caretochina-medical'); ?></label></th>
+                            <td>
+                                <input type="url" name="ctc_brand_logo_url" id="ctc_brand_logo_url" value="<?php echo esc_attr(get_option('ctc_brand_logo_url', '')); ?>" class="large-text" placeholder="https://yourdomain.com/wp-content/uploads/logo.png">
+                                <p class="description"><?php _e('Enter the full image URL of your brand logo. This logo is used across all outbound emails, booking wizard header, patient portal, and staff desk.', 'caretochina-medical'); ?></p>
+                                <?php $logo_prev = get_option('ctc_brand_logo_url', ''); if (!empty($logo_prev)) : ?>
+                                    <div style="margin-top:10px; padding:10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; display:inline-block;">
+                                        <img src="<?php echo esc_url($logo_prev); ?>" alt="Brand Logo Preview" style="max-height:45px; max-width:220px; display:block;">
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-clock-rotate-left" style="color:#0F766E; font-size:22px;"></i> <?php _e('Guest Chat Session & Token Expiration', 'caretochina-medical'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="ctc_guest_token_expiry_days"><?php _e('Guest Session Duration (Days)', 'caretochina-medical'); ?></label></th>
+                            <td>
+                                <input type="number" name="ctc_guest_token_expiry_days" id="ctc_guest_token_expiry_days" value="<?php echo esc_attr(get_option('ctc_guest_token_expiry_days', 90)); ?>" min="1" max="365" step="1" class="small-text" style="font-weight:700;">
+                                <span><?php _e('Days (Default: 90 Days)', 'caretochina-medical'); ?></span>
+                                <p class="description"><?php _e('How many days a guest chat session and token remain accessible before expiring. A real-time countdown timer is displayed in the guest chat to encourage them to register.', 'caretochina-medical'); ?></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-phone" style="color:#0F766E; font-size:22px;"></i> <?php _e('International Phone & Input Features', 'caretochina-medical'); ?></h2>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><?php _e('Country Flag & Code Dropdown', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" name="ctc_enable_intl_phone_flags" value="1" <?php checked($intl_phone_enabled, 1); ?> style="margin-top:2px;">
+                                    <span>
+                                        <?php _e('Enable Country Flag & Country Code Selector for Phone Inputs', 'caretochina-medical'); ?>
+                                        <span class="description" style="display:block; margin-top:4px; font-weight:normal; color:#64748B;">
+                                            <?php _e('When enabled, all phone number fields (Registration, Booking Wizard, Patient Profile) will display an international country selector with auto-formatting and dialing codes.', 'caretochina-medical'); ?>
+                                        </span>
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="ctc_phone_selector_format"><?php _e('Selector Display Format', 'caretochina-medical'); ?></label></th>
+                            <td>
+                                <select name="ctc_phone_selector_format" id="ctc_phone_selector_format" class="regular-text" style="font-weight:700;">
+                                    <option value="both" <?php selected(get_option('ctc_phone_selector_format', 'both'), 'both'); ?>><?php _e('Both (Flag & Dial Code — e.g. 🇧🇩 +880)', 'caretochina-medical'); ?></option>
+                                    <option value="flag" <?php selected(get_option('ctc_phone_selector_format', 'both'), 'flag'); ?>><?php _e('Flag Only (e.g. 🇧🇩)', 'caretochina-medical'); ?></option>
+                                    <option value="code" <?php selected(get_option('ctc_phone_selector_format', 'both'), 'code'); ?>><?php _e('Code Only (e.g. +880)', 'caretochina-medical'); ?></option>
+                                </select>
+                                <p class="description"><?php _e('Controls whether phone input group fields display both flag and dial code, flag only, or dial code only. When "Both" or "Code" is active, duplicate dial codes typed into the phone field are automatically removed.', 'caretochina-medical'); ?></p>
                             </td>
                         </tr>
                     </tbody>

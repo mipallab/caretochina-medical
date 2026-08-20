@@ -61,12 +61,16 @@ class CareToChina_Page_Manager {
                 return home_url('/patient-dashboard/');
             case 'staff_portal':
                 return home_url('/staff-portal/');
+            case 'patient_login':
+                return home_url('/patient-login/');
+            case 'patient_register':
+                return home_url('/patient-login/?tab=register');
             case 'privacy_policy':
                 return home_url('/privacy-policy/');
             case 'terms':
                 return home_url('/terms-and-conditions/');
             default:
-                return home_url('/');
+                return home_url('/patient-login/');
         }
     }
 
@@ -86,6 +90,12 @@ class CareToChina_Page_Manager {
                 'shortcode' => '[caretochina_staff_portal]',
                 'slug'      => 'staff-portal',
                 'desc'      => __('Coordinator messaging desk, case management, and payment requests.', 'caretochina-medical'),
+            ],
+            'patient_login' => [
+                'title'     => __('Patient Sign In & Register', 'caretochina-medical'),
+                'shortcode' => '[caretochina_auth_portal]',
+                'slug'      => 'patient-login',
+                'desc'      => __('Patient login and account registration portal.', 'caretochina-medical'),
             ],
             'privacy_policy' => [
                 'title'     => __('Privacy Policy', 'caretochina-medical'),

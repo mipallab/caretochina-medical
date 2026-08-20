@@ -54,6 +54,10 @@ class CareToChina_Recaptcha {
         return (bool) intval(get_option('ctc_recaptcha_hide_badge', 0));
     }
 
+    public static function is_master_enabled() {
+        return (bool) intval(get_option('ctc_recaptcha_master_enabled', 1));
+    }
+
     public static function is_configured() {
         $site_key = self::get_site_key();
         $sec_key  = self::get_secret_key();
@@ -63,11 +67,11 @@ class CareToChina_Recaptcha {
     /**
      * Check if reCAPTCHA is active for a specific location
      *
-     * @param string $location 'login' | 'register' | 'booking'
+     * @param string $location 'login' | 'register' | 'booking' | 'guest_booking'
      * @return bool
      */
     public static function is_enabled_for($location) {
-        if (!self::is_configured()) {
+        if (!self::is_master_enabled() || !self::is_configured()) {
             return false;
         }
 
@@ -76,7 +80,7 @@ class CareToChina_Recaptcha {
     }
 
     public function enqueue_scripts() {
-        if (!self::is_configured()) {
+        if (!self::is_master_enabled() || !self::is_configured()) {
             return;
         }
 
@@ -202,7 +206,7 @@ class CareToChina_Recaptcha {
         }
 
         $response = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', [
-            'timeout' => 10,
+            'timeout' => 4,
             'body'    => [
                 'secret'   => $secret_key,
                 'response' => sanitize_text_field($token),

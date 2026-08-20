@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('CARETOCHINA_PAYMENT_DB_VERSION')) {
-    define('CARETOCHINA_PAYMENT_DB_VERSION', '1.2.0');
+    define('CARETOCHINA_PAYMENT_DB_VERSION', '1.3.0');
 }
 
 class CareToChina_Booking_DB {
@@ -12,7 +12,7 @@ class CareToChina_Booking_DB {
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();
 
-        // 1. NEW BOOKINGS TABLE (WITH PAYMENT CACHE & PRICING PLAN FIELDS)
+        // 1. NEW BOOKINGS TABLE (WITH PAYMENT CACHE, PRICING PLAN & GUEST AUTH FIELDS)
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
         // Force table update if old schema is active
@@ -26,6 +26,8 @@ class CareToChina_Booking_DB {
             id bigint(20) NOT NULL AUTO_INCREMENT,
             booking_code varchar(30) NOT NULL,
             patient_id bigint(20) DEFAULT 0,
+            is_guest tinyint(1) DEFAULT 0,
+            guest_token_hash varchar(255) DEFAULT '',
             hospital_id bigint(20) DEFAULT 0,
             hospital_name varchar(255) DEFAULT '',
             specialty text NOT NULL,
@@ -52,10 +54,15 @@ class CareToChina_Booking_DB {
             paid_at datetime DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
-            UNIQUE KEY booking_code (booking_code)
+            UNIQUE KEY booking_code (booking_code),
+            KEY guest_token_hash (guest_token_hash),
+            KEY patient_id (patient_id),
+            KEY is_guest (is_guest),
+            KEY status (status),
+            KEY created_at (created_at)
         ) $charset_collate;";
 
-        // 2. NEW MESSAGES TABLE (WITH MESSAGE TYPE & PAYMENT REQUEST LINK)
+        // 2. NEW MESSAGES TABLE (WITH MESSAGE TYPE, PAYMENT REQUEST & ATTACHMENT FIELDS)
         $table_messages = $wpdb->prefix . 'caretochina_messages';
         $sql_messages = "CREATE TABLE $table_messages (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -65,9 +72,16 @@ class CareToChina_Booking_DB {
             message text NOT NULL,
             message_type varchar(30) DEFAULT 'text',
             payment_request_id bigint(20) DEFAULT 0,
+            attachment_url varchar(255) DEFAULT '',
+            attachment_name varchar(255) DEFAULT '',
+            attachment_type varchar(50) DEFAULT '',
             is_read tinyint(1) DEFAULT 0,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id)
+            PRIMARY KEY  (id),
+            KEY booking_id (booking_id),
+            KEY sender_type (sender_type),
+            KEY is_read (is_read),
+            KEY created_at (created_at)
         ) $charset_collate;";
 
         // 3. PROCESSED WEBHOOK EVENTS TABLE (EVENT-ID IDEMPOTENCY)
@@ -93,7 +107,8 @@ class CareToChina_Booking_DB {
             amount decimal(10,2) DEFAULT 0.00,
             notes text,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id)
+            PRIMARY KEY  (id),
+            KEY booking_id (booking_id)
         ) $charset_collate;";
 
         // 5. PAYMENT REQUESTS TABLE (STAFF CHAT REQUESTS)
@@ -117,7 +132,10 @@ class CareToChina_Booking_DB {
             chat_message_id bigint(20) DEFAULT 0,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
-            UNIQUE KEY request_code (request_code)
+            UNIQUE KEY request_code (request_code),
+            KEY chat_thread_booking_id (chat_thread_booking_id),
+            KEY patient_id (patient_id),
+            KEY status (status)
         ) $charset_collate;";
 
         // 6. PRICING PLANS TABLE (TREATMENT PACKAGES & TIERS)

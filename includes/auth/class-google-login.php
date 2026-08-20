@@ -40,6 +40,10 @@ class CareToChina_Google_Login {
     }
 
     public static function is_enabled() {
+        $master_enabled = get_option('ctc_google_login_enabled', '1');
+        if ($master_enabled === '0' || $master_enabled === 0 || $master_enabled === false) {
+            return false;
+        }
         $client_id = self::get_client_id();
         $client_secret = self::get_client_secret();
         return !empty($client_id) && !empty($client_secret);
@@ -88,6 +92,11 @@ class CareToChina_Google_Login {
      */
     public function handle_google_callback() {
         if (!isset($_GET['ctc_google_callback'])) {
+            return;
+        }
+
+        if (!self::is_enabled()) {
+            $this->redirect_with_error(__('Google Sign-In is currently disabled by administrator.', 'caretochina-medical'));
             return;
         }
 
@@ -197,33 +206,36 @@ class CareToChina_Google_Login {
             return;
         }
 
-        // 2. Check if user exists by Email (registered via password) -> REQUIRE EXPLICIT ACCOUNT LINKING / PASSWORD CONFIRMATION
+        // 2. User exists by Email -> Auto-link Google sub and synchronize all prior bookings & chats
         if ($existing_user) {
-            $linked_sub = get_user_meta($existing_user->ID, '_ctc_google_sub', true);
-            if (!empty($linked_sub) && $linked_sub !== $google_sub) {
-                $this->redirect_with_error(__('This email is already associated with a different Google account.', 'caretochina-medical'));
-                return;
+            update_user_meta($existing_user->ID, '_ctc_google_sub', $google_sub);
+            
+            // Sync all previous bookings to this user ID
+            global $wpdb;
+            $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+            $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
+            
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $table_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE LOWER(email) = LOWER(%s)",
+                $existing_user->ID,
+                $google_email
+            ));
+
+            $user_booking_ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT id FROM $table_bookings WHERE LOWER(email) = LOWER(%s)",
+                $google_email
+            ));
+
+            if (!empty($user_booking_ids) && $wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
+                $ids_placeholder = implode(',', array_map('intval', $user_booking_ids));
+                $wpdb->query($wpdb->prepare(
+                    "UPDATE $table_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($ids_placeholder)",
+                    $existing_user->ID
+                ));
             }
 
-            // Generate one-time account linking token (15 minute validity)
-            $link_token = wp_generate_password(32, false);
-            $pending_key = 'ctc_link_pending_' . md5($link_token);
-            set_transient($pending_key, [
-                'user_id'      => $existing_user->ID,
-                'google_sub'   => $google_sub,
-                'google_email' => $google_email,
-                'full_name'    => $full_name,
-            ], 900);
-
-            // Redirect to explicit password confirmation linking screen
-            $link_url = add_query_arg([
-                'ctc_link_account' => 1,
-                'token'            => urlencode($link_token),
-                'email'            => urlencode($google_email),
-            ], home_url('/patient-login/'));
-
-            wp_safe_redirect($link_url);
-            exit;
+            $this->login_user_and_redirect($existing_user);
+            return;
         }
 
         // 3. Auto-Register New Patient Account
@@ -251,6 +263,29 @@ class CareToChina_Google_Login {
         // Set Google sub and profile meta
         update_user_meta($new_user_id, '_ctc_google_sub', $google_sub);
         update_user_meta($new_user_id, 'patient_registered_via', 'google_oauth');
+
+        // Sync any prior bookings made with this email
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $table_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE LOWER(email) = LOWER(%s)",
+            $new_user_id,
+            $google_email
+        ));
+
+        $new_booking_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT id FROM $table_bookings WHERE LOWER(email) = LOWER(%s)",
+            $google_email
+        ));
+
+        if (!empty($new_booking_ids) && $wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
+            $ids_placeholder = implode(',', array_map('intval', $new_booking_ids));
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $table_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($ids_placeholder)",
+                $new_user_id
+            ));
+        }
 
         $new_user = get_user_by('id', $new_user_id);
         $this->login_user_and_redirect($new_user);
@@ -317,7 +352,13 @@ class CareToChina_Google_Login {
         wp_set_auth_cookie($user->ID, true);
         do_action('wp_login', $user->user_login, $user);
 
+        // Auto-link any prior guest bookings by email
+        if (class_exists('CareToChina_Booking_Auth')) {
+            CareToChina_Booking_Auth::link_guest_bookings_to_user($user->ID, $user->user_email);
+        }
+
         $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+        $dash_url = add_query_arg('tab', 'messages', $dash_url);
         wp_safe_redirect($dash_url);
         exit;
     }

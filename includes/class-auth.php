@@ -22,6 +22,7 @@ class CareToChina_Booking_Auth {
         add_action('wp', [$this, 'hide_admin_bar_for_patients']);
         add_filter('login_redirect', [$this, 'custom_login_redirect'], 10, 3);
         add_action('template_redirect', [$this, 'redirect_logged_in_user']);
+        add_action('wp_login', [$this, 'on_user_logged_in'], 10, 2);
 
         // Shortcodes
         add_shortcode('caretochina_auth_portal', [$this, 'render_auth_portal']);
@@ -100,9 +101,24 @@ class CareToChina_Booking_Auth {
         return $redirect_to;
     }
 
+    public function on_user_logged_in($user_login, $user) {
+        if (isset($user->ID, $user->user_email)) {
+            self::link_guest_bookings_to_user($user->ID, $user->user_email);
+        }
+    }
+
     public function render_auth_portal() {
         ob_start();
-        $default_tab = isset($_GET['tab']) && $_GET['tab'] === 'register' ? 'register' : 'login';
+        $default_tab       = isset($_GET['tab']) && $_GET['tab'] === 'register' ? 'register' : 'login';
+        $prefill_name      = sanitize_text_field($_GET['prefill_name'] ?? '');
+        $prefill_email     = sanitize_email($_GET['prefill_email'] ?? '');
+        $prefill_phone     = sanitize_text_field($_GET['prefill_phone'] ?? '');
+        $prefill_gender    = sanitize_text_field($_GET['prefill_gender'] ?? '');
+        $prefill_age       = isset($_GET['prefill_age']) && $_GET['prefill_age'] !== '' ? intval($_GET['prefill_age']) : '';
+        $prefill_specialty = sanitize_text_field($_GET['prefill_specialty'] ?? '');
+        $prefill_whatsapp  = sanitize_text_field($_GET['prefill_whatsapp'] ?? '');
+        $prefill_wechat    = sanitize_text_field($_GET['prefill_wechat'] ?? '');
+        $prefill_code      = sanitize_text_field($_GET['booking_code'] ?? '');
         ?>
         <div class="careyou-auth-container caretochina-auth-container">
             <!-- MAIN AUTH CARD CONTAINER -->
@@ -198,7 +214,7 @@ class CareToChina_Booking_Auth {
                     <form id="careyou-auth-login-form">
                         <div class="form-group">
                             <label class="form-label"><?php _e('Email Address or Username *', 'caretochina-booking'); ?></label>
-                            <input type="text" name="log" class="form-input" placeholder="e.g. sarah@example.com" required>
+                            <input type="text" name="log" class="form-input" value="<?php echo esc_attr($prefill_email); ?>" placeholder="e.g. sarah@example.com" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label"><?php _e('Password *', 'caretochina-booking'); ?></label>
@@ -229,6 +245,16 @@ class CareToChina_Booking_Auth {
                         <p class="auth-subtitle"><?php _e('Registered as Patient • Track treatment roadmap & medical vault', 'caretochina-booking'); ?></p>
                     </div>
 
+                    <?php if (!empty($prefill_code)) : ?>
+                        <div class="ctc-guest-prefill-alert" style="background:#F0FDF4; border:1px solid #BBF7D0; padding:12px 16px; border-radius:12px; margin-bottom:20px; color:#166534; font-size:13px; display:flex; align-items:center; gap:10px;">
+                            <i class="fa-solid fa-circle-check" style="font-size:18px; color:#16A34A; flex-shrink:0;"></i>
+                            <div>
+                                <strong><?php printf(__('Linking Case #%s', 'caretochina-booking'), esc_html($prefill_code)); ?></strong><br>
+                                <span><?php _e('Your inquiry details have been prefilled. Set a password to save your profile and continue your live chat.', 'caretochina-booking'); ?></span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (class_exists('CareToChina_Google_Login') && CareToChina_Google_Login::is_enabled()) : ?>
                         <div class="google-auth-wrapper" style="margin-bottom:20px; text-align:center;">
                             <a href="<?php echo esc_url(CareToChina_Google_Login::get_auth_url()); ?>" class="ctc-google-btn" style="display:flex; align-items:center; justify-content:center; gap:12px; width:100%; background:#FFFFFF; color:#1F2937; border:1.5px solid #E5E7EB; padding:12px 18px; border-radius:12px; font-weight:700; font-size:14px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.06); transition:all 0.2s;">
@@ -247,22 +273,22 @@ class CareToChina_Booking_Auth {
                         <div class="ctc-form-grid-2">
                             <div class="form-group">
                                 <label class="form-label"><?php _e('Full Name *', 'caretochina-booking'); ?></label>
-                                <input type="text" name="user_name" class="form-input" placeholder="e.g. Sarah Jenkins" required>
+                                <input type="text" name="user_name" class="form-input" value="<?php echo esc_attr($prefill_name); ?>" placeholder="e.g. Sarah Jenkins" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label"><?php _e('Email Address *', 'caretochina-booking'); ?></label>
-                                <input type="email" name="user_email" class="form-input" placeholder="sarah@example.com" required>
+                                <input type="email" name="user_email" class="form-input" value="<?php echo esc_attr($prefill_email); ?>" placeholder="sarah@example.com" required>
                             </div>
                         </div>
 
                         <div class="ctc-form-grid-2">
                             <div class="form-group">
                                 <label class="form-label"><?php _e('Phone Number *', 'caretochina-booking'); ?></label>
-                                <input type="tel" name="user_phone" class="form-input" placeholder="+1 (800) 555-0199" required>
+                                <?php echo class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::render_phone_input_group('user_phone', $prefill_phone, true, '+1 (800) 555-0199', 'reg_user_phone') : '<input type="tel" name="user_phone" class="form-input" value="' . esc_attr($prefill_phone) . '" placeholder="+1 (800) 555-0199" required>'; ?>
                             </div>
                             <div class="form-group">
                                 <label class="form-label"><?php _e('Age', 'caretochina-booking'); ?></label>
-                                <input type="number" name="user_age" class="form-input" placeholder="e.g. 28">
+                                <input type="number" name="user_age" class="form-input" value="<?php echo esc_attr($prefill_age); ?>" placeholder="e.g. 28">
                             </div>
                         </div>
 
@@ -271,8 +297,8 @@ class CareToChina_Booking_Auth {
                                 <label class="form-label"><?php _e('Gender *', 'caretochina-booking'); ?></label>
                                 <select name="user_gender" class="form-select" required>
                                     <option value=""><?php _e('Select Gender', 'caretochina-booking'); ?></option>
-                                    <option value="Male"><?php _e('Male', 'caretochina-booking'); ?></option>
-                                    <option value="Female"><?php _e('Female', 'caretochina-booking'); ?></option>
+                                    <option value="Male" <?php selected($prefill_gender, 'Male'); ?>><?php _e('Male', 'caretochina-booking'); ?></option>
+                                    <option value="Female" <?php selected($prefill_gender, 'Female'); ?>><?php _e('Female', 'caretochina-booking'); ?></option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -286,16 +312,18 @@ class CareToChina_Booking_Auth {
                                     ]);
                                     if (!is_wp_error($specs) && !empty($specs)) {
                                         foreach ($specs as $spec) {
-                                            echo '<option value="' . esc_attr($spec->name) . '">' . esc_html($spec->name) . '</option>';
+                                            $sel = ($prefill_specialty && (strcasecmp($prefill_specialty, $spec->name) === 0 || stripos($prefill_specialty, $spec->name) !== false)) ? 'selected' : '';
+                                            echo '<option value="' . esc_attr($spec->name) . '" ' . $sel . '>' . esc_html($spec->name) . '</option>';
                                         }
                                     } else {
-                                        echo '<option value="Cardiology & Heart">' . esc_html__('Cardiology & Heart', 'caretochina-booking') . '</option>';
-                                        echo '<option value="Orthopedics & Joints">' . esc_html__('Orthopedics & Joints', 'caretochina-booking') . '</option>';
-                                        echo '<option value="Oncology & Cancer">' . esc_html__('Oncology & Cancer', 'caretochina-booking') . '</option>';
-                                        echo '<option value="Dental Implants">' . esc_html__('Dental Implants', 'caretochina-booking') . '</option>';
-                                        echo '<option value="Neurosurgery">' . esc_html__('Neurosurgery', 'caretochina-booking') . '</option>';
-                                        echo '<option value="Fertility & IVF">' . esc_html__('Fertility & IVF', 'caretochina-booking') . '</option>';
-                                        echo '<option value="General Consultation">' . esc_html__('General Consultation', 'caretochina-booking') . '</option>';
+                                        $default_specs = [
+                                            'Cardiology & Heart', 'Orthopedics & Joints', 'Oncology & Cancer', 
+                                            'Dental Implants', 'Neurosurgery', 'Fertility & IVF', 'General Consultation'
+                                        ];
+                                        foreach ($default_specs as $ds) {
+                                            $sel = ($prefill_specialty && strcasecmp($prefill_specialty, $ds) === 0) ? 'selected' : '';
+                                            echo '<option value="' . esc_attr($ds) . '" ' . $sel . '>' . esc_html($ds) . '</option>';
+                                        }
                                     }
                                     ?>
                                 </select>
@@ -307,11 +335,11 @@ class CareToChina_Booking_Auth {
                         <div class="ctc-form-grid-2">
                             <div class="form-group">
                                 <label class="form-label"><?php _e('WhatsApp', 'caretochina-booking'); ?></label>
-                                <input type="text" name="user_whatsapp" class="form-input" placeholder="+1 (800) 555-0199">
+                                <?php echo class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::render_phone_input_group('user_whatsapp', $prefill_whatsapp, false, '+1 (800) 555-0199', 'reg_user_whatsapp') : '<input type="tel" name="user_whatsapp" class="form-input" value="' . esc_attr($prefill_whatsapp) . '" placeholder="+1 (800) 555-0199">'; ?>
                             </div>
                             <div class="form-group">
                                 <label class="form-label"><?php _e('WeChat', 'caretochina-booking'); ?></label>
-                                <input type="text" name="user_wechat" class="form-input" placeholder="WeChat ID">
+                                <input type="text" name="user_wechat" class="form-input" value="<?php echo esc_attr($prefill_wechat); ?>" placeholder="WeChat ID">
                             </div>
                         </div>
 
@@ -329,11 +357,15 @@ class CareToChina_Booking_Auth {
                         <div class="ctc-form-grid-2">
                             <div class="form-group">
                                 <label class="form-label"><?php _e('Password *', 'caretochina-booking'); ?></label>
-                                <input type="password" name="user_pass" class="form-input" placeholder="••••••••" required>
+                                <input type="password" name="user_pass" id="reg_user_pass" class="form-input" placeholder="••••••••" minlength="6" maxlength="20" required autocomplete="new-password">
+                                <div id="reg_pass_rules" style="font-size:11px; color:#64748B; margin-top:4px; line-height:1.3;">
+                                    <i class="fa-solid fa-shield-halved"></i> <?php _e('6–20 characters, must include letters & numbers', 'caretochina-booking'); ?>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label"><?php _e('Confirm Password *', 'caretochina-booking'); ?></label>
-                                <input type="password" name="user_pass_confirm" class="form-input" placeholder="••••••••" required>
+                                <input type="password" name="user_pass_confirm" id="reg_user_pass_confirm" class="form-input" placeholder="••••••••" minlength="6" maxlength="20" required autocomplete="new-password">
+                                <div id="reg_pass_match_msg" style="font-size:11px; margin-top:4px; display:none; line-height:1.3;"></div>
                             </div>
                         </div>
 
@@ -401,9 +433,13 @@ class CareToChina_Booking_Auth {
         if (is_wp_error($user)) {
             wp_send_json_error(['message' => __('Invalid credentials. Please check your username/email and password.', 'caretochina-booking')]);
         } else {
+            // Auto-link any prior guest bookings by verified email
+            self::link_guest_bookings_to_user($user->ID, $user->user_email);
+
             $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+            $dash_url = add_query_arg('tab', 'messages', $dash_url);
             wp_send_json_success([
-                'message'  => __('Login successful! Redirecting to Patient Dashboard...', 'caretochina-booking'),
+                'message'  => __('Login successful! Redirecting to your Live Chat & Consultation...', 'caretochina-booking'),
                 'redirect' => $dash_url
             ]);
         }
@@ -426,11 +462,11 @@ class CareToChina_Booking_Auth {
 
         $name         = sanitize_text_field($_POST['user_name'] ?? '');
         $email        = sanitize_email($_POST['user_email'] ?? '');
-        $phone        = sanitize_text_field($_POST['user_phone'] ?? '');
+        $phone        = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'user_phone') : sanitize_text_field($_POST['user_phone'] ?? '');
         $specialty    = sanitize_text_field($_POST['user_specialty'] ?? 'General Consultation');
         $gender       = sanitize_text_field($_POST['user_gender'] ?? '');
         $age          = isset($_POST['user_age']) && $_POST['user_age'] !== '' ? intval($_POST['user_age']) : null;
-        $whatsapp     = sanitize_text_field($_POST['user_whatsapp'] ?? '');
+        $whatsapp     = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'user_whatsapp') : sanitize_text_field($_POST['user_whatsapp'] ?? '');
         $wechat       = sanitize_text_field($_POST['user_wechat'] ?? '');
         $messenger    = sanitize_text_field($_POST['user_messenger'] ?? '');
         $linkedin     = sanitize_text_field($_POST['user_linkedin'] ?? '');
@@ -445,8 +481,13 @@ class CareToChina_Booking_Auth {
             wp_send_json_error(['message' => __('Passwords do not match. Please verify your password.', 'caretochina-booking')]);
         }
 
-        if (strlen($pass) < 6) {
-            wp_send_json_error(['message' => __('Password must be at least 6 characters long.', 'caretochina-booking')]);
+        $pass_len = strlen($pass);
+        if ($pass_len < 6 || $pass_len > 20) {
+            wp_send_json_error(['message' => __('Password must be between 6 and 20 characters long.', 'caretochina-booking')]);
+        }
+
+        if (!preg_match('/[a-zA-Z]/', $pass) || !preg_match('/[0-9]/', $pass)) {
+            wp_send_json_error(['message' => __('Password must contain both letters and numbers.', 'caretochina-booking')]);
         }
 
         if (email_exists($email)) {
@@ -475,19 +516,84 @@ class CareToChina_Booking_Auth {
             update_user_meta($user_id, 'patient_messenger', $messenger);
             update_user_meta($user_id, 'patient_linkedin', $linkedin);
 
-            // Link existing guest bookings to this new patient ID
-            global $wpdb;
-            $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-            $wpdb->update($table_bookings, ['patient_id' => $user_id], ['email' => $email, 'patient_id' => 0]);
+            // Link existing guest bookings and chat history to this new patient ID
+            self::link_guest_bookings_to_user($user_id, $email);
 
             wp_set_current_user($user_id);
             wp_set_auth_cookie($user_id, true);
 
             $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+            $dash_url = add_query_arg('tab', 'messages', $dash_url);
             wp_send_json_success([
-                'message'  => __('Patient Account created successfully! Redirecting to Patient Dashboard...', 'caretochina-booking'),
+                'message'  => __('Patient Account created successfully! Redirecting to your Live Chat...', 'caretochina-booking'),
                 'redirect' => $dash_url
             ]);
         }
+    }
+
+    /**
+     * Centralized guest account linking helper by verified email
+     *
+     * @param int $user_id
+     * @param string $user_email
+     * @return int Count of linked bookings
+     */
+    public static function link_guest_bookings_to_user($user_id, $user_email) {
+        if (empty($user_id) || empty($user_email)) {
+            return 0;
+        }
+
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
+
+        // 1. Find all unlinked guest bookings matching verified email
+        $guest_bookings = $wpdb->get_results($wpdb->prepare(
+            "SELECT id FROM $table_bookings WHERE (patient_id = 0 OR patient_id IS NULL) AND LOWER(email) = LOWER(%s)",
+            $user_email
+        ));
+
+        if (empty($guest_bookings)) {
+            return 0;
+        }
+
+        $booking_ids = wp_list_pluck($guest_bookings, 'id');
+
+        // 2. Link bookings to the verified user and retire guest tokens
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $table_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE (patient_id = 0 OR patient_id IS NULL) AND LOWER(email) = LOWER(%s)",
+            $user_id,
+            $user_email
+        ));
+
+        // 3. Link any associated payment requests to this user
+        if (!empty($booking_ids) && $wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
+            $ids_placeholder = implode(',', array_map('intval', $booking_ids));
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $table_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($ids_placeholder)",
+                $user_id
+            ));
+        }
+
+        // 4. Invalidate guest cookies on client browser
+        if (!headers_sent()) {
+            setcookie('ctc_guest_token', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+            setcookie('ctc_active_guest_token', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+        }
+
+        // 5. Send Welcome & Records Linked Email Notification
+        if (class_exists('CareToChina_Email_Templates')) {
+            $user_obj = get_userdata($user_id);
+            $user_name = $user_obj ? $user_obj->display_name : 'Patient';
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+            CareToChina_Email_Templates::send_notification('guest_registered_welcome', $user_email, [
+                'patient_name'   => $user_name,
+                'patient_email'  => $user_email,
+                'dashboard_url'  => $dash_url,
+                'chat_url'       => add_query_arg('tab', 'messages', $dash_url),
+            ]);
+        }
+
+        return count($guest_bookings);
     }
 }

@@ -18,26 +18,114 @@ class CareToChina_Patient_Dashboard {
         add_shortcode('careyou_patient_dashboard', [$this, 'render_dashboard']); // Backward compatibility alias
 
         add_action('wp_ajax_caretochina_send_patient_message', [$this, 'handle_patient_message']);
+        add_action('wp_ajax_nopriv_caretochina_send_patient_message', [$this, 'handle_patient_message']);
         add_action('wp_ajax_caretochina_get_patient_chat', [$this, 'handle_get_patient_chat']);
+        add_action('wp_ajax_nopriv_caretochina_get_patient_chat', [$this, 'handle_get_patient_chat']);
         add_action('wp_ajax_caretochina_update_patient_profile', [$this, 'handle_update_patient_profile']);
         add_action('wp_ajax_caretochina_upload_patient_avatar', [$this, 'handle_patient_avatar_upload']);
         add_action('wp_ajax_caretochina_patient_send_typing', [$this, 'handle_patient_typing']);
+        add_action('wp_ajax_nopriv_caretochina_patient_send_typing', [$this, 'handle_patient_typing']);
         add_action('wp_ajax_caretochina_patient_delete_own_account', [$this, 'handle_patient_delete_own_account']);
         add_action('wp_ajax_careyou_patient_delete_own_account', [$this, 'handle_patient_delete_own_account']);
 
         // Backward compatibility AJAX aliases
         add_action('wp_ajax_careyou_send_patient_message', [$this, 'handle_patient_message']);
+        add_action('wp_ajax_nopriv_careyou_send_patient_message', [$this, 'handle_patient_message']);
         add_action('wp_ajax_careyou_get_patient_chat', [$this, 'handle_get_patient_chat']);
+        add_action('wp_ajax_nopriv_careyou_get_patient_chat', [$this, 'handle_get_patient_chat']);
         add_action('wp_ajax_careyou_upload_patient_avatar', [$this, 'handle_patient_avatar_upload']);
         add_action('template_redirect', [$this, 'restrict_guest_access']);
+    }
+
+    /**
+     * Resolve booking access for logged-in user or guest with valid token
+     *
+     * @param int $booking_id
+     * @param string $raw_token
+     * @param string $booking_code
+     * @return object|false
+     */
+    public function resolve_booking_access($booking_id = 0, $raw_token = '', $booking_code = '') {
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+
+        $booking = null;
+        if ($booking_id > 0) {
+            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $booking_id));
+        } elseif (!empty($booking_code)) {
+            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE booking_code = %s", sanitize_text_field($booking_code)));
+        }
+
+        if (!$booking) {
+            return false;
+        }
+
+        // Case 1: Authenticated patient owns this case (by patient_id OR verified email)
+        if (is_user_logged_in()) {
+            $curr_user = wp_get_current_user();
+            $curr_user_id = $curr_user->ID;
+            $curr_user_email = strtolower($curr_user->user_email);
+
+            if (($booking->patient_id > 0 && intval($booking->patient_id) === $curr_user_id) || 
+                (!empty($booking->email) && strtolower($booking->email) === $curr_user_email)) {
+                // Ensure patient_id is properly synced if it wasn't
+                if (intval($booking->patient_id) !== $curr_user_id) {
+                    $wpdb->update($table_bookings, ['patient_id' => $curr_user_id, 'is_guest' => 0, 'guest_token_hash' => ''], ['id' => $booking->id]);
+                    $booking->patient_id = $curr_user_id;
+                    $booking->is_guest = 0;
+                }
+                return $booking;
+            }
+
+            // Also permit staff / admin
+            if (current_user_can('manage_options') || current_user_can('edit_posts') || current_user_can('medical_staff')) {
+                return $booking;
+            }
+        }
+
+        // Case 2: Guest booking verified via token
+        if (intval($booking->patient_id) === 0 || intval($booking->is_guest) === 1) {
+            if (empty($raw_token)) {
+                $raw_token = sanitize_text_field($_REQUEST['guest_token'] ?? ($_REQUEST['token'] ?? ($_COOKIE['ctc_guest_token'] ?? ($_COOKIE['ctc_active_guest_token'] ?? ''))));
+            }
+
+            if (!empty($raw_token) && !empty($booking->guest_token_hash)) {
+                $hash = hash('sha256', $raw_token);
+                if (hash_equals($booking->guest_token_hash, $hash)) {
+                    // Enforce admin-configurable guest token expiration
+                    $expiry_days = intval(get_option('ctc_guest_token_expiry_days', 90));
+                    if ($expiry_days > 0 && !empty($booking->created_at)) {
+                        $created_time = strtotime($booking->created_at);
+                        if (time() > ($created_time + ($expiry_days * 86400))) {
+                            return false; // Session expired
+                        }
+                    }
+                    return $booking;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function restrict_guest_access() {
         if (!is_user_logged_in()) {
             $configured_id = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_id('patient_dashboard') : 0;
-            if (($configured_id > 0 && is_page($configured_id)) || is_page('patient-dashboard') || strpos($_SERVER['REQUEST_URI'], 'patient-dashboard') !== false) {
-                wp_redirect(home_url('/patient-login/'));
-                exit;
+            $is_dash_page = ($configured_id > 0 && is_page($configured_id)) || is_page('patient-dashboard') || strpos($_SERVER['REQUEST_URI'], 'patient-dashboard') !== false;
+            
+            if ($is_dash_page) {
+                // Check if visitor has valid guest chat access credentials
+                $guest_booking = $this->resolve_booking_access(
+                    intval($_REQUEST['booking_id'] ?? 0),
+                    sanitize_text_field($_REQUEST['token'] ?? ($_REQUEST['guest_token'] ?? '')),
+                    sanitize_text_field($_REQUEST['booking_code'] ?? '')
+                );
+
+                // If not valid guest access, redirect to login
+                if (!$guest_booking) {
+                    wp_redirect(home_url('/patient-login/'));
+                    exit;
+                }
             }
         }
     }
@@ -45,6 +133,17 @@ class CareToChina_Patient_Dashboard {
     public function render_dashboard() {
         ob_start();
         if (!is_user_logged_in()) {
+            $raw_token = sanitize_text_field($_REQUEST['token'] ?? ($_REQUEST['guest_token'] ?? ($_COOKIE['ctc_guest_token'] ?? ($_COOKIE['ctc_active_guest_token'] ?? ''))));
+            $guest_booking = $this->resolve_booking_access(
+                intval($_REQUEST['booking_id'] ?? 0),
+                $raw_token,
+                sanitize_text_field($_REQUEST['booking_code'] ?? '')
+            );
+
+            if ($guest_booking) {
+                return $this->render_guest_dashboard($guest_booking, $raw_token);
+            }
+
             echo '<script>window.location.href = "' . esc_js(home_url('/patient-login/')) . '";</script>';
             return ob_get_clean();
         }
@@ -53,6 +152,7 @@ class CareToChina_Patient_Dashboard {
 
         $current_user = wp_get_current_user();
         $user_id = $current_user->ID;
+        $patient_id = $user_id;
         $email = $current_user->exists() ? $current_user->user_email : '';
         $display_name = $current_user->exists() ? $current_user->display_name : 'Patient';
         
@@ -78,14 +178,22 @@ class CareToChina_Patient_Dashboard {
 
         $bookings = [];
         if (is_user_logged_in() && !empty($email)) {
-            $bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_bookings WHERE patient_id = %d OR email = %s ORDER BY id DESC", $user_id, $email));
+            $bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_bookings WHERE patient_id = %d OR LOWER(email) = LOWER(%s) ORDER BY id DESC", $user_id, $email));
         }
 
         $active_booking = null;
         if (!empty($bookings)) {
             $active_booking = $bookings[0];
+            // Synchronize all bookings for this email
+            $wpdb->query($wpdb->prepare("UPDATE $table_bookings SET patient_id = %d, is_guest = 0 WHERE LOWER(email) = LOWER(%s)", $user_id, $email));
             $stage = intval($active_booking->timeline_stage ?? 1);
             $stage_pct = min(100, max(20, $stage * 20));
+        }
+
+        $active_tab = sanitize_key($_GET['tab'] ?? 'overview');
+        $valid_tabs = ['overview', 'invoices', 'account', 'milestones', 'messages', 'logout'];
+        if (!in_array($active_tab, $valid_tabs, true)) {
+            $active_tab = 'overview';
         }
 
         $logout_url = wp_logout_url(home_url('/patient-login/'));
@@ -129,20 +237,22 @@ class CareToChina_Patient_Dashboard {
                 <!-- SIDEBAR NAVIGATION TABS -->
                 <div class="ctc-dash-sidebar">
                     <button type="button" class="ctc-sidebar-toggle-btn" onclick="appDash.toggleSidebar()"><i class="fa-solid fa-angles-left"></i></button>
-                    <button type="button" class="ctc-sidebar-tab active" onclick="appDash.switchTab(this, 'overview')">
+                    <button type="button" class="ctc-sidebar-tab <?php echo ($active_tab === 'overview') ? 'active' : ''; ?>" onclick="appDash.switchTab(this, 'overview')">
                         <i class="fa-solid fa-chart-line"></i> <span><?php _e('Account Overview', 'caretochina-booking'); ?></span>
                     </button>
-                    <button type="button" class="ctc-sidebar-tab" onclick="appDash.switchTab(this, 'invoices')">
+                    <button type="button" class="ctc-sidebar-tab <?php echo ($active_tab === 'invoices') ? 'active' : ''; ?>" onclick="appDash.switchTab(this, 'invoices')">
                         <i class="fa-solid fa-file-invoice-dollar"></i> <span><?php _e('Payment History', 'caretochina-booking'); ?></span>
+                        <span id="patient-unread-invoice-badge" class="ctc-tab-unread-badge" style="display:none; background:#EF4444; color:#FFF; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; margin-left:auto;"></span>
                     </button>
-                    <button type="button" class="ctc-sidebar-tab" onclick="appDash.switchTab(this, 'account')">
+                    <button type="button" class="ctc-sidebar-tab <?php echo ($active_tab === 'account') ? 'active' : ''; ?>" onclick="appDash.switchTab(this, 'account')">
                         <i class="fa-solid fa-user-gear"></i> <span><?php _e('Account Settings', 'caretochina-booking'); ?></span>
                     </button>
-                    <button type="button" class="ctc-sidebar-tab" onclick="appDash.switchTab(this, 'milestones')">
+                    <button type="button" class="ctc-sidebar-tab <?php echo ($active_tab === 'milestones') ? 'active' : ''; ?>" onclick="appDash.switchTab(this, 'milestones')">
                         <i class="fa-solid fa-list-check"></i> <span><?php _e('Treatment Timeline', 'caretochina-booking'); ?></span>
                     </button>
-                    <button type="button" class="ctc-sidebar-tab" onclick="appDash.switchTab(this, 'messages')">
+                    <button type="button" class="ctc-sidebar-tab <?php echo ($active_tab === 'messages') ? 'active' : ''; ?>" onclick="appDash.switchTab(this, 'messages')">
                         <i class="fa-solid fa-comments"></i> <span><?php _e('Coordinator Messages', 'caretochina-booking'); ?></span>
+                        <span id="patient-unread-msg-badge" class="ctc-tab-unread-badge" style="display:none; background:#EF4444; color:#FFF; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; margin-left:auto;"></span>
                     </button>
                     <button type="button" class="ctc-sidebar-tab tab-logout-item" onclick="appDash.switchTab(this, 'logout')">
                         <i class="fa-solid fa-right-from-bracket"></i> <span><?php _e('Log Out', 'caretochina-booking'); ?></span>
@@ -153,8 +263,26 @@ class CareToChina_Patient_Dashboard {
                 <div class="ctc-dash-content">
                     
                     <!-- TAB 1: Account Overview -->
-                    <div class="ctc-dash-panel active" id="dash-panel-overview">
+                    <div class="ctc-dash-panel <?php echo ($active_tab === 'overview') ? 'active' : ''; ?>" id="dash-panel-overview" style="display:<?php echo ($active_tab === 'overview') ? 'block' : 'none'; ?>;">
                         <?php if ($active_booking) : ?>
+                            <!-- ACTION REQUIRED: DEPOSIT PAYMENT BANNER IF UNPAID -->
+                            <?php if (in_array(strtolower($active_booking->status), ['pending']) && floatval($active_booking->amount) > 0) : ?>
+                                <div class="ctc-deposit-action-banner">
+                                    <div class="ctc-deposit-banner-left">
+                                        <div class="ctc-deposit-icon-wrap">
+                                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                                        </div>
+                                        <div>
+                                            <strong class="ctc-deposit-title"><?php _e('Booking Deposit Required', 'caretochina-booking'); ?></strong>
+                                            <div class="ctc-deposit-desc"><?php printf(__('Deposit of %s is pending for Case #%s. Pay now to lock in your appointment.', 'caretochina-booking'), '$' . number_format((float)$active_booking->amount, 2) . ' ' . esc_html($active_booking->currency ?: 'USD'), esc_html($active_booking->booking_code)); ?></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($active_booking->id); ?>, <?php echo esc_attr($active_booking->amount); ?>, '<?php echo esc_attr($active_booking->currency ?: 'USD'); ?>', '<?php echo esc_attr($active_booking->specialty); ?>')" class="ctc-solid-btn btn-teal-primary ctc-deposit-btn">
+                                        <i class="fa-solid fa-lock"></i> <?php _e('Pay Deposit Online', 'caretochina-booking'); ?>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+
                             <!-- STAT CARDS GRID -->
                             <div class="ctc-stat-grid">
                                 <div class="ctc-stat-card">
@@ -221,29 +349,40 @@ class CareToChina_Patient_Dashboard {
                             </div>
                         <?php else : ?>
                             <!-- GET A FREE QUOTE BANNER (No bookings found) -->
-                            <div class="ctc-panel-card text-center" style="text-align:center; padding:50px 30px; background:#F0FDF4; border:1px dashed #2DD4BF; border-radius:24px;">
-                                <div style="width:70px; height:70px; border-radius:50%; background:#CCFBF1; color:#0F766E; display:inline-flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:20px;">
+                            <div class="ctc-panel-card text-center ctc-no-bookings-card">
+                                <div class="ctc-no-bookings-icon-wrap">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 </div>
-                                <h3 style="font-family:'Manrope'; font-size:24px; font-weight:800; color: var(--cymb-text-dark); margin:0 0 10px 0;"><?php _e('No Active Treatment Cases Found', 'caretochina-booking'); ?></h3>
-                                <p style="color:#64748B; font-size:15px; max-width:500px; margin:0 auto 24px auto; line-height:1.6;"><?php _e('Connect with top JCI-certified hospitals in China. Start your personalized medical consultation roadmap today.', 'caretochina-booking'); ?></p>
-                                <button type="button" class="ctc-solid-btn btn-teal-primary btn-lg" onclick="appWizard.openScenario1()" style="padding:16px 36px; border-radius:999px; font-size:16px; font-weight:700;"><i class="fa-solid fa-calendar-plus"></i> <?php _e('Request Free Quote & Plan Now', 'caretochina-booking'); ?></button>
+                                <h3 class="ctc-no-bookings-title"><?php _e('No Active Treatment Cases Found', 'caretochina-booking'); ?></h3>
+                                <p class="ctc-no-bookings-desc"><?php _e('Connect with top JCI-certified hospitals in China. Start your personalized medical consultation roadmap today.', 'caretochina-booking'); ?></p>
+                                <button type="button" class="ctc-solid-btn btn-teal-primary btn-lg ctc-no-bookings-btn" onclick="appWizard.openScenario1()"><i class="fa-solid fa-calendar-plus"></i> <?php _e('Request Free Quote & Plan Now', 'caretochina-booking'); ?></button>
                             </div>
                         <?php endif; ?>
                     </div>
 
                     <!-- TAB 2: PAYMENT HISTORY & BILLING INVOICES -->
-                    <div class="ctc-dash-panel" id="dash-panel-invoices">
+                    <div class="ctc-dash-panel <?php echo ($active_tab === 'invoices') ? 'active' : ''; ?>" id="dash-panel-invoices" style="display:<?php echo ($active_tab === 'invoices') ? 'block' : 'none'; ?>;">
                         <div class="ctc-panel-card" style="margin-bottom: 24px !important;">
                             <h3 class="ctc-card-title" style="margin-bottom: 18px !important;"><?php _e('Payment History & Invoices', 'caretochina-booking'); ?></h3>
                             
                             <?php
                             global $wpdb;
                             $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-                            $patient_bookings = $wpdb->get_results($wpdb->prepare(
-                                "SELECT * FROM $table_bookings WHERE patient_id = %d ORDER BY id DESC",
+                            $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
+
+                            $patient_bookings = ($patient_id > 0) ? $wpdb->get_results($wpdb->prepare(
+                                "SELECT * FROM $table_bookings WHERE patient_id = %d OR LOWER(email) = LOWER(%s) ORDER BY id DESC",
+                                $patient_id,
+                                $email
+                            )) : [];
+
+                            $booking_ids = wp_list_pluck($patient_bookings, 'id');
+                            $ids_placeholder = !empty($booking_ids) ? implode(',', array_map('intval', $booking_ids)) : '0';
+
+                            $patient_requests = ($patient_id > 0) ? $wpdb->get_results($wpdb->prepare(
+                                "SELECT * FROM $table_requests WHERE patient_id = %d OR chat_thread_booking_id IN ($ids_placeholder) ORDER BY id DESC",
                                 $patient_id
-                            ));
+                            )) : [];
 
                             $total_paid = 0.00;
                             $paid_count = 0;
@@ -255,9 +394,19 @@ class CareToChina_Patient_Dashboard {
                                     }
                                 }
                             }
+                            if (!empty($patient_requests)) {
+                                foreach ($patient_requests as $pr) {
+                                    if ($pr->status === 'accepted_paid') {
+                                        $total_paid += floatval($pr->amount);
+                                        $paid_count++;
+                                    }
+                                }
+                            }
+
+                            $has_records = (!empty($patient_bookings) || !empty($patient_requests));
                             ?>
 
-                            <?php if (!empty($patient_bookings)) : ?>
+                            <?php if ($has_records) : ?>
                                 <div class="ctc-summary-grid" style="margin-bottom: 24px !important;">
                                     <div class="ctc-summary-box">
                                         <span class="ctc-summary-lbl"><?php _e('Total Completed Payments', 'caretochina-booking'); ?></span>
@@ -275,82 +424,157 @@ class CareToChina_Patient_Dashboard {
                                                 <th><?php _e('Reference #', 'caretochina-booking'); ?></th>
                                                 <th><?php _e('Treatment / Service', 'caretochina-booking'); ?></th>
                                                 <th><?php _e('Amount', 'caretochina-booking'); ?></th>
-                                                <th><?php _e('Payment Method', 'caretochina-booking'); ?></th>
+                                                <th><?php _e('Type / Method', 'caretochina-booking'); ?></th>
                                                 <th><?php _e('Status', 'caretochina-booking'); ?></th>
                                                 <th><?php _e('Date', 'caretochina-booking'); ?></th>
                                                 <th><?php _e('Action', 'caretochina-booking'); ?></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($patient_bookings as $pb) : 
-                                                $status = $pb->status;
-                                                $badge_class = 'badge-pending';
-                                                $badge_lbl = ucfirst($status);
+                                            <?php 
+                                            // 1. Render custom payment requests
+                                            if (!empty($patient_requests)) {
+                                                foreach ($patient_requests as $pr) {
+                                                    $pr_status = $pr->status;
+                                                    $pr_badge_class = 'badge-pending';
+                                                    $pr_badge_lbl = __('Payment Requested', 'caretochina-booking');
 
-                                                if ($status === 'confirmed' || $status === 'paid') {
-                                                    $badge_class = 'badge-success';
-                                                    $badge_lbl = __('Paid', 'caretochina-booking');
-                                                } elseif ($status === 'refunded' || $status === 'refund_full') {
-                                                    $badge_class = 'badge-danger';
-                                                    $badge_lbl = __('Refunded', 'caretochina-booking');
-                                                } elseif ($status === 'partially_refunded' || $status === 'refund_partial') {
-                                                    $badge_class = 'badge-warning';
-                                                    $badge_lbl = __('Partial Refund', 'caretochina-booking');
-                                                } elseif ($status === 'payment_failed') {
-                                                    $badge_class = 'badge-danger';
-                                                    $badge_lbl = __('Failed', 'caretochina-booking');
+                                                    if ($pr_status === 'accepted_paid') {
+                                                        $pr_badge_class = 'badge-success';
+                                                        $pr_badge_lbl = __('Paid', 'caretochina-booking');
+                                                    } elseif ($pr_status === 'cancelled') {
+                                                        $pr_badge_class = 'badge-danger';
+                                                        $pr_badge_lbl = __('Cancelled', 'caretochina-booking');
+                                                    }
+                                                    ?>
+                                                    <tr>
+                                                        <td class="ctc-td-code">
+                                                            <span style="font-weight:800; color:#0F766E;">#<?php echo esc_html($pr->request_code); ?></span>
+                                                        </td>
+                                                        <td>
+                                                            <strong><?php echo esc_html($pr->custom_title); ?></strong>
+                                                            <br><span style="font-size:11px; color:#0F766E;"><i class="fa-solid fa-headset"></i> <?php _e('Staff Payment Request', 'caretochina-booking'); ?></span>
+                                                        </td>
+                                                        <td style="font-weight:700; color:#0F766E;">
+                                                            <?php echo esc_html('$' . number_format((float)$pr->amount, 2) . ' ' . ($pr->currency ?: 'USD')); ?>
+                                                        </td>
+                                                        <td>
+                                                            <?php if ($pr_status === 'accepted_paid') : ?>
+                                                                <span style="font-weight:600; font-size:12px; color:#475569;"><i class="fa-solid fa-credit-card"></i> <?php echo esc_html($pr->gateway ?: 'Online Gateway'); ?></span>
+                                                            <?php else : ?>
+                                                                <span style="color:#94A3B8; font-size:13px;">—</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td><span class="ctc-badge-pill <?php echo esc_attr($pr_badge_class); ?>"><?php echo esc_html($pr_badge_lbl); ?></span></td>
+                                                        <td style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pr->created_at))); ?></td>
+                                                        <td>
+                                                            <?php if ($pr_status === 'pending' || $pr_status === 'processing') : ?>
+                                                                <button type="button" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr($pr->id); ?>)" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                                                    <i class="fa-solid fa-lock"></i> <?php _e('Pay Now', 'caretochina-booking'); ?>
+                                                                </button>
+                                                            <?php elseif ($pr_status === 'accepted_paid') : ?>
+                                                                <button type="button" onclick="window.ctcOpenReceiptModal(<?php echo esc_attr(json_encode([
+                                                                    'code'      => $pr->request_code,
+                                                                    'name'      => $display_name,
+                                                                    'email'     => $email,
+                                                                    'specialty' => $pr->custom_title,
+                                                                    'hospital'  => 'CareToChina Medical Services',
+                                                                    'amount'    => number_format((float)$pr->amount, 2),
+                                                                    'currency'  => $pr->currency ?: 'USD',
+                                                                    'gateway'   => 'Online Checkout',
+                                                                    'date'      => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($pr->updated_at ?: $pr->created_at)),
+                                                                    'status'    => 'Paid in Full'
+                                                                ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                                                    <i class="fa-solid fa-receipt"></i> <?php _e('View Receipt', 'caretochina-booking'); ?>
+                                                                </button>
+                                                            <?php else : ?>
+                                                                <span style="color:#94A3B8; font-size:12px;">—</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <?php
                                                 }
-                                                ?>
-                                                <tr>
-                                                    <td class="ctc-td-code">#<?php echo esc_html($pb->booking_code); ?></td>
-                                                    <td>
-                                                        <strong><?php echo esc_html($pb->specialty); ?></strong>
-                                                        <?php if (!empty($pb->hospital_name)) : ?>
-                                                            <br><span style="font-size:11px; color:#64748B;"><?php echo esc_html($pb->hospital_name); ?></span>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                    <td style="font-weight:700; color:#0F766E;">
-                                                        <?php echo esc_html('$' . number_format((float)$pb->amount, 2) . ' ' . ($pb->currency ?: 'USD')); ?>
-                                                    </td>
-                                                    <td>
-                                                        <?php 
-                                                        if (strtolower($pb->payment_gateway) === 'stripe') {
-                                                            echo '<span style="color:#635BFF; font-weight:700;"><i class="fa-brands fa-stripe"></i> Stripe</span>';
-                                                        } elseif (strtolower($pb->payment_gateway) === 'paypal') {
-                                                            echo '<span style="color:#003087; font-weight:700;"><i class="fa-brands fa-paypal"></i> PayPal</span>';
-                                                        } else {
-                                                            echo esc_html($pb->payment_gateway ?: '—');
-                                                        }
-                                                        ?>
-                                                    </td>
-                                                    <td><span class="ctc-badge-pill <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge_lbl); ?></span></td>
-                                                    <td style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pb->created_at))); ?></td>
-                                                    <td>
-                                                        <?php if ($status === 'confirmed' || $status === 'paid' || $status === 'refunded' || $status === 'partially_refunded') : ?>
-                                                            <button type="button" onclick="window.ctcOpenReceiptModal(<?php echo esc_attr(json_encode([
-                                                                'code'      => $pb->booking_code,
-                                                                'name'      => $pb->full_name,
-                                                                'email'     => $pb->email,
-                                                                'specialty' => $pb->specialty,
-                                                                'hospital'  => $pb->hospital_name,
-                                                                'amount'    => number_format((float)$pb->amount, 2),
-                                                                'currency'  => $pb->currency ?: 'USD',
-                                                                'gateway'   => ucfirst($pb->payment_gateway ?: 'Online'),
-                                                                'date'      => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($pb->paid_at ?: $pb->created_at)),
-                                                                'status'    => $badge_lbl
-                                                            ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
-                                                                <i class="fa-solid fa-receipt"></i> <?php _e('View Receipt', 'caretochina-booking'); ?>
-                                                            </button>
-                                                        <?php elseif ($status === 'pending') : ?>
-                                                            <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($pb->id); ?>, <?php echo esc_attr($pb->amount); ?>, '<?php echo esc_attr($pb->currency ?: 'USD'); ?>', '<?php echo esc_attr($pb->specialty); ?>')" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
-                                                                <i class="fa-solid fa-lock"></i> <?php _e('Pay Now', 'caretochina-booking'); ?>
-                                                            </button>
-                                                        <?php else : ?>
-                                                            <span style="color:#94A3B8; font-size:12px;">—</span>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
+                                            }
+
+                                            // 2. Render booking packages
+                                            if (!empty($patient_bookings)) {
+                                                foreach ($patient_bookings as $pb) {
+                                                    $status = $pb->status;
+                                                    $badge_class = 'badge-pending';
+                                                    $badge_lbl = ucfirst($status);
+
+                                                    if ($status === 'confirmed' || $status === 'paid') {
+                                                        $badge_class = 'badge-success';
+                                                        $badge_lbl = __('Paid', 'caretochina-booking');
+                                                    } elseif ($status === 'refunded' || $status === 'refund_full') {
+                                                        $badge_class = 'badge-danger';
+                                                        $badge_lbl = __('Refunded', 'caretochina-booking');
+                                                    } elseif ($status === 'partially_refunded' || $status === 'refund_partial') {
+                                                        $badge_class = 'badge-warning';
+                                                        $badge_lbl = __('Partial Refund', 'caretochina-booking');
+                                                    } elseif ($status === 'payment_failed') {
+                                                        $badge_class = 'badge-danger';
+                                                        $badge_lbl = __('Failed', 'caretochina-booking');
+                                                    }
+                                                    ?>
+                                                    <tr>
+                                                        <td class="ctc-td-code">#<?php echo esc_html($pb->booking_code); ?></td>
+                                                        <td>
+                                                            <strong><?php echo esc_html($pb->specialty); ?></strong>
+                                                            <?php if (!empty($pb->hospital_name)) : ?>
+                                                                <br><span style="font-size:11px; color:#64748B;"><?php echo esc_html($pb->hospital_name); ?></span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td style="font-weight:700; color:#0F766E;">
+                                                            <?php echo esc_html('$' . number_format((float)$pb->amount, 2) . ' ' . ($pb->currency ?: 'USD')); ?>
+                                                        </td>
+                                                        <td>
+                                                            <?php 
+                                                            $is_paid_status = in_array(strtolower($status), ['confirmed', 'paid', 'completed', 'refunded', 'partially_refunded']);
+                                                            if ($is_paid_status && !empty($pb->payment_gateway)) {
+                                                                if (strtolower($pb->payment_gateway) === 'stripe') {
+                                                                    echo '<span style="color:#635BFF; font-weight:700;"><i class="fa-brands fa-stripe"></i> Stripe</span>';
+                                                                } elseif (strtolower($pb->payment_gateway) === 'paypal') {
+                                                                    echo '<span style="color:#003087; font-weight:700;"><i class="fa-brands fa-paypal"></i> PayPal</span>';
+                                                                } else {
+                                                                    echo '<span style="font-weight:700; color:#0F766E;">' . esc_html(ucfirst($pb->payment_gateway)) . '</span>';
+                                                                }
+                                                            } else {
+                                                                echo '<span style="color:#94A3B8; font-size:13px;">—</span>';
+                                                            }
+                                                            ?>
+                                                        </td>
+                                                        <td><span class="ctc-badge-pill <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge_lbl); ?></span></td>
+                                                        <td style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pb->created_at))); ?></td>
+                                                        <td>
+                                                            <?php if ($status === 'confirmed' || $status === 'paid' || $status === 'refunded' || $status === 'partially_refunded') : ?>
+                                                                <button type="button" onclick="window.ctcOpenReceiptModal(<?php echo esc_attr(json_encode([
+                                                                    'code'      => $pb->booking_code,
+                                                                    'name'      => $pb->full_name,
+                                                                    'email'     => $pb->email,
+                                                                    'specialty' => $pb->specialty,
+                                                                    'hospital'  => $pb->hospital_name,
+                                                                    'amount'    => number_format((float)$pb->amount, 2),
+                                                                    'currency'  => $pb->currency ?: 'USD',
+                                                                    'gateway'   => ucfirst($pb->payment_gateway ?: 'Online'),
+                                                                    'date'      => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($pb->paid_at ?: $pb->created_at)),
+                                                                    'status'    => $badge_lbl
+                                                                ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                                                    <i class="fa-solid fa-receipt"></i> <?php _e('View Receipt', 'caretochina-booking'); ?>
+                                                                </button>
+                                                            <?php elseif ($status === 'pending' && floatval($pb->amount) > 0) : ?>
+                                                                <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($pb->id); ?>, <?php echo esc_attr($pb->amount); ?>, '<?php echo esc_attr($pb->currency ?: 'USD'); ?>', '<?php echo esc_attr($pb->specialty); ?>')" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                                                    <i class="fa-solid fa-lock"></i> <?php _e('Pay Now', 'caretochina-booking'); ?>
+                                                                </button>
+                                                            <?php else : ?>
+                                                                <span style="color:#94A3B8; font-size:12px;">—</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <?php
+                                                }
+                                            }
+                                            ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -364,7 +588,7 @@ class CareToChina_Patient_Dashboard {
                     </div>
 
                     <!-- TAB 3: ACCOUNT SETTINGS (PREMIUM STYLED FORM) -->
-                    <div class="ctc-dash-panel" id="dash-panel-account">
+                    <div class="ctc-dash-panel <?php echo ($active_tab === 'account') ? 'active' : ''; ?>" id="dash-panel-account" style="display:<?php echo ($active_tab === 'account') ? 'block' : 'none'; ?>;">
                         <div class="ctc-panel-card ctc-profile-card">
                             <div class="ctc-profile-header" style="display: flex; margin-bottom: 40px !important; align-items: center; gap: 20px; flex-wrap: wrap;">
                                 <div class="ctc-profile-badge-avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #14B8A6; overflow: hidden; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center;">
@@ -391,7 +615,7 @@ class CareToChina_Patient_Dashboard {
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label"><i class="fa-solid fa-phone"></i> <?php _e('Phone Number *', 'caretochina-booking'); ?></label>
-                                        <input type="text" name="phone" class="form-input" value="<?php echo esc_attr($phone); ?>" required>
+                                        <?php echo class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::render_phone_input_group('phone', $phone, true, '+1 (800) 555-0199', 'profile_phone') : '<input type="tel" name="phone" id="profile_phone" class="form-input" value="' . esc_attr($phone) . '" required>'; ?>
                                     </div>
                                 </div>
 
@@ -415,7 +639,7 @@ class CareToChina_Patient_Dashboard {
                                 <div class="ctc-form-grid-2" style="margin-bottom: 20px !important;">
                                     <div class="form-group">
                                         <label class="form-label"><i class="fa-brands fa-whatsapp"></i> <?php _e('WhatsApp', 'caretochina-booking'); ?></label>
-                                        <input type="text" name="whatsapp" class="form-input" value="<?php echo esc_attr($whatsapp); ?>" placeholder="+1 (800) 555-0199">
+                                        <?php echo class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::render_phone_input_group('whatsapp', $whatsapp, false, '+1 (800) 555-0199', 'profile_whatsapp') : '<input type="tel" name="whatsapp" id="profile_whatsapp" class="form-input" value="' . esc_attr($whatsapp) . '" placeholder="+1 (800) 555-0199">'; ?>
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label"><i class="fa-brands fa-weixin"></i> <?php _e('WeChat ID', 'caretochina-booking'); ?></label>
@@ -459,7 +683,7 @@ class CareToChina_Patient_Dashboard {
                     </div>
 
                     <!-- TAB 4: TIMELINE -->
-                    <div class="ctc-dash-panel" id="dash-panel-milestones">
+                    <div class="ctc-dash-panel <?php echo ($active_tab === 'milestones') ? 'active' : ''; ?>" id="dash-panel-milestones" style="display:<?php echo ($active_tab === 'milestones') ? 'block' : 'none'; ?>;">
                         <div class="ctc-panel-card">
                             <h3 class="ctc-card-title" style="margin-bottom: 24px !important;"><?php _e('Treatment Roadmap Milestones', 'caretochina-booking'); ?></h3>
                             
@@ -519,18 +743,18 @@ class CareToChina_Patient_Dashboard {
                             <?php endif; ?>
                         </div>
                     </div>                    <!-- TAB 5: MESSAGES (PREVIEWING DELIVERED & SEEN TICK FEATURES) -->
-                    <div class="ctc-dash-panel" id="dash-panel-messages">
+                    <div class="ctc-dash-panel <?php echo ($active_tab === 'messages') ? 'active' : ''; ?>" id="dash-panel-messages" style="display:<?php echo ($active_tab === 'messages') ? 'block' : 'none'; ?>;">
                         <div class="ctc-panel-card">
                             <div class="ctc-card-header-row" style="margin-bottom:18px !important;">
                                 <h3 class="ctc-card-title"><?php _e('Care Coordinator Live Chat', 'caretochina-booking'); ?></h3>
-                                <span class="ctc-sync-indicator"><i class="fa-solid fa-circle text-success" style="font-size:10px;"></i> <?php _e('Real-Time Synchronized (Zero Reload)', 'caretochina-booking'); ?></span>
+                                <span class="ctc-sync-indicator"><i class="fa-solid fa-circle" style="font-size:8px;"></i> <?php _e('Live Synchronized', 'caretochina-booking'); ?></span>
                             </div>
 
                             <?php if ($active_booking) : ?>
-                                <div id="patient-chat-box" class="ctc-chat-viewport" style="max-height:350px; margin-bottom:18px; overflow-y:auto; padding:16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px;">
+                                <div id="patient-chat-box" class="ctc-chat-viewport">
                                     <!-- Populated dynamically by JS AJAX Polling -->
                                 </div>
-                                <div id="patient-chat-typing-indicator" style="padding:0 16px 8px 16px; font-size:12px; color:#64748B; font-style:italic; display:none;"></div>
+                                <div id="patient-chat-typing-indicator" class="ctc-chat-typing-indicator" style="display:none;"></div>
 
                                 <?php
                                 $is_restricted = get_user_meta($user_id, 'patient_restricted', true) ? true : false;
@@ -538,33 +762,49 @@ class CareToChina_Patient_Dashboard {
                                 ?>
 
                                 <?php if ($is_restricted) : ?>
-                                    <div style="padding:20px; background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5; border-radius:12px; text-align:center; font-size:14px; font-weight:600; line-height:1.5;">
-                                        <i class="fa-solid fa-ban" style="font-size:24px; margin-bottom:8px; display:block; color:#EF4444;"></i>
+                                    <div class="ctc-chat-restricted-banner">
+                                        <i class="fa-solid fa-ban"></i>
                                         <?php printf(__('Your live chat feature has been restricted by the administrator. Reason: %s', 'caretochina-booking'), '<em>' . esc_html($restriction_reason ?: __('Violation of portal guidelines.', 'caretochina-booking')) . '</em>'); ?><br>
-                                        <span style="font-size:12px; font-weight:500; display:block; margin-top:8px; color:#7F1D1D;">
+                                        <span class="ctc-restricted-contact">
                                             <?php printf(__('Please contact us at %s to resolve this issue and restore your chat access.', 'caretochina-booking'), '<strong>' . esc_html(get_option('admin_email')) . '</strong>'); ?>
                                         </span>
                                     </div>
                                 <?php else : ?>
-                                    <form id="patient-message-form">
+                                    <form id="patient-message-form" class="ctc-chat-form" enctype="multipart/form-data">
                                         <input type="hidden" name="booking_id" value="<?php echo esc_attr($active_booking->id); ?>">
-                                        <div class="ctc-chat-input-group">
-                                            <input type="text" name="message" id="patient_msg_input" class="ctc-field-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" required autocomplete="off">
-                                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary"><i class="fa-solid fa-paper-plane"></i> <?php _e('Send', 'caretochina-booking'); ?></button>
+                                        
+                                        <div id="patient_attachment_preview" class="ctc-attachment-preview-box" style="display:none;">
+                                            <span id="patient_attachment_name" class="ctc-attachment-name"></span>
+                                            <button type="button" onclick="appChat.clearAttachment()" class="ctc-attachment-clear-btn">&times;</button>
+                                        </div>
+
+                                        <div class="ctc-chat-input-bar">
+                                            <label for="patient_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-booking'); ?>">
+                                                <i class="fa-solid fa-paperclip"></i>
+                                            </label>
+                                            <input type="file" id="patient_chat_file_input" name="attachment" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none;" onchange="appChat.handleFileSelected(this)">
+                                            <input type="text" name="message" id="patient_msg_input" class="ctc-chat-text-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" autocomplete="off">
+                                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary ctc-chat-send-btn">
+                                                <i class="fa-solid fa-paper-plane"></i>
+                                                <span class="ctc-btn-send-text"><?php _e('Send', 'caretochina-booking'); ?></span>
+                                            </button>
+                                        </div>
+                                        <div class="ctc-chat-allowed-hint">
+                                            <?php _e('Allowed: Images & PDFs (Max 2MB)', 'caretochina-booking'); ?>
                                         </div>
                                     </form>
                                 <?php endif; ?>
                             <?php else : ?>
-                                <div class="text-center" style="text-align:center; margin-top: 30px; padding:40px 20px; background: var(--cymb-white); border:1px dashed var(--cymb-border-color); border-radius:16px;">
-                                    <i class="fa-solid fa-comments" style="font-size:32px; color:#94A3B8; margin-bottom:12px; display:inline-block;"></i>
-                                    <p style="color:#64748B; margin:0; font-size:14px;"><?php _e('Please request a treatment package consultation to start a chat with our coordinators.', 'caretochina-booking'); ?></p>
+                                <div class="text-center ctc-chat-empty-state">
+                                    <i class="fa-solid fa-comments"></i>
+                                    <p><?php _e('Please request a treatment package consultation to start a chat with our coordinators.', 'caretochina-booking'); ?></p>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- TAB 6: LOGOUT -->
-                    <div class="ctc-dash-panel" id="dash-panel-logout">
+                    <div class="ctc-dash-panel <?php echo ($active_tab === 'logout') ? 'active' : ''; ?>" id="dash-panel-logout" style="display:<?php echo ($active_tab === 'logout') ? 'block' : 'none'; ?>;">
                         <div class="ctc-panel-card ctc-logout-card">
                             <div class="ctc-logout-icon-wrap">
                                 <i class="fa-solid fa-right-from-bracket"></i>
@@ -591,10 +831,10 @@ class CareToChina_Patient_Dashboard {
                         <p style="margin:0; color:#64748B; font-size:13px;"><?php _e('Official Payment Receipt & Confirmation', 'caretochina-booking'); ?></p>
                     </div>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; font-size:13px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; font-size:13px;">
                         <div>
-                            <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Receipt / Ref Code:', 'caretochina-booking'); ?></span>
-                            <div id="rcpt-code" style="font-weight:800; color:#0F766E; font-size:15px;">#BK-0000</div>
+                            <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Receipt No:', 'caretochina-booking'); ?></span>
+                            <div id="rcpt-number" style="font-weight:700; color:#0F172A;">—</div>
                         </div>
                         <div>
                             <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Payment Date:', 'caretochina-booking'); ?></span>
@@ -602,7 +842,7 @@ class CareToChina_Patient_Dashboard {
                         </div>
                         <div>
                             <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Patient Name:', 'caretochina-booking'); ?></span>
-                            <div id="rcpt-name" style="font-weight:600; color:#1E293B;">—</div>
+                            <div id="rcpt-patient" style="font-weight:600; color:#1E293B;">—</div>
                         </div>
                         <div>
                             <span style="color:#64748B; font-size:11px; text-transform:uppercase; font-weight:700;"><?php _e('Payment Gateway:', 'caretochina-booking'); ?></span>
@@ -655,17 +895,195 @@ class CareToChina_Patient_Dashboard {
         return ob_get_clean();
     }
 
+    /**
+     * Dedicated Guest Consultation Live Chat View
+     */
+    public function render_guest_dashboard($guest_booking, $raw_token) {
+        ob_start();
+        $base_auth_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_login') : home_url('/patient-login/');
+        $register_url = add_query_arg([
+            'tab'               => 'register',
+            'prefill_name'      => $guest_booking->full_name,
+            'prefill_email'     => $guest_booking->email,
+            'prefill_phone'     => $guest_booking->phone,
+            'prefill_gender'    => $guest_booking->gender,
+            'prefill_age'       => $guest_booking->age,
+            'prefill_whatsapp'  => $guest_booking->whatsapp,
+            'prefill_wechat'    => $guest_booking->wechat,
+            'prefill_specialty' => $guest_booking->specialty,
+            'booking_code'      => $guest_booking->booking_code,
+        ], $base_auth_url);
+
+        $brand_logo_url = get_option('ctc_brand_logo_url', '');
+        $expiry_days = intval(get_option('ctc_guest_token_expiry_days', 90));
+        $created_time = !empty($guest_booking->created_at) ? strtotime($guest_booking->created_at) : time();
+        $expiry_timestamp = $created_time + ($expiry_days * 86400);
+        $remaining_secs = max(0, $expiry_timestamp - time());
+        ?>
+        <div class="careyou-dashboard-wrapper caretochina-dashboard-wrapper caretochina-guest-dashboard" data-booking-id="<?php echo esc_attr($guest_booking->id); ?>" data-is-guest="1" data-guest-token="<?php echo esc_attr($raw_token); ?>">
+            <!-- GUEST CONSULTATION HEADER BANNER -->
+            <div class="ctc-guest-header-banner">
+                <div class="ctc-guest-header-left">
+                    <div class="ctc-guest-header-icon">
+                        <i class="fa-solid fa-user-clock"></i>
+                    </div>
+                    <div class="ctc-guest-header-title-wrap">
+                        <h2 class="ctc-guest-header-title"><?php _e('Medical Consultation Desk', 'caretochina-booking'); ?></h2>
+                        <p class="ctc-guest-header-subtitle">
+                            <span class="ctc-status-dot"></span>
+                            <?php _e('Active Inquiry:', 'caretochina-booking'); ?> <strong>#<?php echo esc_html($guest_booking->booking_code); ?></strong>
+                            <span class="ctc-hide-mobile">&nbsp;•&nbsp; <?php echo esc_html($guest_booking->full_name); ?></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="ctc-guest-header-right">
+                    <!-- Theme Toggle Button -->
+                    <button type="button" class="ctc-hdr-btn ctc-hdr-btn-glass" onclick="window.appToggleTheme()" title="<?php _e('Toggle Dark/Light Mode', 'caretochina-booking'); ?>">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
+                    <a href="<?php echo esc_url($register_url); ?>" class="ctc-solid-btn btn-teal-primary ctc-guest-signin-btn">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        <span><?php _e('Sign In / Register', 'caretochina-booking'); ?></span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- PERSISTENT IN-CHAT AUTH BANNER WITH LIVE COUNTDOWN TIMER -->
+            <div class="ctc-guest-auth-banner">
+                <div class="ctc-guest-auth-info">
+                    <div class="ctc-guest-countdown-icon-box">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="ctc-guest-countdown-details">
+                        <div class="ctc-guest-countdown-headline">
+                            <span class="ctc-guest-countdown-title"><?php _e('Guest Chat Session Access Remaining:', 'caretochina-booking'); ?></span>
+                            <span id="ctc-guest-countdown-display" class="ctc-guest-countdown-badge" data-expires="<?php echo esc_attr($expiry_timestamp); ?>">
+                                <?php printf(__('%d Days remaining', 'caretochina-booking'), ceil($remaining_secs / 86400)); ?>
+                            </span>
+                        </div>
+                        <p class="ctc-guest-countdown-subtext">
+                            <?php _e('This temporary guest session will expire. Register an account now to permanently preserve your chat history, medical records, and unlock treatment payments.', 'caretochina-booking'); ?>
+                        </p>
+                    </div>
+                </div>
+                <a href="<?php echo esc_url($register_url); ?>" class="ctc-guest-auth-link ctc-solid-btn btn-teal-primary">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span><?php _e('Save to Account / Register', 'caretochina-booking'); ?> &rarr;</span>
+                </a>
+            </div>
+
+            <!-- GUEST CONSULTATION GRID LAYOUT -->
+            <div class="ctc-guest-layout">
+                <!-- Left Sidebar: Booking Summary -->
+                <div class="ctc-panel-card ctc-guest-summary-card">
+                    <div class="ctc-guest-summary-header" onclick="jQuery('.ctc-guest-summary-body').slideToggle(200); jQuery(this).find('.ctc-summary-collapse-icon').toggleClass('rotated');">
+                        <h3>
+                            <i class="fa-solid fa-clipboard-list"></i> <?php _e('Inquiry Summary', 'caretochina-booking'); ?>
+                        </h3>
+                        <span class="ctc-summary-collapse-icon ctc-show-mobile"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    
+                    <div class="ctc-guest-summary-body">
+                        <div class="ctc-summary-row">
+                            <span class="ctc-summary-row-lbl"><?php _e('Case Code', 'caretochina-booking'); ?></span>
+                            <span class="ctc-summary-row-val ctc-highlight-code">#<?php echo esc_html($guest_booking->booking_code); ?></span>
+                        </div>
+                        <div class="ctc-summary-row">
+                            <span class="ctc-summary-row-lbl"><?php _e('Patient Name', 'caretochina-booking'); ?></span>
+                            <strong class="ctc-summary-row-val"><?php echo esc_html($guest_booking->full_name); ?></strong>
+                        </div>
+                        <div class="ctc-summary-row">
+                            <span class="ctc-summary-row-lbl"><?php _e('Hospital Preferred', 'caretochina-booking'); ?></span>
+                            <span class="ctc-summary-row-val"><?php echo esc_html($guest_booking->hospital_name); ?></span>
+                        </div>
+                        <div class="ctc-summary-row">
+                            <span class="ctc-summary-row-lbl"><?php _e('Specialty', 'caretochina-booking'); ?></span>
+                            <span class="ctc-summary-row-val"><?php echo esc_html($guest_booking->specialty); ?></span>
+                        </div>
+                        <div class="ctc-summary-row">
+                            <span class="ctc-summary-row-lbl"><?php _e('Timing', 'caretochina-booking'); ?></span>
+                            <span class="ctc-summary-row-val"><?php echo esc_html($guest_booking->treatment_timing); ?></span>
+                        </div>
+                        <div class="ctc-summary-row">
+                            <span class="ctc-summary-row-lbl"><?php _e('Estimated Package', 'caretochina-booking'); ?></span>
+                            <span class="ctc-summary-row-val ctc-highlight-price"><?php echo esc_html('$' . number_format($guest_booking->amount, 2) . ' ' . $guest_booking->currency); ?></span>
+                        </div>
+
+                        <div class="ctc-guest-continuity-notice">
+                            <i class="fa-solid fa-envelope-open-text"></i> <?php _e('Check your email confirmation to reopen this live chat anytime from any device.', 'caretochina-booking'); ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Live Chat Panel -->
+                <div class="ctc-panel-card ctc-guest-chat-panel">
+                    <div class="ctc-chat-panel-header">
+                        <div class="ctc-chat-panel-title">
+                            <i class="fa-solid fa-comments"></i>
+                            <div>
+                                <h4><?php _e('Live Coordinator Chat', 'caretochina-booking'); ?></h4>
+                                <span class="ctc-chat-partner-status"><?php _e('Care Coordinator on Duty', 'caretochina-booking'); ?></span>
+                            </div>
+                        </div>
+                        <span class="ctc-sync-indicator">
+                            <i class="fa-solid fa-circle"></i> <?php _e('Live', 'caretochina-booking'); ?>
+                        </span>
+                    </div>
+
+                    <div id="patient-chat-box" class="ctc-chat-viewport">
+                        <!-- Loaded dynamically via AJAX -->
+                    </div>
+                    <div id="patient-chat-typing-indicator" class="ctc-chat-typing-indicator" style="display:none;"></div>
+
+                    <form id="patient-message-form" class="ctc-chat-form" enctype="multipart/form-data">
+                        <input type="hidden" name="booking_id" value="<?php echo esc_attr($guest_booking->id); ?>">
+                        <input type="hidden" name="guest_token" value="<?php echo esc_attr($raw_token); ?>">
+
+                        <div id="patient_attachment_preview" class="ctc-attachment-preview-box" style="display:none;">
+                            <span id="patient_attachment_name" class="ctc-attachment-name"></span>
+                            <button type="button" onclick="appChat.clearAttachment()" class="ctc-attachment-clear-btn">&times;</button>
+                        </div>
+
+                        <div class="ctc-chat-input-bar">
+                            <label for="patient_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-booking'); ?>">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </label>
+                            <input type="file" id="patient_chat_file_input" name="attachment" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none;" onchange="appChat.handleFileSelected(this)">
+                            
+                            <input type="text" name="message" id="patient_msg_input" class="ctc-chat-text-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" autocomplete="off">
+                            
+                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary ctc-chat-send-btn">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span class="ctc-btn-send-text"><?php _e('Send', 'caretochina-booking'); ?></span>
+                            </button>
+                        </div>
+                        <div class="ctc-chat-allowed-hint">
+                            <?php _e('Images & PDFs up to 2MB', 'caretochina-booking'); ?>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
     public function handle_update_patient_profile() {
+        $nonce = $_POST['nonce'] ?? '';
+        if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
+            wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
+        }
+
         $current_user = wp_get_current_user();
         if (!$current_user->exists()) {
             wp_send_json_error(['message' => __('Not logged in.', 'caretochina-booking')]);
         }
 
         $display_name = sanitize_text_field($_POST['display_name'] ?? '');
-        $phone        = sanitize_text_field($_POST['phone'] ?? '');
+        $phone        = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'phone') : sanitize_text_field($_POST['phone'] ?? '');
         $gender       = sanitize_text_field($_POST['gender'] ?? '');
         $age          = isset($_POST['age']) && $_POST['age'] !== '' ? intval($_POST['age']) : null;
-        $whatsapp     = sanitize_text_field($_POST['whatsapp'] ?? '');
+        $whatsapp     = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'whatsapp') : sanitize_text_field($_POST['whatsapp'] ?? '');
         $wechat       = sanitize_text_field($_POST['wechat'] ?? '');
         $messenger    = sanitize_text_field($_POST['messenger'] ?? '');
         $linkedin     = sanitize_text_field($_POST['linkedin'] ?? '');
@@ -716,41 +1134,56 @@ class CareToChina_Patient_Dashboard {
 
         $chat_html = '';
         if (empty($messages)) {
-            $chat_html .= '<div class="chat-msg coordinator mb-14" style="display:flex; gap:12px; align-items:flex-start; margin-bottom:14px;"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" alt="Coordinator" style="width:36px; height:36px; border-radius:50%;"><div class="msg-bubble" style="background:#0F766E; color:#FFF; border:none; padding:12px 18px; border-radius:18px; font-size:13px; line-height:1.4;"><strong>Elena (Care Coordinator):</strong> ' . __('Hello! I am Elena, your assigned Care Coordinator. How can I assist with your medical itinerary today?', 'caretochina-booking') . '</div></div>';
+            $chat_html .= '<div class="chat-msg coordinator mb-14"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" alt="Coordinator" class="chat-coordinator-avatar"><div class="msg-bubble"><strong class="staff-prefix">Elena (Care Coordinator):</strong> ' . __('Hello! I am Elena, your assigned Care Coordinator. How can I assist with your medical itinerary today?', 'caretochina-booking') . '</div></div>';
         } else {
             foreach ($messages as $m) {
                 if ($m->is_read == 1) {
-                    $read_tick = '<span style="color:#3B82F6; margin-left:6px; font-weight:800;" title="' . esc_attr(__('Seen by Coordinator', 'caretochina-booking')) . '">✓✓ Seen</span>';
+                    $read_tick = '<span class="chat-tick chat-tick-seen" title="' . esc_attr(__('Seen by Coordinator', 'caretochina-booking')) . '">✓✓ Seen</span>';
                 } else {
-                    $read_tick = '<span style="color:#94A3B8; margin-left:6px; font-weight:600;" title="' . esc_attr(__('Delivered', 'caretochina-booking')) . '">✓ Delivered</span>';
+                    $read_tick = '<span class="chat-tick chat-tick-delivered" title="' . esc_attr(__('Delivered', 'caretochina-booking')) . '">✓ Delivered</span>';
                 }
 
                 // Check for Payment Request message type
                 if (isset($m->message_type) && $m->message_type === 'payment_request' && !empty($m->payment_request_id)) {
                     if (class_exists('CareToChina_Payment_Request_Manager')) {
-                        $chat_html .= '<div class="chat-msg payment-request-msg mb-14" style="display:flex; justify-content:flex-start; margin-bottom:14px; width:100%;">';
+                        $chat_html .= '<div class="chat-msg payment-request-msg mb-14">';
                         $chat_html .= CareToChina_Payment_Request_Manager::render_card($m->payment_request_id, false);
                         $chat_html .= '</div>';
                         continue;
                     }
                 }
 
+                // Render File Attachment if present
+                $attachment_html = '';
+                if (!empty($m->attachment_url)) {
+                    if ($m->attachment_type === 'image' || preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $m->attachment_url)) {
+                        $attachment_html = '<div class="chat-attachment-image"><a href="' . esc_url($m->attachment_url) . '" target="_blank" rel="noopener noreferrer"><img src="' . esc_url($m->attachment_url) . '" alt="' . esc_attr($m->attachment_name ?: 'Image Attachment') . '"></a></div>';
+                    } elseif ($m->attachment_type === 'pdf' || preg_match('/\.pdf$/i', $m->attachment_url)) {
+                        $attachment_html = '<div class="chat-attachment-pdf"><a href="' . esc_url($m->attachment_url) . '" target="_blank" rel="noopener noreferrer" class="chat-pdf-pill"><i class="fa-solid fa-file-pdf"></i> <span class="chat-pdf-name">' . esc_html($m->attachment_name ?: 'Medical_Document.pdf') . '</span> <i class="fa-solid fa-arrow-down-to-bracket"></i></a></div>';
+                    }
+                }
+
                 if ($m->sender_type === 'coordinator') {
-                    $staff_name = 'roji';
+                    $staff_name = 'Staff';
                     if (preg_match('/Staff \((.+)\)/', $m->sender_name, $matches)) {
                         $staff_name = $matches[1];
                     }
-                    $chat_html .= '<div class="chat-msg coordinator mb-14" style="display:flex; justify-content:flex-start; margin-bottom:14px; font-family:\'Inter\', sans-serif; width:100%;">
-                        <div class="msg-bubble" style="background:#E2E8F0; color:#0F172A; padding:10px 16px; border-radius:18px 18px 18px 2px; font-size:13px; max-width:80%; line-height:1.4;">
-                            <span style="font-weight:700; color:#0F766E; margin-right:4px;">Staff(' . esc_html($staff_name) . '):</span> ' . esc_html($m->message) . '
+                    $msg_text_html = !empty($m->message) ? esc_html($m->message) : '';
+                    $chat_html .= '<div class="chat-msg coordinator mb-14">
+                        <div class="msg-bubble">
+                            <span class="staff-prefix">Staff(' . esc_html($staff_name) . '):</span> ' . $msg_text_html . '
+                            ' . $attachment_html . '
                         </div>
                     </div>';
                 } else {
-                    $pat_name = $m->sender_name;
-                    $chat_html .= '<div class="chat-msg patient mb-14" style="display:flex; justify-content:flex-end; margin-bottom:14px; text-align:right; font-family:\'Inter\', sans-serif; width:100%;">
-                        <div class="msg-bubble" style="background:#0F766E; color:#FFF; padding:10px 16px; border-radius:18px 18px 2px 18px; font-size:13px; max-width:80%; line-height:1.4; display:inline-block; text-align:left; border:none;">
-                            ' . esc_html($m->message) . ' <span style="font-size:11px; font-weight:700; color:#CCFBF1; margin-left:6px;">Patient(' . esc_html($pat_name) . ')</span>
-                            <div style="font-size:9px; text-align:right; margin-top:4px; opacity:0.8;">' . $read_tick . '</div>
+                    $pat_name = $m->sender_name ?: 'Patient';
+                    $msg_text_html = !empty($m->message) ? esc_html($m->message) : '';
+                    $chat_html .= '<div class="chat-msg patient mb-14">
+                        <div class="msg-bubble">
+                            <span class="patient-msg-text">' . $msg_text_html . '</span>
+                            <span class="patient-name-tag">(' . esc_html($pat_name) . ')</span>
+                            ' . $attachment_html . '
+                            <div class="chat-msg-meta">' . $read_tick . '</div>
                         </div>
                     </div>';
                 }
@@ -766,38 +1199,89 @@ class CareToChina_Patient_Dashboard {
         }
 
         $user_id = get_current_user_id();
-        if (get_user_meta($user_id, 'patient_restricted', true)) {
+        if ($user_id > 0 && get_user_meta($user_id, 'patient_restricted', true)) {
             wp_send_json_error(['message' => __('You have been restricted from sending messages. Please contact support.', 'caretochina-booking')]);
         }
 
-        global $wpdb;
-        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $booking_id = intval($_POST['booking_id'] ?? 0);
-        
-        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $booking_id));
-        if (!$booking || $booking->patient_id != get_current_user_id()) {
+        $raw_token = sanitize_text_field($_POST['guest_token'] ?? ($_COOKIE['ctc_guest_token'] ?? ''));
+
+        $booking = $this->resolve_booking_access($booking_id, $raw_token);
+        if (!$booking) {
             wp_send_json_error(['message' => __('Access denied. You do not own this booking case.', 'caretochina-booking')]);
         }
 
+        global $wpdb;
         $table_messages = $wpdb->prefix . 'caretochina_messages';
         $message = sanitize_textarea_field($_POST['message'] ?? '');
-        $current_user = wp_get_current_user();
-        $sender_name = $current_user->exists() ? $current_user->display_name : 'Patient';
 
-        if ($booking_id > 0 && !empty($message)) {
+        // Determine sender name
+        $current_user = wp_get_current_user();
+        if ($current_user->exists()) {
+            $sender_name = $current_user->display_name ?: 'Patient';
+        } else {
+            $sender_name = $booking->full_name ?: 'Guest Patient';
+        }
+
+        // Handle File Attachment (Max 2MB, Images & PDF)
+        $attachment_url = '';
+        $attachment_name = '';
+        $attachment_type = '';
+
+        if (!empty($_FILES['attachment']) && !empty($_FILES['attachment']['name'])) {
+            $file = $_FILES['attachment'];
+
+            // 1. Check size (max 2MB = 2097152 bytes)
+            if ($file['size'] > 2097152) {
+                wp_send_json_error(['message' => __('Attachment file size exceeds the 2MB limit.', 'caretochina-booking')]);
+            }
+
+            // 2. Validate MIME type
+            $allowed_mimes = [
+                'jpg|jpeg|jpe' => 'image/jpeg',
+                'png'          => 'image/png',
+                'webp'         => 'image/webp',
+                'gif'          => 'image/gif',
+                'pdf'          => 'application/pdf',
+            ];
+
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            $file_check = wp_check_filetype_and_ext($file['tmp_name'], $file['name'], $allowed_mimes);
+
+            if (empty($file_check['ext']) || empty($file_check['type'])) {
+                wp_send_json_error(['message' => __('Invalid file format. Only images (JPG, PNG, WEBP, GIF) and PDF documents up to 2MB are allowed.', 'caretochina-booking')]);
+            }
+
+            // 3. Upload file
+            $upload_overrides = ['test_form' => false, 'mimes' => $allowed_mimes];
+            $movefile = wp_handle_upload($file, $upload_overrides);
+
+            if ($movefile && !isset($movefile['error'])) {
+                $attachment_url  = esc_url_raw($movefile['url']);
+                $attachment_name = sanitize_file_name($file['name']);
+                $attachment_type = (strpos($file_check['type'], 'image/') === 0) ? 'image' : 'pdf';
+            } else {
+                wp_send_json_error(['message' => __('Failed to upload file: ', 'caretochina-booking') . ($movefile['error'] ?? 'Unknown error')]);
+            }
+        }
+
+        if ($booking_id > 0 && (!empty($message) || !empty($attachment_url))) {
             $wpdb->insert($table_messages, [
-                'booking_id'  => $booking_id,
-                'sender_type' => 'patient',
-                'sender_name' => $sender_name,
-                'message'     => $message,
-                'is_read'     => 0,
-                'created_at'  => current_time('mysql'),
+                'booking_id'      => $booking_id,
+                'sender_type'     => 'patient',
+                'sender_name'     => $sender_name,
+                'message'         => $message,
+                'attachment_url'  => $attachment_url,
+                'attachment_name' => $attachment_name,
+                'attachment_type' => $attachment_type,
+                'is_read'         => 0,
+                'created_at'      => current_time('mysql'),
             ]);
             
             $html = $this->get_patient_chat_html($booking_id);
             wp_send_json_success(['message' => $message, 'html' => $html]);
         }
-        wp_send_json_error(['message' => __('Invalid message submission.', 'caretochina-booking')]);
+        wp_send_json_error(['message' => __('Please enter a message or select a file to send.', 'caretochina-booking')]);
     }
 
     public function handle_patient_typing() {
@@ -807,17 +1291,18 @@ class CareToChina_Patient_Dashboard {
         }
 
         $user_id = get_current_user_id();
-        if (get_user_meta($user_id, 'patient_restricted', true)) {
+        if ($user_id > 0 && get_user_meta($user_id, 'patient_restricted', true)) {
             wp_send_json_error(['message' => __('Restricted.', 'caretochina-booking')]);
         }
-        global $wpdb;
-        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+
         $booking_id = intval($_POST['booking_id'] ?? 0);
-        
-        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $booking_id));
-        if (!$booking || $booking->patient_id != get_current_user_id()) {
+        $raw_token = sanitize_text_field($_POST['guest_token'] ?? ($_COOKIE['ctc_guest_token'] ?? ''));
+
+        $booking = $this->resolve_booking_access($booking_id, $raw_token);
+        if (!$booking) {
             wp_send_json_error(['message' => __('Access denied.', 'caretochina-booking')]);
         }
+
         if ($booking_id > 0) {
             set_transient('ctc_typing_' . $booking_id . '_patient', 1, 4);
             wp_send_json_success();
@@ -831,12 +1316,11 @@ class CareToChina_Patient_Dashboard {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
         }
 
-        global $wpdb;
-        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $booking_id = intval($_POST['booking_id'] ?? 0);
-        
-        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $booking_id));
-        if (!$booking || $booking->patient_id != get_current_user_id()) {
+        $raw_token = sanitize_text_field($_POST['guest_token'] ?? ($_COOKIE['ctc_guest_token'] ?? ''));
+
+        $booking = $this->resolve_booking_access($booking_id, $raw_token);
+        if (!$booking) {
             wp_send_json_error(['message' => __('Access denied. You do not own this booking case.', 'caretochina-booking')]);
         }
 

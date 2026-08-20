@@ -6,6 +6,99 @@ function getBookingObj() {
   return (typeof caretochina_obj !== 'undefined') ? caretochina_obj : ((typeof careyou_obj !== 'undefined') ? careyou_obj : { hospitals: [], all_specialties: [], all_cities: [], ajax_url: '/wp-admin/admin-ajax.php', nonce: '' });
 }
 
+// Global Cross-Browser Web Audio Notifier with User Interaction Unlock
+var CTC_Audio = (function() {
+  var ctx = null;
+  var unlocked = false;
+
+  function initContext() {
+    try {
+      if (!ctx) {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          ctx = new AudioCtx();
+        }
+      }
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().then(function() {
+          unlocked = true;
+        }).catch(function() {});
+      } else if (ctx && ctx.state === 'running') {
+        unlocked = true;
+      }
+    } catch(e) {}
+  }
+
+  // Pre-warm / unlock on first user gesture anywhere on page
+  if (typeof document !== 'undefined') {
+    var unlockEvents = ['click', 'touchstart', 'keydown', 'mousedown'];
+    var unlockHandler = function() {
+      initContext();
+      if (unlocked) {
+        unlockEvents.forEach(function(evt) {
+          document.removeEventListener(evt, unlockHandler, true);
+        });
+      }
+    };
+    unlockEvents.forEach(function(evt) {
+      document.addEventListener(evt, unlockHandler, { capture: true, passive: true });
+    });
+  }
+
+  return {
+    unlock: function() {
+      initContext();
+    },
+    play: function(type) {
+      initContext();
+      if (!ctx) return;
+
+      try {
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        var now = ctx.currentTime;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'booking' || type === 'confirm') {
+          // 3-tone harmonic chime for Bookings / Confirmations
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.11);
+          osc.frequency.setValueAtTime(783.99, now + 0.22);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        } else if (type === 'approve' || type === 'action') {
+          // Success tone
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(659.25, now);
+          osc.frequency.setValueAtTime(987.77, now + 0.1);
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        } else {
+          // Gentle crisp message ding: D5 (587Hz) -> A5 (880Hz)
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.setValueAtTime(880.00, now + 0.1);
+          gain.gain.setValueAtTime(0.13, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        }
+      } catch(e) {
+        console.warn('Audio play error:', e);
+      }
+    }
+  };
+})();
+
 window.appWizard = {
   currentStep: 1,
   selectedHospitalId: 0,
@@ -102,10 +195,16 @@ window.appWizard = {
     jQuery('.wiz-page').hide();
     jQuery('#wiz-step-' + stepNum).fadeIn(250);
 
+    var hasPricingStep = jQuery('#wiz-step-3').length > 0;
+    var indicatorStep = stepNum;
+    if (!hasPricingStep && stepNum === 4) {
+      indicatorStep = 3; // On 3-step guest indicator, page 4 maps to indicator 3
+    }
+
     jQuery('.wiz-step').removeClass('active');
     jQuery('.wiz-step').each(function() {
       const step = parseInt(jQuery(this).data('step'));
-      if (step <= stepNum) {
+      if (step <= indicatorStep) {
         jQuery(this).addClass('active');
       }
     });
@@ -125,8 +224,8 @@ window.appWizard = {
       this.renderSpecialtyCheckboxes(hosp ? hosp.specialties : []);
     }
 
-    // STEP 2 -> 3 VALIDATION (Timing & Specialty -> Pricing Plans)
-    if (stepNum === 3 && this.currentStep === 2) {
+    // STEP 2 VALIDATION (Timing & Specialty -> Step 3 or 4)
+    if ((stepNum === 3 || stepNum === 4) && this.currentStep === 2) {
       this.selectedTiming = jQuery('#wiz_treatment_timing').val();
       if (!this.selectedTiming) {
         alert('Please select treatment timing.');
@@ -149,10 +248,12 @@ window.appWizard = {
       }
 
       jQuery('#wiz_selected_treatment_id').val(this.selectedTreatmentId);
-      this.loadPricingPlansForSelectedSpecialty();
+      if (stepNum === 3 && jQuery('#wiz-step-3').length > 0) {
+        this.loadPricingPlansForSelectedSpecialty();
+      }
     }
 
-    // STEP 3 -> 4 VALIDATION (Pricing Plan Selection)
+    // STEP 3 -> 4 VALIDATION (Pricing Plan Selection - Logged In only)
     if (stepNum === 4 && this.currentStep === 3) {
       var planId = parseInt(jQuery('#wiz_pricing_plan_id').val() || 0);
       var plansCount = jQuery('.pricing-plan-card').length;
@@ -160,38 +261,6 @@ window.appWizard = {
         alert('Please select a pricing plan tier to proceed.');
         return;
       }
-    }
-
-    // STEP 4 -> 5 VALIDATION (Patient Details -> Review & Submit)
-    if (stepNum === 5 && this.currentStep === 4) {
-      if (!jQuery('#wiz_quote_details').val()) {
-        alert('Please describe your condition or request.');
-        return;
-      }
-      if (!jQuery('#wiz_full_name').val()) {
-        alert('Please enter your full name.');
-        return;
-      }
-      if (!jQuery('#wiz_country').val()) {
-        alert('Please enter your country.');
-        return;
-      }
-      if (!jQuery('#wiz_gender').val()) {
-        alert('Please select your gender.');
-        return;
-      }
-
-      // Populate summary
-      var planName = jQuery('#wiz_pricing_plan_name').val() || 'Standard Consultation Package';
-      var planPrice = parseFloat(jQuery('#wiz_pricing_plan_price').val() || 500.00).toFixed(2);
-      var currency = self.selectedPricingPlanCurrency || 'USD';
-
-      jQuery('#wiz-sum-hospital').text(this.selectedHospitalName || 'Skipped (General Request)');
-      jQuery('#wiz-sum-specialties').text(this.selectedSpecialties.join(', '));
-      jQuery('#wiz-sum-plan').text(planName);
-      jQuery('#wiz-sum-cost').text('$' + planPrice + ' ' + currency);
-      jQuery('#wiz-sum-timing').text(this.selectedTiming);
-      jQuery('#wiz-sum-patient').text(jQuery('#wiz_full_name').val());
     }
 
     this.showStep(stepNum);
@@ -317,17 +386,17 @@ window.appWizard = {
           }
 
           var cardHtml = `
-            <div class="pricing-plan-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPricingPlanCard(this, ${plan.id}, ${plan.price}, '${plan.name.replace(/'/g, "\\'")}', '${plan.currency}')" style="border:1.5px solid ${isChecked ? '#0F766E' : '#E2E8F0'}; background:${isChecked ? '#F0FDFA' : '#FFF'}; padding:16px; border-radius:12px; cursor:pointer; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center;">
-              <div style="flex:1;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <input type="radio" name="plan_radio" value="${plan.id}" ${isChecked ? 'checked' : ''} style="accent-color:#0F766E;">
-                  <h4 style="margin:0; font-size:15px; font-weight:800; color:#0F172A;">${plan.name}</h4>
+            <div class="pricing-plan-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPricingPlanCard(this, ${plan.id}, ${plan.price}, '${plan.name.replace(/'/g, "\\'")}', '${plan.currency}')">
+              <div class="plan-card-left">
+                <div class="plan-card-header">
+                  <input type="radio" name="plan_radio" value="${plan.id}" ${isChecked ? 'checked' : ''}>
+                  <h4 class="plan-card-title">${plan.name}</h4>
                 </div>
-                ${plan.description ? `<p style="margin:4px 0 0 24px; font-size:12px; color:#64748B;">${plan.description}</p>` : ''}
+                ${plan.description ? `<p class="plan-card-desc">${plan.description}</p>` : ''}
               </div>
-              <div style="text-align:right;">
-                <div style="font-size:18px; font-weight:900; color:#0F766E;">$${parseFloat(plan.price).toFixed(2)}</div>
-                <div style="font-size:11px; font-weight:700; color:#94A3B8;">${plan.currency}</div>
+              <div class="plan-card-right">
+                <div class="plan-price">$${parseFloat(plan.price).toFixed(2)}</div>
+                <div class="plan-currency">${plan.currency}</div>
               </div>
             </div>
           `;
@@ -349,8 +418,8 @@ window.appWizard = {
   },
 
   selectPricingPlanCard(element, planId, price, name, currency) {
-    jQuery('.pricing-plan-card').removeClass('selected').css({ 'border-color': '#E2E8F0', 'background': '#FFF' });
-    jQuery(element).addClass('selected').css({ 'border-color': '#0F766E', 'background': '#F0FDFA' });
+    jQuery('.pricing-plan-card').removeClass('selected');
+    jQuery(element).addClass('selected');
     jQuery(element).find('input[type="radio"]').prop('checked', true);
 
     this.selectedPricingPlanId = planId;
@@ -365,18 +434,68 @@ window.appWizard = {
 
   switchAuthModalTab(tab) {
     if (tab === 'login') {
-      jQuery('#wiz-auth-tab-login').css({ 'background': '#0F766E', 'color': '#FFF' });
-      jQuery('#wiz-auth-tab-reg').css({ 'background': '#F1F5F9', 'color': '#475569' });
+      jQuery('#wiz-auth-tab-login').addClass('active');
+      jQuery('#wiz-auth-tab-reg').removeClass('active');
       jQuery('#wiz-ajax-login-form').show();
       jQuery('#wiz-ajax-reg-form').hide();
     } else {
-      jQuery('#wiz-auth-tab-reg').css({ 'background': '#0F766E', 'color': '#FFF' });
-      jQuery('#wiz-auth-tab-login').css({ 'background': '#F1F5F9', 'color': '#475569' });
+      jQuery('#wiz-auth-tab-reg').addClass('active');
+      jQuery('#wiz-auth-tab-login').removeClass('active');
       jQuery('#wiz-ajax-reg-form').show();
       jQuery('#wiz-ajax-login-form').hide();
     }
   }
 };
+
+// ==========================================================================
+// CENTRALIZED BROWSER WEB NOTIFICATION ENGINE (DESKTOP & MOBILE)
+// ==========================================================================
+window.CTC_BrowserNotif = {
+  init: function() {
+    if (!("Notification" in window)) return;
+    
+    // Auto-prompt for notification permission after 20 seconds of user activity on the portal
+    if (Notification.permission === "default") {
+      setTimeout(function() {
+        if (Notification.permission === "default") {
+          CTC_BrowserNotif.requestPermission();
+        }
+      }, 20000);
+    }
+  },
+  requestPermission: function(callback) {
+    if (!("Notification" in window)) return;
+    try {
+      Notification.requestPermission().then(function(permission) {
+        if (typeof callback === 'function') callback(permission);
+      });
+    } catch (e) {
+      console.warn('Browser notification permission error:', e);
+    }
+  },
+  send: function(title, body, url) {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    try {
+      var notif = new Notification(title, {
+        body: body,
+        icon: (window.caretochina_obj && window.caretochina_obj.plugin_url) ? window.caretochina_obj.plugin_url + '/assets/images/favicon.png' : '',
+        tag: 'ctc-notice-' + Date.now()
+      });
+      if (url) {
+        notif.onclick = function() {
+          window.focus();
+          if (window.location.href !== url) {
+            window.location.href = url;
+          }
+          notif.close();
+        };
+      }
+    } catch (e) {
+      console.warn('Browser notification error:', e);
+    }
+  }
+};
+CTC_BrowserNotif.init();
 
 window.appDash = {
   switchTab(button, tabId) {
@@ -385,13 +504,131 @@ window.appDash = {
 
     jQuery('.ctc-dash-panel, .dash-panel').removeClass('active').hide();
     jQuery('#dash-panel-' + tabId).addClass('active').show();
+
+    // Auto-clear read badges when seen
+    if (tabId === 'messages') {
+      jQuery('#patient-unread-msg-badge').hide().text('0');
+      jQuery('#patient-hdr-msg-badge').hide().text('0');
+    } else if (tabId === 'invoices') {
+      jQuery('#patient-unread-invoice-badge').hide().text('0');
+    }
   },
   switchTabDirect(tabId) {
     jQuery('.ctc-sidebar-tab, .dash-tab').removeClass('active');
-    jQuery('.ctc-sidebar-tab:nth-child(5), .dash-tab:nth-child(5)').addClass('active');
-
+    var targetBtn = jQuery('.ctc-sidebar-tab[onclick*="\'' + tabId + '\'"], .dash-tab[onclick*="\'' + tabId + '\'"]');
+    if (targetBtn.length) {
+      targetBtn.addClass('active');
+    }
     jQuery('.ctc-dash-panel, .dash-panel').removeClass('active').hide();
     jQuery('#dash-panel-' + tabId).addClass('active').show();
+
+    // Auto-clear read badges when seen
+    if (tabId === 'messages') {
+      jQuery('#patient-unread-msg-badge').hide().text('0');
+      jQuery('#patient-hdr-msg-badge').hide().text('0');
+    } else if (tabId === 'invoices') {
+      jQuery('#patient-unread-invoice-badge').hide().text('0');
+    }
+  },
+  printReceipt(code, title, amount, currency, date, patientName) {
+    var pName = patientName || jQuery('.ctc-dash-welcome-text').text().replace('Welcome back, ', '') || 'Patient';
+    var printWindow = window.open('', '_blank', 'width=750,height=850');
+    var html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Payment Receipt - #${code}</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1E293B; background: #FFF; line-height: 1.5; }
+          .receipt-container { max-width: 650px; margin: 0 auto; border: 1px solid #E2E8F0; padding: 36px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0F766E; padding-bottom: 20px; margin-bottom: 24px; }
+          .brand-title { font-size: 24px; font-weight: 900; color: #0F766E; }
+          .brand-sub { font-size: 12px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; }
+          .receipt-badge { background: #CCFBF1; color: #0F766E; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 13px; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; font-size: 14px; }
+          .meta-box { background: #F8FAFC; padding: 14px; border-radius: 10px; border: 1px solid #E2E8F0; }
+          .meta-label { font-size: 11px; color: #64748B; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
+          .meta-val { font-weight: 700; color: #0F172A; }
+          .items-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
+          .items-table th { background: #F1F5F9; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; color: #475569; border-bottom: 1px solid #CBD5E1; }
+          .items-table td { padding: 14px 12px; border-bottom: 1px solid #E2E8F0; font-size: 14px; }
+          .total-box { text-align: right; margin-bottom: 30px; }
+          .total-label { font-size: 14px; color: #64748B; }
+          .total-amount { font-size: 26px; font-weight: 900; color: #0F766E; }
+          .stamp { display: inline-block; border: 2px dashed #059669; color: #059669; font-weight: 900; text-transform: uppercase; padding: 6px 16px; border-radius: 8px; font-size: 14px; letter-spacing: 1px; }
+          .footer { text-align: center; font-size: 11px; color: #94A3B8; border-top: 1px solid #E2E8F0; padding-top: 18px; margin-top: 20px; }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+            .receipt-container { border: none; box-shadow: none; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          <div class="no-print" style="text-align:right; margin-bottom:16px;">
+            <button onclick="window.print()" style="background:#0F766E; color:#FFF; border:none; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">🖨️ Print Receipt</button>
+            <button onclick="window.close()" style="background:#F1F5F9; color:#475569; border:none; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px; margin-left:8px;">Close</button>
+          </div>
+          <div class="header">
+            <div>
+              <div class="brand-title">CareToChina</div>
+              <div class="brand-sub">Medical Travel & Access Services</div>
+            </div>
+            <div>
+              <span class="receipt-badge">OFFICIAL RECEIPT</span>
+            </div>
+          </div>
+          <div class="meta-grid">
+            <div class="meta-box">
+              <span class="meta-label">Patient Name</span>
+              <div class="meta-val">${pName}</div>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Reference Number</span>
+              <div class="meta-val">#${code}</div>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Payment Date</span>
+              <div class="meta-val">${date}</div>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Payment Gateway</span>
+              <div class="meta-val">Verified Online Checkout (SSL 256-bit)</div>
+            </div>
+          </div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align:right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>${title}</strong><br><span style="font-size:12px; color:#64748B;">Authoritative medical treatment booking / consultation package</span></td>
+                <td style="text-align:right; font-weight:700;">$${amount} ${currency}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span class="stamp">✓ PAID IN FULL</span>
+            </div>
+            <div class="total-box">
+              <div class="total-label">Total Amount Paid</div>
+              <div class="total-amount">$${amount} ${currency}</div>
+            </div>
+          </div>
+          <div class="footer">
+            CareToChina Medical Travel Services • Confidential & Verified Medical Transaction • Contact: caretochina.com
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
   },
   toggleSidebar() {
     const sidebar = jQuery('.ctc-dash-sidebar');
@@ -467,7 +704,27 @@ jQuery(document).ready(function($) {
       appWizard.closeModal();
       $('#wiz-auth-gate-modal').hide();
     }
-  });
+  });  // GLOBAL CHAT ATTACHMENT HELPER
+  window.appChat = {
+    handleFileSelected: function(input) {
+      if (input.files && input.files[0]) {
+        var file = input.files[0];
+        if (file.size > 2097152) {
+          alert('Attachment file size exceeds the 2MB limit. Please select an image or PDF under 2MB.');
+          input.value = '';
+          jQuery('#patient_attachment_preview').hide();
+          return;
+        }
+        jQuery('#patient_attachment_name').text(file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)');
+        jQuery('#patient_attachment_preview').css('display', 'flex');
+      }
+    },
+    clearAttachment: function() {
+      var input = document.getElementById('patient_chat_file_input');
+      if (input) input.value = '';
+      jQuery('#patient_attachment_preview').hide();
+    }
+  };
 
   // RESTORE DRAFT STATE IF LOGGED IN (e.g. Returned from Google OAuth)
   var savedDraft = sessionStorage.getItem('ctc_wizard_draft');
@@ -475,36 +732,17 @@ jQuery(document).ready(function($) {
     try {
       var draftData = JSON.parse(savedDraft);
       sessionStorage.removeItem('ctc_wizard_draft');
-      // Submit booking automatically for authenticated user
       submitBookingForm(draftData);
     } catch (err) {
       sessionStorage.removeItem('ctc_wizard_draft');
     }
   }
 
-  // WIZARD FORM SUBMISSION HANDLER
+  // WIZARD FORM SUBMISSION HANDLER (Direct submission for both Guests and Logged-in Patients)
   $('#ctc-booking-wizard-form').on('submit', function(e) {
     e.preventDefault();
+    syncIntlPhoneValues(this);
     var formSerialized = $(this).serialize();
-
-    // Check if user is logged in
-    if (!isUserLoggedIn()) {
-      // Save draft state to sessionStorage
-      sessionStorage.setItem('ctc_wizard_draft', JSON.stringify(formSerialized));
-      // Pre-fill email/name into auth forms if provided
-      var emailVal = $('#wiz_email').val();
-      var nameVal = $('#wiz_full_name').val();
-      if (emailVal) {
-        $('#wiz_auth_log_email, #wiz_auth_reg_email').val(emailVal);
-      }
-      if (nameVal) {
-        $('#wiz_auth_reg_name').val(nameVal);
-      }
-      // Open Auth Gate Modal
-      $('#wiz-auth-gate-modal').css('display', 'flex');
-      return;
-    }
-
     submitBookingForm(formSerialized);
   });
 
@@ -512,108 +750,57 @@ jQuery(document).ready(function($) {
     var btn = $('#ctc-wizard-submit-btn');
     var status = $('#ctc-wizard-status');
 
-    btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Processing Booking...');
+    btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Submitting Booking...');
     var postData = (typeof serializedData === 'string' ? serializedData : $.param(serializedData)) + '&action=caretochina_submit_booking&nonce=' + apiObj.nonce;
 
     $.post(apiObj.ajax_url, postData, function(res) {
       status.show();
       if (res.success && res.data) {
         sessionStorage.removeItem('ctc_wizard_draft');
+        CTC_Audio.play('booking');
         status.html(`<div style="background:#D1FAE5; color:#065F46; padding:16px; border-radius:12px; font-weight:700; font-size:14px;"><i class="fa-solid fa-circle-check"></i> ${res.data.message}</div>`);
         btn.html('<i class="fa-solid fa-check"></i> Confirmed');
 
         setTimeout(function() {
           appWizard.closeModal();
           $('#ctc-booking-wizard-form')[0].reset();
-          btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Proceed to Payment');
+          btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Submit');
           status.hide().empty();
 
-          // Trigger Payment Modal directly with snapshotted plan amount!
-          if (window.CareToChinaPayment && typeof window.CareToChinaPayment.openPaymentModal === 'function') {
-            CareToChinaPayment.openPaymentModal(res.data.booking_id, res.data.amount, res.data.currency, res.data.specialty);
+          if (res.data.is_guest) {
+            // Guest User: Payment skipped! Redirect immediately to secure Live Chat Consultation thread
+            if (res.data.chat_url) {
+              window.location.href = res.data.chat_url;
+            } else {
+              window.location.reload();
+            }
           } else {
-            window.location.reload();
+            // Logged-in user: Open payment modal if available, otherwise transition to dashboard
+            if (window.CareToChinaPayment && typeof window.CareToChinaPayment.openPaymentModal === 'function') {
+              CareToChinaPayment.openPaymentModal(res.data.booking_id, res.data.amount, res.data.currency, res.data.specialty);
+            } else if (res.data.chat_url) {
+              window.location.href = res.data.chat_url;
+            } else {
+              window.location.reload();
+            }
           }
-        }, 1200);
+        }, 400);
       } else {
         status.html(`<div style="color:#EF4444; font-weight:700; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> ${(res.data && res.data.message) || 'Failed to submit booking.'}</div>`);
-        btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Proceed to Payment');
+        btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Submit');
       }
     }).fail(function() {
-      btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Proceed to Payment');
+      btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Submit');
       alert('Network error submitting booking.');
     });
   }
 
-  // AJAX LOGIN IN WIZARD AUTH GATE MODAL
-  $('#wiz-ajax-login-form').on('submit', function(e) {
-    e.preventDefault();
-    var $btn = $('#btn-wiz-ajax-login');
-    var $notice = $('#wiz-auth-modal-notice');
-    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...');
-    $notice.hide().empty();
-
-    $.post(apiObj.ajax_url, {
-      action: 'caretochina_user_login',
-      nonce: apiObj.nonce,
-      log: $('#wiz_auth_log_email').val(),
-      pwd: $('#wiz_auth_log_pass').val()
-    }, function(res) {
-      if (res.success) {
-        $notice.removeClass('notice-error').css({ 'background': '#D1FAE5', 'color': '#065F46' }).html('<i class="fa-solid fa-check"></i> Authenticated! Resuming booking...').show();
-        $('body').addClass('logged-in');
-        $('#wiz-auth-gate-modal').hide();
-        var saved = sessionStorage.getItem('ctc_wizard_draft');
-        submitBookingForm(saved ? JSON.parse(saved) : $('#ctc-booking-wizard-form').serialize());
-      } else {
-        $btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In & Complete Booking');
-        $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> ' + ((res.data && res.data.message) || 'Login failed.')).show();
-      }
-    }).fail(function() {
-      $btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In & Complete Booking');
-      $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> Server communication error.').show();
-    });
-  });
-
-  // AJAX REGISTER IN WIZARD AUTH GATE MODAL
-  $('#wiz-ajax-reg-form').on('submit', function(e) {
-    e.preventDefault();
-    var $btn = $('#btn-wiz-ajax-reg');
-    var $notice = $('#wiz-auth-modal-notice');
-    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Registering...');
-    $notice.hide().empty();
-
-    var postData = {
-      action: 'caretochina_user_register',
-      nonce: apiObj.nonce,
-      user_name: $('#wiz_auth_reg_name').val(),
-      user_email: $('#wiz_auth_reg_email').val(),
-      user_pass: $('#wiz_auth_reg_pass').val(),
-      user_pass_confirm: $('#wiz_auth_reg_pass').val(),
-      user_phone: $('#wiz_phone').val() || '+1000000000',
-      user_gender: $('#wiz_gender').val() || 'Not Specified'
-    };
-
-    $.post(apiObj.ajax_url, postData, function(res) {
-      if (res.success) {
-        $notice.css({ 'background': '#D1FAE5', 'color': '#065F46' }).html('<i class="fa-solid fa-check"></i> Account created! Submitting booking...').show();
-        $('body').addClass('logged-in');
-        $('#wiz-auth-gate-modal').hide();
-        var saved = sessionStorage.getItem('ctc_wizard_draft');
-        submitBookingForm(saved ? JSON.parse(saved) : $('#ctc-booking-wizard-form').serialize());
-      } else {
-        $btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register & Complete Booking');
-        $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> ' + ((res.data && res.data.message) || 'Registration failed.')).show();
-      }
-    }).fail(function() {
-      $btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register & Complete Booking');
-      $notice.css({ 'background': '#FEE2E2', 'color': '#991B1B' }).html('<i class="fa-solid fa-triangle-exclamation"></i> Server communication error.').show();
-    });
-  });
-
-  // REAL-TIME CHAT POLLING FOR PATIENT DASHBOARD
-  var patientBookingId = $('.caretochina-dashboard-wrapper, .careyou-dashboard-wrapper').data('booking-id') || 1;
+  // REAL-TIME CHAT POLLING FOR PATIENT / GUEST DASHBOARD
+  var patientBookingId = $('.caretochina-dashboard-wrapper, .careyou-dashboard-wrapper').data('booking-id') || 0;
+  var guestToken = $('.caretochina-guest-dashboard').data('guest-token') || '';
   var userIsScrolledUp = false;
+  var lastCoordinatorMsgCount = -1;
+  var lastPaymentCardCount = -1;
 
   $('#patient-chat-box').on('scroll', function() {
     var elem = $(this);
@@ -626,22 +813,74 @@ jQuery(document).ready(function($) {
 
   function fetchPatientChat() {
     var chatBox = $('#patient-chat-box');
-    if (!chatBox.length) return;
+    if (!chatBox.length || !patientBookingId) return;
 
     $.post(apiObj.ajax_url, {
       action: 'caretochina_get_patient_chat',
       booking_id: patientBookingId,
+      guest_token: guestToken,
       nonce: apiObj.nonce
     }, function(res) {
       if (res.success && res.data) {
-        chatBox.html(res.data.html);
+        var newHtml = res.data.html;
+
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newHtml;
+
+        // 1. Detect new coordinator messages
+        var coordMsgs = tempDiv.querySelectorAll('.chat-msg.coordinator').length;
+        if (lastCoordinatorMsgCount !== -1 && coordMsgs > lastCoordinatorMsgCount) {
+          CTC_Audio.play('message');
+          var lastMsgNode = $(tempDiv).find('.chat-msg.coordinator').last();
+          var latestMsgText = lastMsgNode.find('.patient-msg-text, .msg-text, p').text() || lastMsgNode.text() || 'New message received';
+          latestMsgText = $.trim(latestMsgText);
+          if (latestMsgText.length > 60) latestMsgText = latestMsgText.substring(0, 57) + '...';
+
+          var isMessagesActive = $('#dash-panel-messages').is(':visible');
+          if (!isMessagesActive) {
+            showPatientNotificationToast('Care Coordinator', latestMsgText);
+            if (window.CTC_BrowserNotif) {
+              CTC_BrowserNotif.send('New Message from Care Coordinator', latestMsgText, window.location.href);
+            }
+          }
+        }
+        lastCoordinatorMsgCount = coordMsgs;
+
+        // 2. Detect new payment request cards in chat
+        var paymentCards = tempDiv.querySelectorAll('.ctc-chat-payment-card').length;
+        if (lastPaymentCardCount !== -1 && paymentCards > lastPaymentCardCount) {
+          CTC_Audio.play('payment');
+          var isInvoiceActive = $('#dash-panel-invoices').is(':visible');
+          if (!isInvoiceActive) {
+            showPatientNotificationToast('Payment Request', 'A new medical payment request has been prepared for your case.');
+            if (window.CTC_BrowserNotif) {
+              CTC_BrowserNotif.send('Medical Payment Request Issued', 'Your care coordinator has sent a treatment payment request. Click to view & pay.', window.location.href);
+            }
+            $('#patient-unread-invoice-badge').text('1').css({display:'inline-block', background:'#EF4444', color:'#FFF'});
+          }
+        }
+        lastPaymentCardCount = paymentCards;
+
+        // 3. Update unread badge in sidebar & header
+        var unreadBadge = $('#patient-unread-msg-badge');
+        var hdrBadge = $('#patient-hdr-msg-badge');
+        var isMessagesTab = $('#dash-panel-messages').hasClass('active') && $('#dash-panel-messages').is(':visible');
+        if (isMessagesTab) {
+          if (unreadBadge.length) unreadBadge.hide().text('0');
+          if (hdrBadge.length) hdrBadge.hide().text('0');
+        } else if (lastCoordinatorMsgCount > 0) {
+          if (unreadBadge.length) unreadBadge.text(lastCoordinatorMsgCount).css({display:'inline-block', background:'#EF4444', color:'#FFF'});
+          if (hdrBadge.length) hdrBadge.text(lastCoordinatorMsgCount).css({display:'flex', background:'#EF4444', color:'#FFF'});
+        }
+
+        chatBox.html(newHtml);
         if (!userIsScrolledUp) {
           chatBox.scrollTop(chatBox[0].scrollHeight);
         }
         
         var typingInd = $('#patient-chat-typing-indicator');
         if (res.data.is_typing) {
-          typingInd.text(res.data.typing_name + ' is typing...').show();
+          typingInd.text((res.data.typing_name || 'Coordinator') + ' is typing...').show();
         } else {
           typingInd.hide().empty();
         }
@@ -649,29 +888,59 @@ jQuery(document).ready(function($) {
     });
   }
 
+  function showPatientNotificationToast(sender, message) {
+    var existingToast = $('#ctc-patient-msg-toast');
+    if (existingToast.length) existingToast.remove();
+
+    var toastHtml = $(`
+      <div id="ctc-patient-msg-toast" style="position:fixed; top:24px; right:24px; z-index:999999; background:#0F766E; color:#FFFFFF; padding:14px 20px; border-radius:14px; box-shadow:0 10px 30px rgba(15,118,110,0.35); display:flex; align-items:center; gap:14px; font-family:'Inter',sans-serif; max-width:360px; cursor:pointer; animation:ctcSlideInRight 0.3s ease;">
+        <div style="font-size:22px; color:#5EEAD4;"><i class="fa-solid fa-comment-dots"></i></div>
+        <div style="flex:1; overflow:hidden;">
+          <div style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; opacity:0.9;">${sender}</div>
+          <div style="font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">${message}</div>
+        </div>
+        <button type="button" style="background:none; border:none; color:#FFF; font-size:16px; cursor:pointer; opacity:0.7;" onclick="event.stopPropagation(); jQuery('#ctc-patient-msg-toast').fadeOut(200);">&times;</button>
+      </div>
+    `);
+
+    toastHtml.on('click', function() {
+      if (window.appDash && typeof window.appDash.switchTabDirect === 'function') {
+        window.appDash.switchTabDirect('messages');
+      }
+      $(this).fadeOut(200);
+    });
+
+    $('body').append(toastHtml);
+    setTimeout(function() {
+      toastHtml.fadeOut(400, function() { $(this).remove(); });
+    }, 6000);
+  }
+
   if ($('#patient-chat-box').length) {
     fetchPatientChat();
     setInterval(fetchPatientChat, 1000);
   }
 
-  // PATIENT MESSAGING SUBMISSION
+  // PATIENT / GUEST MESSAGING SUBMISSION (WITH ATTACHMENTS)
   $('#patient-message-form').on('submit', function(e) {
     e.preventDefault();
     var input = $('#patient_msg_input');
-    var sendBtn = $('#patient_send_btn');
+    var fileInput = document.getElementById('patient_chat_file_input');
     var msg = input.val();
+    var hasFile = (fileInput && fileInput.files && fileInput.files.length > 0);
 
-    if (!msg) return;
+    if (!msg && !hasFile) return;
 
     var chatBox = $('#patient-chat-box');
     var safeMsg = $('<div>').text(msg).html();
     var tempMsgId = 'temp-msg-' + Date.now();
     var optimisticHtml = `
-      <div class="chat-msg patient mb-14 optimistic-msg" id="${tempMsgId}" style="display:flex; justify-content:flex-end; margin-bottom:14px; text-align:right; font-family:'Inter', sans-serif; width:100%; opacity:0.6;">
-          <div class="msg-bubble" style="background:#0F766E; color:#FFF; padding:10px 16px; border-radius:18px 18px 2px 18px; font-size:13px; max-width:80%; line-height:1.4; display:inline-block; text-align:left; border:none;">
-              ${safeMsg} <span style="font-size:11px; font-weight:700; color:#CCFBF1; margin-left:6px;">Patient</span>
-              <div style="font-size:9px; text-align:right; margin-top:4px; opacity:0.8;">
-                  <span style="color:#94A3B8; margin-left:6px;"><i class="fa-solid fa-spinner fa-spin"></i> Sending...</span>
+      <div class="chat-msg patient mb-14 optimistic-msg" id="${tempMsgId}" style="opacity:0.6;">
+          <div class="msg-bubble">
+              <span class="patient-msg-text">${safeMsg ? safeMsg : '<em>[Uploading attachment...]</em>'}</span>
+              <span class="patient-name-tag">(You)</span>
+              <div class="chat-msg-meta">
+                  <span class="chat-tick chat-tick-delivered"><i class="fa-solid fa-spinner fa-spin"></i> Sending...</span>
               </div>
           </div>
       </div>
@@ -680,16 +949,32 @@ jQuery(document).ready(function($) {
     chatBox.append(optimisticHtml);
     chatBox.scrollTop(chatBox[0].scrollHeight);
     
-    var formData = $(this).serialize() + '&action=caretochina_send_patient_message&nonce=' + apiObj.nonce;
+    var fd = new FormData(this);
+    fd.append('action', 'caretochina_send_patient_message');
+    fd.append('nonce', apiObj.nonce);
 
     input.val('');
+    appChat.clearAttachment();
     userIsScrolledUp = false;
 
-    $.post(apiObj.ajax_url, formData, function(res) {
-      if (res.success && res.data && res.data.html) {
-        chatBox.html(res.data.html);
-        chatBox.scrollTop(chatBox[0].scrollHeight);
-      } else {
+    $.ajax({
+      url: apiObj.ajax_url,
+      type: 'POST',
+      data: fd,
+      processData: false,
+      contentType: false,
+      success: function(res) {
+        if (res.success && res.data && res.data.html) {
+          chatBox.html(res.data.html);
+          chatBox.scrollTop(chatBox[0].scrollHeight);
+        } else {
+          $('#' + tempMsgId).css('opacity', '1.0');
+          $('#' + tempMsgId + ' .msg-bubble').css('background', '#EF4444');
+          $('#' + tempMsgId + ' i').removeClass('fa-spinner fa-spin').addClass('fa-circle-exclamation');
+          $('#' + tempMsgId + ' span').text((res.data && res.data.message) || 'Failed to send');
+        }
+      },
+      error: function() {
         $('#' + tempMsgId).css('opacity', '1.0');
         $('#' + tempMsgId + ' .msg-bubble').css('background', '#EF4444');
         $('#' + tempMsgId + ' i').removeClass('fa-spinner fa-spin').addClass('fa-circle-exclamation');
@@ -713,9 +998,249 @@ jQuery(document).ready(function($) {
     }
   });
 
+  // ==========================================================================
+  // INTERNATIONAL TELEPHONE INPUT ENGINE
+  // ==========================================================================
+  function updateItiPadding(el) {
+    if (!el) return;
+    setTimeout(function() {
+      var $el = $(el);
+      var $container = $el.closest('.iti');
+      var $selected = $container.find('.iti__selected-country, .iti__country-container, .iti__selected-country-primary');
+      if ($selected.length) {
+        var w = $selected.first().outerWidth();
+        if (w > 0 && w < 160) {
+          el.style.setProperty('padding-left', (Math.ceil(w) + 8) + 'px', 'important');
+          return;
+        }
+      }
+      el.style.setProperty('padding-left', '52px', 'important');
+    }, 25);
+  }
+
+  function initIntlTelInputs() {
+    var apiObj = getBookingObj();
+    if (!apiObj || !apiObj.intl_phone_enabled || typeof window.intlTelInput === 'undefined') {
+      return;
+    }
+
+    $('input[type="tel"], input[name="phone"], input[name="user_phone"], input[name="whatsapp"], input[name="user_whatsapp"]').each(function() {
+      var el = this;
+      if ($(el).closest('.ctc-phone-group-wrapper').length) {
+        return; // Managed cleanly by native country code selector group
+      }
+      if ($(el).data('iti-initialized')) {
+        updateItiPadding(el);
+        return;
+      }
+      $(el).data('iti-initialized', true);
+
+      try {
+        var iti = window.intlTelInput(el, {
+          separateDialCode: true,
+          showSelectedDialCode: true,
+          initialCountry: 'auto',
+          geoIpLookup: function(callback) {
+            fetch('https://ipapi.co/json')
+              .then(function(res) { return res.json(); })
+              .then(function(data) { callback(data.country_code); })
+              .catch(function() { callback('us'); });
+          },
+          preferredCountries: ['us', 'gb', 'ca', 'au', 'cn', 'bd', 'in', 'ae', 'sa'],
+          utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js'
+        });
+        $(el).data('iti-instance', iti);
+
+        updateItiPadding(el);
+        el.addEventListener('countrychange', function() {
+          updateItiPadding(el);
+        });
+        el.addEventListener('open:countrydropdown', function() {
+          updateItiPadding(el);
+        });
+        el.addEventListener('close:countrydropdown', function() {
+          updateItiPadding(el);
+        });
+      } catch (err) {}
+    });
+  }
+
+  function syncIntlPhoneValues(form) {
+    if (!form) return;
+    $(form).find('input[type="tel"], input[name="phone"], input[name="user_phone"], input[name="whatsapp"], input[name="user_whatsapp"]').each(function() {
+      var iti = $(this).data('iti-instance');
+      if (iti && typeof iti.getNumber === 'function') {
+        var rawVal = $(this).val().trim();
+        if (rawVal) {
+          var fullNum = iti.getNumber();
+          if (!fullNum) {
+            var countryData = iti.getSelectedCountryData();
+            if (countryData && countryData.dialCode) {
+              fullNum = '+' + countryData.dialCode + ' ' + rawVal;
+            }
+          }
+          if (fullNum) {
+            $(this).val(fullNum);
+          }
+        }
+      }
+    });
+  }
+
+  // ==========================================================================
+  // NATIVE COUNTRY SELECT & PHONE INPUT GROUP AUTO-STRIP LOGIC
+  // ==========================================================================
+  $(document).on('input paste blur', '.ctc-phone-group-wrapper .ctc-phone-input', function() {
+    var $input = $(this);
+    var $wrapper = $input.closest('.ctc-phone-group-wrapper');
+    var $select = $wrapper.find('.ctc-country-select');
+    var currentDial = $select.val() || '+1';
+    var dialDigits = currentDial.replace(/\D/g, '');
+    var val = $input.val();
+
+    if (!val) return;
+
+    // 1. If user typed/pasted a +countrycode prefix matching current selection
+    if (val.indexOf(currentDial) === 0) {
+      val = val.substring(currentDial.length).trim();
+      $input.val(val);
+      return;
+    }
+
+    // 2. If user pasted a + from another country (e.g. +1 or +44 or +880), auto-select that country
+    if (val.charAt(0) === '+') {
+      var matched = false;
+      $select.find('option').each(function() {
+        var optDial = $(this).val();
+        if (optDial && val.indexOf(optDial) === 0) {
+          $select.val(optDial);
+          val = val.substring(optDial.length).trim();
+          $input.val(val);
+          matched = true;
+          return false;
+        }
+      });
+      if (matched) return;
+    }
+
+    // 3. If user typed dial digits without plus e.g. 8801749949010 while +880 is active
+    if (dialDigits && val.indexOf(dialDigits) === 0 && val.length > dialDigits.length + 5) {
+      val = val.substring(dialDigits.length).trim();
+      $input.val(val);
+    }
+  });
+
+  $(document).on('change', '.ctc-phone-group-wrapper .ctc-country-select', function() {
+    var $select = $(this);
+    var $wrapper = $select.closest('.ctc-phone-group-wrapper');
+    var $input = $wrapper.find('.ctc-phone-input');
+    var currentDial = $select.val() || '';
+    var dialDigits = currentDial.replace(/\D/g, '');
+    var val = $input.val();
+
+    if (val && dialDigits && val.indexOf(dialDigits) === 0 && val.length > dialDigits.length + 5) {
+      val = val.substring(dialDigits.length).trim();
+      $input.val(val);
+    }
+  });
+
+  function syncPhoneGroupWidths() {
+    $('.ctc-phone-group-wrapper').each(function() {
+      var $wrapper = $(this);
+      var $select = $wrapper.find('.ctc-country-select');
+      var format = $wrapper.attr('data-selector-format') || $select.attr('data-format') || 'both';
+
+      if (format === 'flag') {
+        $select.css({ width: '76px', minWidth: '76px', maxWidth: '76px' });
+      } else if (format === 'code') {
+        $select.css({ width: '96px', minWidth: '96px', maxWidth: '96px' });
+      } else {
+        $select.css({ width: '136px', minWidth: '136px', maxWidth: '145px' });
+      }
+    });
+  }
+
+  // Initialize on document ready & modal open
+  initIntlTelInputs();
+  syncPhoneGroupWidths();
+  $(document).on('click', '.ctc-trigger-booking, a[href="#booking"], .ctc-auth-tab-btn, .ctc-sidebar-tab', function() {
+    setTimeout(function() {
+      initIntlTelInputs();
+      syncPhoneGroupWidths();
+    }, 150);
+  });
+
+  // ==========================================================================
+  // PASSWORD COMPLEXITY & VALIDATION ENGINE
+  // ==========================================================================
+  function checkPasswordStrength(pass) {
+    if (!pass) {
+      return { valid: false, message: 'Password is required.' };
+    }
+    if (pass.length < 6) {
+      return { valid: false, message: 'Password must be at least 6 characters long.' };
+    }
+    if (pass.length > 20) {
+      return { valid: false, message: 'Password cannot exceed 20 characters.' };
+    }
+    if (!/[a-zA-Z]/.test(pass)) {
+      return { valid: false, message: 'Password must contain at least one letter (a-z, A-Z).' };
+    }
+    if (!/[0-9]/.test(pass)) {
+      return { valid: false, message: 'Password must contain at least one number (0-9).' };
+    }
+    return { valid: true, message: 'Strong password (meets all criteria).' };
+  }
+
+  // Real-time password validation listener
+  $(document).on('keyup input', '#reg_user_pass', function() {
+    var pass = $(this).val();
+    var rulesBox = $('#reg_pass_rules');
+    if (!rulesBox.length) return;
+
+    if (!pass) {
+      rulesBox.html('<i class="fa-solid fa-shield-halved"></i> 6–20 characters, must include letters & numbers').css('color', '#64748B');
+      return;
+    }
+
+    var res = checkPasswordStrength(pass);
+    if (res.valid) {
+      rulesBox.html('<span style="color:#10B981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.message + '</span>');
+    } else {
+      rulesBox.html('<span style="color:#EF4444; font-weight:600;"><i class="fa-solid fa-circle-xmark"></i> ' + res.message + '</span>');
+    }
+
+    var confirmVal = $('#reg_user_pass_confirm').val();
+    if (confirmVal) {
+      $('#reg_user_pass_confirm').trigger('input');
+    }
+  });
+
+  // Real-time confirm password listener
+  $(document).on('keyup input', '#reg_user_pass_confirm', function() {
+    var confirmVal = $(this).val();
+    var passVal = $('#reg_user_pass').val();
+    var matchBox = $('#reg_pass_match_msg');
+    if (!matchBox.length) return;
+
+    if (!confirmVal) {
+      matchBox.hide().empty();
+      return;
+    }
+
+    matchBox.show();
+    if (confirmVal === passVal) {
+      matchBox.html('<span style="color:#10B981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Passwords match</span>');
+    } else {
+      matchBox.html('<span style="color:#EF4444; font-weight:600;"><i class="fa-solid fa-circle-xmark"></i> Passwords do not match</span>');
+    }
+  });
+
   // PATIENT PROFILE UPDATE
   $('#patient-profile-form').on('submit', function(e) {
     e.preventDefault();
+    syncIntlPhoneValues(this);
+
     var btn = $('#save_profile_btn');
     var box = $('#profile-response-box');
 
@@ -849,11 +1374,30 @@ jQuery(document).ready(function($) {
     });
   });
 
-  // AUTH REGISTER SUBMISSION
+  // AUTH REGISTER SUBMISSION (WITH JS PASSWORD & PHONE VALIDATION)
   $('#careyou-auth-register-form').on('submit', function(e) {
     e.preventDefault();
+    var pass = $('#reg_user_pass').val();
+    var passConfirm = $('#reg_user_pass_confirm').val();
     var btn = $('#reg_submit_btn');
     var box = $('#reg-response-box');
+
+    // Validate password (Char + Number, 6 to 20 chars)
+    var passCheck = checkPasswordStrength(pass);
+    if (!passCheck.valid) {
+      box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + passCheck.message + '</span>');
+      $('#reg_user_pass').focus();
+      return;
+    }
+
+    if (pass !== passConfirm) {
+      box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Passwords do not match. Please verify your password.</span>');
+      $('#reg_user_pass_confirm').focus();
+      return;
+    }
+
+    syncIntlPhoneValues(this);
+
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Creating Patient Account...');
 
     var formData = $(this).serialize() + '&action=caretochina_user_register&nonce=' + apiObj.nonce;
@@ -869,4 +1413,43 @@ jQuery(document).ready(function($) {
       }
     });
   });
+
+  // ==========================================================================
+  // LIVE GUEST CHAT COUNTDOWN TIMER TICKER
+  // ==========================================================================
+  function initGuestCountdownTimer() {
+    var $timer = $('#ctc-guest-countdown-display');
+    if (!$timer.length) return;
+
+    var expiresTimestamp = parseInt($timer.attr('data-expires'), 10);
+    if (!expiresTimestamp || isNaN(expiresTimestamp)) return;
+
+    function updateTimer() {
+      var now = Math.floor(Date.now() / 1000);
+      var diff = expiresTimestamp - now;
+
+      if (diff <= 0) {
+        $timer.html('<span style="color:#EF4444; font-weight:800;"><i class="fa-solid fa-triangle-exclamation"></i> Session Expired</span>');
+        return;
+      }
+
+      var days = Math.floor(diff / 86400);
+      var hours = Math.floor((diff % 86400) / 3600);
+      var minutes = Math.floor((diff % 3600) / 60);
+      var seconds = Math.floor(diff % 60);
+
+      var parts = [];
+      if (days > 0) parts.push(days + 'd');
+      parts.push((hours < 10 ? '0' : '') + hours + 'h');
+      parts.push((minutes < 10 ? '0' : '') + minutes + 'm');
+      parts.push((seconds < 10 ? '0' : '') + seconds + 's');
+
+      $timer.text(parts.join(' : '));
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  }
+
+  initGuestCountdownTimer();
 });

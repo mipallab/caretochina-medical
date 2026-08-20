@@ -28,11 +28,21 @@ class CareToChina_Payment_Request_Manager {
      */
     public function handle_create_payment_request() {
         $nonce = $_POST['nonce'] ?? '';
-        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-medical')]);
         }
 
-        if (!current_user_can('caretochina_manage_bookings') && !current_user_can('manage_options')) {
+        $current_user = wp_get_current_user();
+        $is_staff = is_user_logged_in() && (
+            current_user_can('manage_options') || 
+            current_user_can('caretochina_manage_bookings') || 
+            current_user_can('edit_posts') || 
+            in_array('medical_staff', (array)$current_user->roles) ||
+            in_array('administrator', (array)$current_user->roles) ||
+            in_array('editor', (array)$current_user->roles)
+        );
+
+        if (!$is_staff) {
             wp_send_json_error(['message' => __('Unauthorized. Staff capability required.', 'caretochina-medical')]);
         }
 
@@ -52,6 +62,20 @@ class CareToChina_Payment_Request_Manager {
         }
 
         $patient_id = intval($thread_booking->patient_id);
+        if ($patient_id <= 0 && !empty($thread_booking->email)) {
+            $user = get_user_by('email', $thread_booking->email);
+            if ($user) {
+                $patient_id = $user->ID;
+                $wpdb->update($table_bookings, ['patient_id' => $patient_id, 'is_guest' => 0], ['id' => $chat_thread_booking_id]);
+            }
+        }
+
+        $is_guest = (intval($thread_booking->is_guest) === 1 && $patient_id <= 0);
+
+        if ($is_guest || $patient_id <= 0) {
+            wp_send_json_error(['message' => __('Payment requests can only be issued to registered patient accounts. Guest users cannot receive payment requests. Please ask the patient to register or save their account first.', 'caretochina-medical')]);
+        }
+
         $current_user = wp_get_current_user();
         $created_by = $current_user->ID;
 
@@ -169,6 +193,25 @@ class CareToChina_Payment_Request_Manager {
         $message_id = $wpdb->insert_id;
         $wpdb->update($table_requests, ['chat_message_id' => $message_id], ['id' => $request_id]);
 
+        // Send Branded Email Notification to Patient
+        if (class_exists('CareToChina_Email_Templates') && !empty($thread_booking->email)) {
+            $chat_dest_url = !empty($thread_booking->guest_token) ? home_url('/guest-chat/?token=' . $thread_booking->guest_token) : home_url('/patient-dashboard/?tab=messages');
+            CareToChina_Email_Templates::send_notification('payment_request', $thread_booking->email, [
+                'patient_name'   => $thread_booking->full_name,
+                'patient_email'  => $thread_booking->email,
+                'patient_phone'  => $thread_booking->phone,
+                'booking_code'   => $thread_booking->booking_code,
+                'request_code'   => $request_code,
+                'specialty'      => $thread_booking->specialty,
+                'hospital_name'  => $thread_booking->hospital_name,
+                'custom_title'   => $final_title,
+                'amount'         => number_format($final_amount, 2),
+                'currency'       => $currency,
+                'chat_url'       => $chat_dest_url,
+                'dashboard_url'  => home_url('/patient-dashboard/'),
+            ]);
+        }
+
         wp_send_json_success([
             'message'    => __('Payment request sent to patient successfully.', 'caretochina-medical'),
             'request_id' => $request_id,
@@ -182,11 +225,21 @@ class CareToChina_Payment_Request_Manager {
      */
     public function handle_cancel_payment_request() {
         $nonce = $_POST['nonce'] ?? '';
-        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
+        if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-medical')]);
         }
 
-        if (!current_user_can('caretochina_manage_bookings') && !current_user_can('manage_options')) {
+        $current_user = wp_get_current_user();
+        $is_staff = is_user_logged_in() && (
+            current_user_can('manage_options') || 
+            current_user_can('caretochina_manage_bookings') || 
+            current_user_can('edit_posts') || 
+            in_array('medical_staff', (array)$current_user->roles) ||
+            in_array('administrator', (array)$current_user->roles) ||
+            in_array('editor', (array)$current_user->roles)
+        );
+
+        if (!$is_staff) {
             wp_send_json_error(['message' => __('Unauthorized. Staff capability required.', 'caretochina-medical')]);
         }
 
@@ -250,7 +303,22 @@ class CareToChina_Payment_Request_Manager {
 
         // SECURITY CHECK: Dual-layer patient ownership verification
         $current_patient_id = get_current_user_id();
-        if (intval($request->patient_id) !== $current_patient_id) {
+        $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
+        
+        $is_owner = (intval($request->patient_id) === $current_patient_id);
+        if (!$is_owner && intval($request->patient_id) === 0 && $thread_booking) {
+            $current_user = wp_get_current_user();
+            if ($current_user->exists() && (intval($thread_booking->patient_id) === $current_patient_id || strcasecmp($current_user->user_email, $thread_booking->email) === 0)) {
+                $is_owner = true;
+                // Auto-link to current user
+                $wpdb->update($table_requests, ['patient_id' => $current_patient_id], ['id' => $request_id]);
+                if (intval($thread_booking->patient_id) === 0) {
+                    $wpdb->update($table_bookings, ['patient_id' => $current_patient_id, 'is_guest' => 0], ['id' => $thread_booking->id]);
+                }
+            }
+        }
+
+        if (!$is_owner) {
             wp_send_json_error(['message' => __('Access denied. This payment request belongs to another patient.', 'caretochina-medical')]);
         }
 
@@ -327,10 +395,7 @@ class CareToChina_Payment_Request_Manager {
             return '';
         }
 
-        $currency_symbol = '$';
-        if ($req->currency === 'EUR') $currency_symbol = '€';
-        if ($req->currency === 'GBP') $currency_symbol = '£';
-        if ($req->currency === 'CNY') $currency_symbol = '¥';
+        $currency_symbol = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($req->currency) : '$';
 
         $status = $req->status;
         $status_label = __('Pending Payment', 'caretochina-medical');
@@ -355,35 +420,42 @@ class CareToChina_Payment_Request_Manager {
 
         ob_start();
         ?>
-        <div class="ctc-payment-request-card" data-request-id="<?php echo esc_attr($req->id); ?>" style="background:#FFFFFF; border:2px solid #0F766E; border-radius:14px; padding:18px; margin:12px 0; font-family:'Manrope', sans-serif; box-shadow:0 4px 12px rgba(15,118,110,0.08); max-width:420px; text-align:left;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <span style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#0F766E; background:#CCFBF1; padding:3px 8px; border-radius:6px;">
+        <div class="ctc-payment-request-card" data-request-id="<?php echo esc_attr($req->id); ?>">
+            <div class="ctc-pay-card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span class="ctc-pay-card-code" style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:#0F766E; background:#CCFBF1; padding:3px 8px; border-radius:6px;">
                     <i class="fa-solid fa-file-invoice-dollar"></i> <?php echo esc_html($req->request_code); ?>
                 </span>
-                <span style="font-size:11px; font-weight:700; background:<?php echo esc_attr($status_bg); ?>; color:<?php echo esc_attr($status_color); ?>; padding:3px 10px; border-radius:20px;">
+                <span class="ctc-pay-card-status" style="font-size:11px; font-weight:700; background:<?php echo esc_attr($status_bg); ?>; color:<?php echo esc_attr($status_color); ?>; padding:3px 10px; border-radius:20px;">
                     <?php echo esc_html($status_label); ?>
                 </span>
             </div>
 
-            <h4 style="margin:0 0 6px 0; color:#0F172A; font-size:16px; font-weight:700;"><?php echo esc_html($req->custom_title); ?></h4>
+            <h4 class="ctc-pay-card-title" style="margin:0 0 6px 0; font-size:16px; font-weight:700;"><?php echo esc_html($req->custom_title); ?></h4>
 
             <?php if (!empty($content_clean)) : ?>
-                <div style="font-size:12px; color:#64748B; margin-bottom:12px; line-height:1.5;">
+                <div class="ctc-pay-card-content" style="font-size:12px; color:#64748B; margin-bottom:12px; line-height:1.5;">
                     <?php echo $content_clean; ?>
                 </div>
             <?php endif; ?>
 
-            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:12px; color:#64748B; font-weight:600;"><?php _e('Authoritative Total:', 'caretochina-medical'); ?></span>
-                <span style="font-size:18px; font-weight:800; color:#0F766E;"><?php echo esc_html($currency_symbol . number_format($req->amount, 2) . ' ' . $req->currency); ?></span>
+            <div class="ctc-pay-card-total-box" style="border:1px solid #E2E8F0; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                <span class="ctc-pay-card-total-lbl" style="font-size:12px; color:#64748B; font-weight:600;"><?php _e('Authoritative Total:', 'caretochina-medical'); ?></span>
+                <span class="ctc-pay-card-total-val" style="font-size:18px; font-weight:800; color:#0F766E;"><?php echo esc_html($currency_symbol . number_format($req->amount, 2) . ' ' . $req->currency); ?></span>
             </div>
 
             <?php if (!$is_staff) : ?>
                 <!-- PATIENT ACTIONS -->
                 <?php if ($status === 'pending' || $status === 'processing') : ?>
-                    <button type="button" class="ctc-btn-accept-pay" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr($req->id); ?>)" style="width:100%; background:#0F766E; color:#FFFFFF; border:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); transition:all 0.2s;">
-                        <i class="fa-solid fa-lock"></i> <?php _e('Accept & Pay Online', 'caretochina-medical'); ?>
-                    </button>
+                    <?php if (!is_user_logged_in()) : ?>
+                        <a href="<?php echo esc_url(home_url('/patient-login/')); ?>" class="ctc-btn-accept-pay" style="width:100%; box-sizing:border-box; background:#0F766E; color:#FFFFFF; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); text-align:center; transition:all 0.2s;">
+                            <i class="fa-solid fa-user-lock"></i> <?php _e('Sign In or Register to Pay', 'caretochina-medical'); ?>
+                        </a>
+                        <p style="margin:6px 0 0 0; font-size:11px; color:#64748B; text-align:center;"><?php _e('Payment requires an authenticated patient account.', 'caretochina-medical'); ?></p>
+                    <?php else : ?>
+                        <button type="button" class="ctc-btn-accept-pay" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr($req->id); ?>)" style="width:100%; background:#0F766E; color:#FFFFFF; border:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); transition:all 0.2s;">
+                            <i class="fa-solid fa-lock"></i> <?php _e('Accept & Pay Online', 'caretochina-medical'); ?>
+                        </button>
+                    <?php endif; ?>
                 <?php elseif ($status === 'accepted_paid') : ?>
                     <div style="text-align:center; font-size:13px; font-weight:700; color:#059669; padding:8px 0;">
                         <i class="fa-solid fa-circle-check"></i> <?php _e('Payment completed successfully.', 'caretochina-medical'); ?>
