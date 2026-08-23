@@ -144,11 +144,9 @@ function caretochina_render_dashboard_button($atts = []) {
 
     if ($is_logged_in) {
         $url   = $dash_url;
-        $icon  = '<i class="fa-solid fa-user-circle ctc-btn-icon" style="margin-right:8px; font-size:16px;"></i>';
         $label = __('Dashboard', 'caretochina-booking');
     } else {
         $url   = $login_url;
-        $icon  = '<i class="fa-solid fa-right-to-bracket ctc-btn-icon" style="margin-right:8px; font-size:15px;"></i>';
         $label = __('Login / Register', 'caretochina-booking');
     }
 
@@ -158,7 +156,9 @@ function caretochina_render_dashboard_button($atts = []) {
     ?>
     <a href="<?php echo esc_url($url); ?>" class="ctc-dash-btn elementor-button elementor-button-secondary elementor-size-sm <?php echo esc_attr($atts['class'] . ' ' . $extra_class); ?>">
         <span class="elementor-button-content-wrapper" style="display:inline-flex; align-items:center; justify-content:center;">
-            <?php if ($display_mode !== 'text_only') echo $icon; ?>
+            <?php if ($display_mode !== 'text_only') : ?>
+                <i class="<?php echo $is_logged_in ? 'fa-solid fa-user-circle' : 'fa-solid fa-right-to-bracket'; ?> ctc-btn-icon" style="margin-right:8px; font-size:<?php echo $is_logged_in ? '16px' : '15px'; ?>;"></i>
+            <?php endif; ?>
             <?php if ($display_mode !== 'icon_only') : ?>
                 <span class="elementor-button-text"><?php echo esc_html($label); ?></span>
             <?php endif; ?>
