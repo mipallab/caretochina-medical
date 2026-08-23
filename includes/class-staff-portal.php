@@ -70,13 +70,13 @@ class CareToChina_Staff_Portal {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
         $pending_bookings = 0;
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-            $pending_bookings = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_bookings WHERE status = 'pending'"));
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            $pending_bookings = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
         }
 
         $unread_messages = 0;
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages) {
-            $unread_messages = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_messages WHERE sender_type = 'patient' AND is_read = 0"));
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            $unread_messages = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
         }
 
         return $pending_bookings + $unread_messages;
@@ -413,17 +413,17 @@ class CareToChina_Staff_Portal {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
         $pending_bookings_count = 0;
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-            $pending_bookings_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_bookings WHERE status = 'pending'"));
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
         }
 
         $unread_messages_count = 0;
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages) {
-            $unread_messages_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_messages WHERE sender_type = 'patient' AND is_read = 0"));
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            $unread_messages_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
         }
 
         $chat_conversations = $this->get_chat_conversations(30);
-        $all_bookings = $wpdb->get_results("SELECT * FROM $table_bookings ORDER BY id DESC LIMIT 10");
+        $all_bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 10));
         $bookings = !empty($all_bookings) ? $all_bookings : [];
 
         if (empty($bookings)) {
@@ -947,8 +947,8 @@ class CareToChina_Staff_Portal {
         $items = [];
 
         // 1. Pending Bookings (New Bookings requiring approval)
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-            $pending_list = $wpdb->get_results("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM $table_bookings WHERE status = 'pending' ORDER BY id DESC LIMIT 6");
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 6));
             if (!empty($pending_list)) {
                 foreach ($pending_list as $b) {
                     $items[] = [
@@ -966,14 +966,14 @@ class CareToChina_Staff_Portal {
         }
 
         // 2. Unread Messages from Patients
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages) {
-            $unread_msg_list = $wpdb->get_results("
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            $unread_msg_list = $wpdb->get_results($wpdb->prepare("
                 SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
-                FROM $table_messages m 
-                JOIN $table_bookings b ON m.booking_id = b.id 
-                WHERE m.sender_type = 'patient' AND m.is_read = 0 
-                ORDER BY m.id DESC LIMIT 6
-            ");
+                FROM {$wpdb->prefix}caretochina_messages m 
+                JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+                WHERE m.sender_type = %s AND m.is_read = %d 
+                ORDER BY m.id DESC LIMIT %d
+            ", 'patient', 0, 6));
             if (!empty($unread_msg_list)) {
                 foreach ($unread_msg_list as $m) {
                     $items[] = [
@@ -1043,11 +1043,11 @@ class CareToChina_Staff_Portal {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") !== $table_bookings) {
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) !== $table_bookings) {
             return [];
         }
 
-        $has_messages = ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages);
+        $has_messages = ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages);
 
         if ($has_messages) {
             $query = "
@@ -1058,18 +1058,18 @@ class CareToChina_Staff_Portal {
                        m.sender_type as last_msg_sender,
                        m.message_type as last_msg_type,
                        m.created_at as last_msg_time,
-                       (SELECT COUNT(*) FROM $table_messages WHERE booking_id = b.id AND sender_type = 'patient' AND is_read = 0) as unread_count
-                FROM $table_bookings b
-                LEFT JOIN $table_messages m ON m.id = (
-                    SELECT id FROM $table_messages WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
+                       (SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = b.id AND sender_type = %s AND is_read = %d) as unread_count
+                FROM {$wpdb->prefix}caretochina_bookings b
+                LEFT JOIN {$wpdb->prefix}caretochina_messages m ON m.id = (
+                    SELECT id FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
                 )
                 WHERE b.status IN ('confirmed', 'completed', 'waiting')
                 ORDER BY COALESCE(m.created_at, b.created_at) DESC
                 LIMIT %d
             ";
-            return $wpdb->get_results($wpdb->prepare($query, $limit));
+            return $wpdb->get_results($wpdb->prepare($query, 'patient', 0, $limit));
         } else {
-            return $wpdb->get_results($wpdb->prepare("SELECT b.*, NULL as last_msg_text, NULL as last_msg_att_type, NULL as last_msg_att_name, NULL as last_msg_sender, NULL as last_msg_type, NULL as last_msg_time, 0 as unread_count FROM $table_bookings b WHERE b.status IN ('confirmed', 'completed', 'waiting') ORDER BY b.id DESC LIMIT %d", $limit));
+            return $wpdb->get_results($wpdb->prepare("SELECT b.*, NULL as last_msg_text, NULL as last_msg_att_type, NULL as last_msg_att_name, NULL as last_msg_sender, NULL as last_msg_type, NULL as last_msg_time, 0 as unread_count FROM {$wpdb->prefix}caretochina_bookings b WHERE b.status IN ('confirmed', 'completed', 'waiting') ORDER BY b.id DESC LIMIT %d", $limit));
         }
     }
 
@@ -1168,7 +1168,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_get_bookings() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1176,21 +1176,22 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
-        $search = sanitize_text_field($_POST['search'] ?? '');
-        $paged = intval($_POST['paged'] ?? 1);
+        $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
+        $paged = isset($_POST['paged']) ? max(1, absint($_POST['paged'])) : 1;
         $limit = 10;
         $offset = ($paged - 1) * $limit;
 
         $where = ' WHERE 1=1 ';
         if (!empty($search)) {
+            $like = '%' . $wpdb->esc_like($search) . '%';
             $where .= $wpdb->prepare(
                 " AND (full_name LIKE %s OR email LIKE %s OR phone LIKE %s OR country LIKE %s OR booking_code LIKE %s) ",
-                "%$search%", "%$search%", "%$search%", "%$search%", "%$search%"
+                $like, $like, $like, $like, $like
             );
         }
 
-        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM $table_bookings $where");
-        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings $where ORDER BY id DESC LIMIT $limit OFFSET $offset");
+        $total_items = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings $where");
+        $bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings $where ORDER BY id DESC LIMIT %d OFFSET %d", $limit, $offset));
         
         $html = $this->generate_bookings_table_rows($bookings);
         
@@ -1217,7 +1218,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_check_new_bookings() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1225,8 +1226,8 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
-        $count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_bookings"));
-        $latest = $wpdb->get_row("SELECT booking_code, full_name FROM $table_bookings ORDER BY id DESC LIMIT 1");
+        $count = intval($wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings"));
+        $latest = $wpdb->get_row($wpdb->prepare("SELECT booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 1));
         
         wp_send_json_success([
             'count' => $count,
@@ -1236,12 +1237,12 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_send_typing() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
         $this->check_staff_capability();
-        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
         if ($booking_id > 0) {
             set_transient('ctc_typing_' . $booking_id . '_coordinator', 1, 4);
             wp_send_json_success();
@@ -1250,13 +1251,13 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_staff_login() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-staff')]);
         }
 
-        $username = sanitize_text_field($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
+        $username = isset($_POST['username']) ? sanitize_text_field(wp_unslash($_POST['username'])) : '';
+        $password = isset($_POST['password']) ? wp_unslash($_POST['password']) : '';
 
         $user = wp_signon(['user_login' => $username, 'user_password' => $password, 'remember' => true], is_ssl());
 
@@ -1273,7 +1274,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_create_staff_account() {
-        $nonce = $_POST['_wpnonce'] ?? '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_admin_nonce')) {
             wp_send_json_error(['message' => __('Unauthorized admin capability.', 'caretochina-staff')]);
         }
@@ -1281,10 +1282,10 @@ class CareToChina_Staff_Portal {
             wp_send_json_error(['message' => __('Unauthorized admin capability.', 'caretochina-staff')]);
         }
 
-        $name = sanitize_text_field($_POST['name'] ?? '');
-        $email = sanitize_email($_POST['email'] ?? '');
-        $username = sanitize_user($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
+        $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+        $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+        $username = isset($_POST['username']) ? sanitize_user(wp_unslash($_POST['username'])) : '';
+        $password = isset($_POST['password']) ? wp_unslash($_POST['password']) : '';
 
         if (empty($name) || empty($email) || empty($username) || empty($password)) {
             wp_send_json_error(['message' => __('All staff credential fields are required.', 'caretochina-staff')]);
@@ -1318,7 +1319,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_update_booking_status() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1326,8 +1327,8 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $id = intval($_POST['booking_id'] ?? 0);
-        $status = sanitize_text_field($_POST['status'] ?? 'pending');
+        $id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
+        $status = isset($_POST['status']) ? sanitize_key(wp_unslash($_POST['status'])) : 'pending';
 
         if ($id > 0) {
             $wpdb->update($table_bookings, ['status' => $status], ['id' => $id]);
@@ -1337,7 +1338,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_verify_booking() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1346,10 +1347,10 @@ class CareToChina_Staff_Portal {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        $id = intval($_POST['booking_id'] ?? 0);
+        $id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
 
         if ($id > 0) {
-            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $id));
+            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
             if (!$booking) {
                 wp_send_json_error(['message' => __('Booking not found.', 'caretochina-staff')]);
             }
@@ -1406,13 +1407,13 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        $wpdb->query($wpdb->prepare("UPDATE $table_messages SET is_read = 1 WHERE booking_id = %d AND sender_type = %s", $booking_id, 'patient'));
+        $wpdb->query($wpdb->prepare("UPDATE {$wpdb->prefix}caretochina_messages SET is_read = %d WHERE booking_id = %d AND sender_type = %s", 1, $booking_id, 'patient'));
 
-        $messages = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_messages WHERE booking_id = %d ORDER BY id ASC", $booking_id));
+        $messages = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = %d ORDER BY id ASC", $booking_id));
 
         $chat_html = '';
         if (empty($messages)) {
-            $chat_html .= '<div class="chat-msg coordinator mb-14" style="display:flex; gap:12px; align-items:flex-start;"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" style="width:36px; height:36px; border-radius:50%;"><div class="msg-bubble" style="background:#0F766E; color:#FFF; border:none; padding:12px 18px; border-radius:18px; font-size:13px; line-height:1.4;"><strong>Elena (Care Coordinator):</strong> ' . __('Hello! How can I assist you with your treatment roadmap today?', 'caretochina-staff') . '</div></div>';
+            $chat_html .= '<div class="chat-msg coordinator mb-14" style="display:flex; gap:12px; align-items:flex-start;"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" style="width:36px; height:36px; border-radius:50%;"><div class="msg-bubble" style="background:#0F766E; color:#FFF; border:none; padding:12px 18px; border-radius:18px; font-size:13px; line-height:1.4;"><strong>Elena (Care Coordinator):</strong> ' . esc_html__('Hello! How can I assist you with your treatment roadmap today?', 'caretochina-staff') . '</div></div>';
         } else {
             foreach ($messages as $m) {
                 $read_tick = ($m->is_read == 1) ? '<span style="color:#3B82F6; margin-left:6px; font-weight:700;" title="' . esc_attr(__('Read by Patient', 'caretochina-staff')) . '">✓✓ Seen</span>' : '<span style="color:#94A3B8; margin-left:6px;" title="' . esc_attr(__('Delivered', 'caretochina-staff')) . '">✓ Delivered</span>';
@@ -1466,7 +1467,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_send_chat() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1474,12 +1475,12 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        $id = intval($_POST['booking_id'] ?? 0);
-        $message = sanitize_textarea_field($_POST['message'] ?? '');
+        $id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
+        $message = isset($_POST['message']) ? sanitize_textarea_field(wp_unslash($_POST['message'])) : '';
 
         // Check if booking exists and is approved (confirmed/completed)
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $id));
+        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
         if (!$booking) {
             wp_send_json_error(['message' => __('Patient booking record not found.', 'caretochina-staff')]);
         }
@@ -1558,13 +1559,13 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_get_staff_chat() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
         $this->check_staff_capability();
 
-        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
 
         if ($booking_id > 0) {
             $chat_html = $this->get_staff_chat_html($booking_id);
@@ -1580,7 +1581,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_update_timeline() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1588,8 +1589,8 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $booking_id = intval($_POST['booking_id'] ?? 0);
-        $stage = intval($_POST['timeline_stage'] ?? 1);
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
+        $stage = isset($_POST['timeline_stage']) ? max(1, min(5, absint($_POST['timeline_stage']))) : 1;
 
         if ($booking_id > 0) {
             $wpdb->update($table_bookings, ['timeline_stage' => $stage], ['id' => $booking_id]);
@@ -1599,7 +1600,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_update_invoice() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1607,8 +1608,8 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $booking_id = intval($_POST['booking_id'] ?? 0);
-        $status = sanitize_text_field($_POST['invoice_status'] ?? '');
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
+        $status = isset($_POST['invoice_status']) ? sanitize_text_field(wp_unslash($_POST['invoice_status'])) : '';
 
         if ($booking_id > 0 && !empty($status)) {
             $wpdb->update($table_bookings, ['invoice_status' => $status], ['id' => $booking_id]);
@@ -1621,12 +1622,12 @@ class CareToChina_Staff_Portal {
         $users = get_users(['role__in' => ['administrator', 'editor', 'medical_staff']]);
         $html = '';
         foreach ($users as $u) {
-            $joined = date('M d, Y', strtotime($u->user_registered));
+            $joined = date_i18n('M d, Y', strtotime($u->user_registered));
             $display_name = esc_html($u->display_name ? $u->display_name : $u->first_name . ' ' . $u->last_name);
             if (empty(trim($display_name))) {
                 $display_name = esc_html($u->user_login);
             }
-            $roles = implode(', ', array_map('ucfirst', $u->roles));
+            $roles = esc_html(implode(', ', array_map('ucfirst', $u->roles)));
             
             // Prevent deleting yourself
             $is_self = ($u->ID === get_current_user_id());
@@ -1634,7 +1635,7 @@ class CareToChina_Staff_Portal {
             if (!$is_self) {
                 $delete_btn = sprintf(
                     '<button type="button" onclick="deleteStaffAccount(%d)" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; font-size:11px;"><i class="fa-solid fa-trash"></i> %s</button>',
-                    $u->ID, __('Delete', 'caretochina-staff')
+                    $u->ID, esc_html__('Delete', 'caretochina-staff')
                 );
             } else {
                 $delete_btn = '<span style="font-size:11px; color:#64748B; font-weight:600; font-style:italic;">You (Self)</span>';
@@ -1662,7 +1663,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_get_staff_list() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1674,7 +1675,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_delete_staff_account() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1682,7 +1683,7 @@ class CareToChina_Staff_Portal {
             wp_send_json_error(['message' => __('Unauthorized admin capability.', 'caretochina-staff')]);
         }
         
-        $user_id = intval($_POST['user_id'] ?? 0);
+        $user_id = isset($_POST['user_id']) ? absint($_POST['user_id']) : 0;
         if ($user_id > 0) {
             if ($user_id === get_current_user_id()) {
                 wp_send_json_error(['message' => __('You cannot delete your own account.', 'caretochina-staff')]);
@@ -1701,7 +1702,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_admin_delete_patient_data() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1713,10 +1714,10 @@ class CareToChina_Staff_Portal {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
 
         if ($booking_id > 0) {
-            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $booking_id));
+            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $booking_id));
             if ($booking) {
                 // Delete messages for this booking
                 $wpdb->delete($table_messages, ['booking_id' => $booking_id]);
@@ -1753,7 +1754,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_staff_check_unread_updates() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1763,27 +1764,27 @@ class CareToChina_Staff_Portal {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
         // 1. Get total and pending bookings count
-        $bookings_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_bookings"));
-        $pending_bookings_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_bookings WHERE status = 'pending'"));
-        $latest_booking = $wpdb->get_row("SELECT booking_code, full_name FROM $table_bookings ORDER BY id DESC LIMIT 1");
+        $bookings_count = intval($wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings"));
+        $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
+        $latest_booking = $wpdb->get_row($wpdb->prepare("SELECT booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 1));
 
         // 2. Get unread messages count
-        $unread_messages_count = intval($wpdb->get_var("SELECT COUNT(*) FROM $table_messages WHERE sender_type = 'patient' AND is_read = 0"));
+        $unread_messages_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
 
         // 3. Get latest unread message from a patient
-        $latest_message = $wpdb->get_row("
+        $latest_message = $wpdb->get_row($wpdb->prepare("
             SELECT m.*, b.booking_code, b.full_name as patient_name 
-            FROM $table_messages m 
-            JOIN $table_bookings b ON m.booking_id = b.id 
-            WHERE m.sender_type = 'patient' AND m.is_read = 0 
-            ORDER BY m.id DESC LIMIT 1
-        ");
+            FROM {$wpdb->prefix}caretochina_messages m 
+            JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+            WHERE m.sender_type = %s AND m.is_read = %d 
+            ORDER BY m.id DESC LIMIT %d
+        ", 'patient', 0, 1));
 
         $unread_items = [];
         
         // Fetch pending bookings list
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-            $pending_list = $wpdb->get_results("SELECT id, booking_code, full_name, specialty, created_at FROM $table_bookings WHERE status = 'pending' ORDER BY id DESC LIMIT 5");
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 5));
             foreach ($pending_list as $item) {
                 $unread_items[] = [
                     'type' => 'booking',
@@ -1798,14 +1799,14 @@ class CareToChina_Staff_Portal {
         }
 
         // Fetch unread messages list
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages) {
-            $unread_msg_list = $wpdb->get_results("
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            $unread_msg_list = $wpdb->get_results($wpdb->prepare("
                 SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
-                FROM $table_messages m 
-                JOIN $table_bookings b ON m.booking_id = b.id 
-                WHERE m.sender_type = 'patient' AND m.is_read = 0 
-                ORDER BY m.id DESC LIMIT 5
-            ");
+                FROM {$wpdb->prefix}caretochina_messages m 
+                JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+                WHERE m.sender_type = %s AND m.is_read = %d 
+                ORDER BY m.id DESC LIMIT %d
+            ", 'patient', 0, 5));
             foreach ($unread_msg_list as $item) {
                 $unread_items[] = [
                     'type' => 'message',
@@ -1819,7 +1820,7 @@ class CareToChina_Staff_Portal {
             }
         }
 
-        $active_booking_id = intval($_POST['active_booking_id'] ?? 0);
+        $active_booking_id = isset($_POST['active_booking_id']) ? absint($_POST['active_booking_id']) : 0;
         $conversations = $this->get_chat_conversations(30);
         $chat_sidebar_html = $this->generate_chat_patient_list_html($conversations, $active_booking_id);
         $dropdown_html = $this->generate_notifications_dropdown_html();
@@ -1868,8 +1869,8 @@ class CareToChina_Staff_Portal {
             $table_messages = $wpdb->prefix . 'caretochina_messages';
 
             // 1. Fetch pending bookings
-            if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-                $pending_list = $wpdb->get_results("SELECT id, booking_code, full_name FROM $table_bookings WHERE status = 'pending' ORDER BY id DESC LIMIT 3");
+            if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+                $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 3));
                 foreach ($pending_list as $item) {
                     $wp_admin_bar->add_node([
                         'id'     => 'staff-notif-booking-' . $item->id,
@@ -1881,14 +1882,14 @@ class CareToChina_Staff_Portal {
             }
 
             // 2. Fetch unread patient messages
-            if ($wpdb->get_var("SHOW TABLES LIKE '$table_messages'") === $table_messages) {
-                $unread_msg_list = $wpdb->get_results("
+            if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+                $unread_msg_list = $wpdb->get_results($wpdb->prepare("
                     SELECT m.id, m.booking_id, m.message, b.booking_code, b.full_name as patient_name 
-                    FROM $table_messages m 
-                    JOIN $table_bookings b ON m.booking_id = b.id 
-                    WHERE m.sender_type = 'patient' AND m.is_read = 0 
-                    ORDER BY m.id DESC LIMIT 3
-                ");
+                    FROM {$wpdb->prefix}caretochina_messages m 
+                    JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+                    WHERE m.sender_type = %s AND m.is_read = %d 
+                    ORDER BY m.id DESC LIMIT %d
+                ", 'patient', 0, 3));
                 foreach ($unread_msg_list as $item) {
                     $wp_admin_bar->add_node([
                         'id'     => 'staff-notif-msg-' . $item->id,
@@ -1940,7 +1941,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_get_booking_details() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -1948,9 +1949,9 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
-        $id = intval($_POST['booking_id'] ?? 0);
+        $id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
         if ($id > 0) {
-            $b = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $id));
+            $b = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
             if ($b) {
                 wp_send_json_success([
                     'code' => $b->booking_code,
@@ -1977,13 +1978,13 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_toggle_restrict() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
         $this->check_staff_capability();
-        $patient_id = intval($_POST['patient_id'] ?? 0);
-        $reason = sanitize_text_field($_POST['reason'] ?? '');
+        $patient_id = isset($_POST['patient_id']) ? absint($_POST['patient_id']) : 0;
+        $reason = isset($_POST['reason']) ? sanitize_text_field(wp_unslash($_POST['reason'])) : '';
         
         if ($patient_id > 0) {
             $currently_restricted = get_user_meta($patient_id, 'patient_restricted', true) ? true : false;
@@ -2001,7 +2002,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_staff_cancel_booking() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -2009,7 +2010,7 @@ class CareToChina_Staff_Portal {
             wp_send_json_error(['message' => __('Insufficient permissions.', 'caretochina-staff')]);
         }
 
-        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
         $confirm_no_refund = !empty($_POST['confirm_no_refund']);
 
         $res = CareToChina_Payment_Manager::instance()->cancel_booking($booking_id, get_current_user_id(), $confirm_no_refund);
@@ -2021,7 +2022,7 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_staff_refund_booking() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
@@ -2029,9 +2030,9 @@ class CareToChina_Staff_Portal {
             wp_send_json_error(['message' => __('Insufficient permissions.', 'caretochina-staff')]);
         }
 
-        $booking_id = intval($_POST['booking_id'] ?? 0);
-        $amount = floatval($_POST['amount'] ?? 0);
-        $reason = sanitize_text_field($_POST['reason'] ?? '');
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
+        $amount = isset($_POST['amount']) ? floatval(wp_unslash($_POST['amount'])) : 0;
+        $reason = isset($_POST['reason']) ? sanitize_text_field(wp_unslash($_POST['reason'])) : '';
 
         $res = CareToChina_Payment_Manager::instance()->refund_booking($booking_id, $amount, $reason, get_current_user_id());
 
@@ -2042,17 +2043,18 @@ class CareToChina_Staff_Portal {
     }
 
     public function handle_get_payment_audit_logs() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'careyou_staff_nonce')) {
             wp_send_json_error(['message' => __('Invalid security nonce.', 'caretochina-staff')]);
         }
-        $booking_id = intval($_POST['booking_id'] ?? 0);
+        $booking_id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
 
         global $wpdb;
         $table_logs = $wpdb->prefix . 'caretochina_payment_audit_logs';
         $logs = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM $table_logs WHERE booking_id = %d ORDER BY id DESC LIMIT 50",
-            $booking_id
+            "SELECT * FROM {$wpdb->prefix}caretochina_payment_audit_logs WHERE booking_id = %d ORDER BY id DESC LIMIT %d",
+            $booking_id,
+            50
         ));
 
         wp_send_json_success(['logs' => $logs ?: []]);
