@@ -84,7 +84,8 @@ class CareToChina_Booking_Auth {
 
     public function redirect_logged_in_user() {
         if (is_user_logged_in()) {
-            if (is_page('patient-login') || strpos($_SERVER['REQUEST_URI'], 'patient-login') !== false) {
+            $request_uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+            if (is_page('patient-login') || strpos($request_uri, 'patient-login') !== false) {
                 $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
                 wp_redirect($dash_url);
                 exit;
@@ -109,31 +110,32 @@ class CareToChina_Booking_Auth {
 
     public function render_auth_portal() {
         ob_start();
-        $default_tab       = isset($_GET['tab']) && $_GET['tab'] === 'register' ? 'register' : 'login';
-        $prefill_name      = sanitize_text_field($_GET['prefill_name'] ?? '');
-        $prefill_email     = sanitize_email($_GET['prefill_email'] ?? '');
-        $prefill_phone     = sanitize_text_field($_GET['prefill_phone'] ?? '');
-        $prefill_gender    = sanitize_text_field($_GET['prefill_gender'] ?? '');
-        $prefill_age       = isset($_GET['prefill_age']) && $_GET['prefill_age'] !== '' ? intval($_GET['prefill_age']) : '';
-        $prefill_specialty = sanitize_text_field($_GET['prefill_specialty'] ?? '');
-        $prefill_whatsapp  = sanitize_text_field($_GET['prefill_whatsapp'] ?? '');
-        $prefill_wechat    = sanitize_text_field($_GET['prefill_wechat'] ?? '');
-        $prefill_code      = sanitize_text_field($_GET['booking_code'] ?? '');
+        $default_tab       = (isset($_GET['tab']) && sanitize_key(wp_unslash($_GET['tab'])) === 'register') ? 'register' : 'login';
+        $prefill_name      = isset($_GET['prefill_name']) ? sanitize_text_field(wp_unslash($_GET['prefill_name'])) : '';
+        $prefill_email     = isset($_GET['prefill_email']) ? sanitize_email(wp_unslash($_GET['prefill_email'])) : '';
+        $prefill_phone     = isset($_GET['prefill_phone']) ? sanitize_text_field(wp_unslash($_GET['prefill_phone'])) : '';
+        $prefill_gender    = isset($_GET['prefill_gender']) ? sanitize_text_field(wp_unslash($_GET['prefill_gender'])) : '';
+        $prefill_age       = (isset($_GET['prefill_age']) && $_GET['prefill_age'] !== '') ? absint(wp_unslash($_GET['prefill_age'])) : '';
+        $prefill_specialty = isset($_GET['prefill_specialty']) ? sanitize_text_field(wp_unslash($_GET['prefill_specialty'])) : '';
+        $prefill_whatsapp  = isset($_GET['prefill_whatsapp']) ? sanitize_text_field(wp_unslash($_GET['prefill_whatsapp'])) : '';
+        $prefill_wechat    = isset($_GET['prefill_wechat']) ? sanitize_text_field(wp_unslash($_GET['prefill_wechat'])) : '';
+        $prefill_code      = isset($_GET['booking_code']) ? sanitize_text_field(wp_unslash($_GET['booking_code'])) : '';
+        $auth_error        = isset($_GET['ctc_auth_error']) ? sanitize_text_field(wp_unslash(urldecode($_GET['ctc_auth_error']))) : '';
+        $link_email        = isset($_GET['email']) ? sanitize_email(wp_unslash(urldecode($_GET['email']))) : '';
+        $link_token        = isset($_GET['token']) ? sanitize_text_field(wp_unslash($_GET['token'])) : '';
+        $link_error        = isset($_GET['ctc_link_error']) ? sanitize_text_field(wp_unslash(urldecode($_GET['ctc_link_error']))) : '';
         ?>
         <div class="careyou-auth-container caretochina-auth-container">
             <!-- MAIN AUTH CARD CONTAINER -->
             <div class="ctc-auth-card">
-                <?php if (!empty($_GET['ctc_auth_error'])) : ?>
+                <?php if (!empty($auth_error)) : ?>
                     <div class="auth-error-alert" style="background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5; padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:18px; display:flex; align-items:center; gap:10px;">
                         <i class="fa-solid fa-triangle-exclamation" style="font-size:18px;"></i>
-                        <span><?php echo esc_html(urldecode($_GET['ctc_auth_error'])); ?></span>
+                        <span><?php echo esc_html($auth_error); ?></span>
                     </div>
                 <?php endif; ?>
 
-                <?php if (!empty($_GET['ctc_link_account']) && !empty($_GET['token'])) : 
-                    $link_email = sanitize_email(urldecode($_GET['email'] ?? ''));
-                    $link_token = sanitize_text_field($_GET['token']);
-                    ?>
+                <?php if (!empty($_GET['ctc_link_account']) && !empty($link_token)) : ?>
                     <!-- EXPLICIT ACCOUNT LINKING / PASSWORD CONFIRMATION PANEL -->
                     <div id="auth-panel-link-account" class="auth-panel" style="display:block;">
                         <div class="auth-header">
@@ -144,9 +146,9 @@ class CareToChina_Booking_Auth {
                             <p class="auth-subtitle"><?php _e('Confirm your patient password to link Google Sign-In securely', 'caretochina-booking'); ?></p>
                         </div>
 
-                        <?php if (!empty($_GET['ctc_link_error'])) : ?>
+                        <?php if (!empty($link_error)) : ?>
                             <div style="background:#FEF2F2; color:#991B1B; border:1px solid #F87171; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px;">
-                                <i class="fa-solid fa-circle-exclamation"></i> <?php echo esc_html(urldecode($_GET['ctc_link_error'])); ?>
+                                <i class="fa-solid fa-circle-exclamation"></i> <?php echo esc_html($link_error); ?>
                             </div>
                         <?php endif; ?>
 
@@ -406,23 +408,23 @@ class CareToChina_Booking_Auth {
     }
 
     public function handle_login() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
         }
 
         // Google reCAPTCHA Verification (if enabled for login)
         if (class_exists('CareToChina_Recaptcha')) {
-            $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
+            $recaptcha_token = isset($_POST['g-recaptcha-response']) ? sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'])) : '';
             $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, 'login');
             if (is_wp_error($rc_check)) {
                 wp_send_json_error(['message' => $rc_check->get_error_message()]);
             }
         }
 
-        $log      = sanitize_text_field($_POST['log'] ?? '');
-        $pwd      = $_POST['pwd'] ?? '';
-        $remember = isset($_POST['remember']) && $_POST['remember'] === 'forever';
+        $log      = isset($_POST['log']) ? sanitize_text_field(wp_unslash($_POST['log'])) : '';
+        $pwd      = isset($_POST['pwd']) ? wp_unslash($_POST['pwd']) : '';
+        $remember = isset($_POST['remember']) && sanitize_text_field(wp_unslash($_POST['remember'])) === 'forever';
 
         if (empty($log) || empty($pwd)) {
             wp_send_json_error(['message' => __('Please enter both username/email and password.', 'caretochina-booking')]);
@@ -446,32 +448,32 @@ class CareToChina_Booking_Auth {
     }
 
     public function handle_register() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
         }
 
         // Google reCAPTCHA Verification (if enabled for register)
         if (class_exists('CareToChina_Recaptcha')) {
-            $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
+            $recaptcha_token = isset($_POST['g-recaptcha-response']) ? sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'])) : '';
             $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, 'register');
             if (is_wp_error($rc_check)) {
                 wp_send_json_error(['message' => $rc_check->get_error_message()]);
             }
         }
 
-        $name         = sanitize_text_field($_POST['user_name'] ?? '');
-        $email        = sanitize_email($_POST['user_email'] ?? '');
-        $phone        = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'user_phone') : sanitize_text_field($_POST['user_phone'] ?? '');
-        $specialty    = sanitize_text_field($_POST['user_specialty'] ?? 'General Consultation');
-        $gender       = sanitize_text_field($_POST['user_gender'] ?? '');
-        $age          = isset($_POST['user_age']) && $_POST['user_age'] !== '' ? intval($_POST['user_age']) : null;
-        $whatsapp     = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'user_whatsapp') : sanitize_text_field($_POST['user_whatsapp'] ?? '');
-        $wechat       = sanitize_text_field($_POST['user_wechat'] ?? '');
-        $messenger    = sanitize_text_field($_POST['user_messenger'] ?? '');
-        $linkedin     = sanitize_text_field($_POST['user_linkedin'] ?? '');
-        $pass         = $_POST['user_pass'] ?? '';
-        $pass_confirm = $_POST['user_pass_confirm'] ?? '';
+        $name         = isset($_POST['user_name']) ? sanitize_text_field(wp_unslash($_POST['user_name'])) : '';
+        $email        = isset($_POST['user_email']) ? sanitize_email(wp_unslash($_POST['user_email'])) : '';
+        $phone        = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'user_phone') : (isset($_POST['user_phone']) ? sanitize_text_field(wp_unslash($_POST['user_phone'])) : '');
+        $specialty    = isset($_POST['user_specialty']) ? sanitize_text_field(wp_unslash($_POST['user_specialty'])) : 'General Consultation';
+        $gender       = isset($_POST['user_gender']) ? sanitize_text_field(wp_unslash($_POST['user_gender'])) : '';
+        $age          = isset($_POST['user_age']) && $_POST['user_age'] !== '' ? absint(wp_unslash($_POST['user_age'])) : null;
+        $whatsapp     = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'user_whatsapp') : (isset($_POST['user_whatsapp']) ? sanitize_text_field(wp_unslash($_POST['user_whatsapp'])) : '');
+        $wechat       = isset($_POST['user_wechat']) ? sanitize_text_field(wp_unslash($_POST['user_wechat'])) : '';
+        $messenger    = isset($_POST['user_messenger']) ? sanitize_text_field(wp_unslash($_POST['user_messenger'])) : '';
+        $linkedin     = isset($_POST['user_linkedin']) ? sanitize_text_field(wp_unslash($_POST['user_linkedin'])) : '';
+        $pass         = isset($_POST['user_pass']) ? wp_unslash($_POST['user_pass']) : '';
+        $pass_confirm = isset($_POST['user_pass_confirm']) ? wp_unslash($_POST['user_pass_confirm']) : '';
 
         if (empty($name) || empty($email) || empty($phone) || empty($gender) || empty($pass)) {
             wp_send_json_error(['message' => __('Please fill in all required fields (Name, Email, Phone, Gender, Password).', 'caretochina-booking')]);
@@ -553,7 +555,7 @@ class CareToChina_Booking_Auth {
 
         // 1. Find all unlinked guest bookings matching verified email
         $guest_bookings = $wpdb->get_results($wpdb->prepare(
-            "SELECT id FROM $table_bookings WHERE (patient_id = 0 OR patient_id IS NULL) AND LOWER(email) = LOWER(%s)",
+            "SELECT id FROM {$wpdb->prefix}caretochina_bookings WHERE (patient_id = 0 OR patient_id IS NULL) AND LOWER(email) = LOWER(%s)",
             $user_email
         ));
 
@@ -565,18 +567,18 @@ class CareToChina_Booking_Auth {
 
         // 2. Link bookings to the verified user and retire guest tokens
         $wpdb->query($wpdb->prepare(
-            "UPDATE $table_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE (patient_id = 0 OR patient_id IS NULL) AND LOWER(email) = LOWER(%s)",
+            "UPDATE {$wpdb->prefix}caretochina_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE (patient_id = 0 OR patient_id IS NULL) AND LOWER(email) = LOWER(%s)",
             $user_id,
             $user_email
         ));
 
         // 3. Link any associated payment requests to this user
-        if (!empty($booking_ids) && $wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
-            $ids_placeholder = implode(',', array_map('intval', $booking_ids));
-            $wpdb->query($wpdb->prepare(
-                "UPDATE $table_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($ids_placeholder)",
-                $user_id
-            ));
+        if (!empty($booking_ids) && $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_requests))) === $table_requests) {
+            $how_many = count($booking_ids);
+            $placeholders = implode(', ', array_fill(0, $how_many, '%d'));
+            $query = "UPDATE {$wpdb->prefix}caretochina_payment_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($placeholders)";
+            $params = array_merge([$user_id], array_map('intval', $booking_ids));
+            $wpdb->query($wpdb->prepare($query, ...$params));
         }
 
         // 4. Invalidate guest cookies on client browser
