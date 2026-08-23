@@ -20,7 +20,7 @@ class CareToChina_Payment_Manager {
     public function get_booking($booking_id) {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        return $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", intval($booking_id)));
+        return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", intval($booking_id)));
     }
 
     /**
@@ -128,7 +128,7 @@ class CareToChina_Payment_Manager {
 
         // Atomic Event-ID Deduplication: INSERT IGNORE
         $inserted = $wpdb->query($wpdb->prepare(
-            "INSERT IGNORE INTO $table_events (event_id, gateway, event_type) VALUES (%s, %s, %s)",
+            "INSERT IGNORE INTO {$wpdb->prefix}caretochina_processed_webhook_events (event_id, gateway, event_type) VALUES (%s, %s, %s)",
             $event_id,
             $gateway,
             $event_type
@@ -233,7 +233,7 @@ class CareToChina_Payment_Manager {
 
         // If booking was converted from a chat payment request, mark that request as accepted_paid
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_requests))) === $table_requests) {
             $wpdb->update(
                 $table_requests,
                 ['status' => 'accepted_paid'],
