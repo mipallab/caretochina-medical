@@ -176,7 +176,7 @@ class CareToChina_Transaction_CPT {
     public static function sync_transaction($booking_id, $wc_order_id, $action, $amount, $notes = '') {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $booking_id));
+        $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $booking_id));
 
         if (!$booking) {
             return;
