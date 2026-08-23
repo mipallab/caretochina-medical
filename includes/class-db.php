@@ -16,9 +16,9 @@ class CareToChina_Booking_DB {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
         // Force table update if old schema is active
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_bookings'") === $table_bookings) {
-            if ($wpdb->get_var("SHOW COLUMNS FROM `$table_bookings` LIKE 'patient_name'")) {
-                $wpdb->query("DROP TABLE IF EXISTS `$table_bookings`");
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_bookings LIKE %s", $wpdb->esc_like('patient_name')))) {
+                $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}caretochina_bookings");
             }
         }
 
@@ -171,13 +171,13 @@ class CareToChina_Booking_DB {
         $legacy_bookings = $wpdb->prefix . 'careyou_bookings';
         $legacy_messages = $wpdb->prefix . 'careyou_messages';
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$legacy_bookings'") === $legacy_bookings) {
-            $wpdb->query("DROP TABLE IF EXISTS $legacy_bookings");
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($legacy_bookings))) === $legacy_bookings) {
+            $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}careyou_bookings");
         }
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$legacy_messages'") === $legacy_messages) {
-            $wpdb->query("INSERT IGNORE INTO $table_messages (id, booking_id, sender_type, sender_name, message, is_read, created_at) SELECT id, booking_id, sender_type, sender_name, message, is_read, created_at FROM $legacy_messages");
-            $wpdb->query("DROP TABLE IF EXISTS $legacy_messages");
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($legacy_messages))) === $legacy_messages) {
+            $wpdb->query("INSERT IGNORE INTO {$wpdb->prefix}caretochina_messages (id, booking_id, sender_type, sender_name, message, is_read, created_at) SELECT id, booking_id, sender_type, sender_name, message, is_read, created_at FROM {$wpdb->prefix}careyou_messages");
+            $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}careyou_messages");
         }
     }
 }
