@@ -104,7 +104,7 @@ class CareToChina_Payment_API {
         }
 
         // Rate Limiting Check (Max 10 requests / 15 minutes per IP/User)
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '0.0.0.0';
         if (!CareToChina_Payment_Security::check_rate_limit($current_user_id, $ip, 10, 900)) {
             return new WP_REST_Response(['success' => false, 'message' => __('Too many payment attempts. Please wait 15 minutes before trying again.', 'caretochina-medical')], 429);
         }
