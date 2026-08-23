@@ -241,7 +241,8 @@ class CareToChina_Hospitals_Plugin {
     }
 
     public function save_hospital_metaboxes($post_id) {
-        if (!isset($_POST['hospital_meta_nonce']) || !wp_verify_nonce($_POST['hospital_meta_nonce'], 'save_hospital_meta')) return;
+        $nonce = isset($_POST['hospital_meta_nonce']) ? sanitize_text_field(wp_unslash($_POST['hospital_meta_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'save_hospital_meta')) return;
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
         if (!current_user_can('edit_post', $post_id)) return;
 
@@ -262,12 +263,13 @@ class CareToChina_Hospitals_Plugin {
 
         foreach ($fields as $input_key => $meta_key) {
             if (isset($_POST[$input_key])) {
+                $val = wp_unslash($_POST[$input_key]);
                 if (strpos($input_key, 'email') !== false) {
-                    update_post_meta($post_id, $meta_key, sanitize_email($_POST[$input_key]));
+                    update_post_meta($post_id, $meta_key, sanitize_email($val));
                 } elseif (strpos($input_key, 'facebook') !== false || strpos($input_key, 'instagram') !== false || strpos($input_key, 'youtube') !== false || strpos($input_key, '_x') !== false || $input_key === 'hospital_x') {
-                    update_post_meta($post_id, $meta_key, esc_url_raw($_POST[$input_key]));
+                    update_post_meta($post_id, $meta_key, esc_url_raw($val));
                 } else {
-                    update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$input_key]));
+                    update_post_meta($post_id, $meta_key, sanitize_text_field($val));
                 }
             }
         }
@@ -425,14 +427,14 @@ class CareToChina_Hospitals_Plugin {
     }
 
     public function ajax_filter_hospitals() {
-        $city = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : 'all';
-        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
-        $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
-        $posts_per_page = isset($_POST['posts_per_page']) ? intval($_POST['posts_per_page']) : 6;
+        $city = isset($_POST['city']) ? sanitize_text_field(wp_unslash($_POST['city'])) : 'all';
+        $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
+        $paged = isset($_POST['page']) ? absint(wp_unslash($_POST['page'])) : 1;
+        $posts_per_page = isset($_POST['posts_per_page']) ? absint(wp_unslash($_POST['posts_per_page'])) : 6;
 
         if ($posts_per_page < 1) $posts_per_page = 6;
 
-                $lang = isset($_POST['lang']) ? sanitize_text_field($_POST['lang']) : (function_exists('pll_current_language') ? pll_current_language() : '');
+        $lang = isset($_POST['lang']) ? sanitize_text_field(wp_unslash($_POST['lang'])) : (function_exists('pll_current_language') ? pll_current_language() : '');
 
         $args = [
             'post_type'      => 'hospital',
@@ -867,7 +869,7 @@ class CareToChina_Hospitals_Plugin {
             }
 
             echo '<div class="notice notice-error is-dismissible">';
-            echo '<p><strong>' . __('Cannot publish Hospital:', 'caretochina-hospitals') . '</strong> ' . sprintf(__('The post status has been reverted to draft because the following required elements are missing: %s.', 'caretochina-hospitals'), implode(', ', $missing)) . '</p>';
+            echo '<p><strong>' . esc_html__('Cannot publish Hospital:', 'caretochina-hospitals') . '</strong> ' . esc_html(sprintf(__('The post status has been reverted to draft because the following required elements are missing: %s.', 'caretochina-hospitals'), implode(', ', $missing))) . '</p>';
             echo '</div>';
         }
     }
