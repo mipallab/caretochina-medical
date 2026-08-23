@@ -102,13 +102,13 @@ class CareToChina_Google_Login {
 
         // Check for OAuth error response
         if (!empty($_GET['error'])) {
-            $error_desc = sanitize_text_field($_GET['error_description'] ?? $_GET['error']);
+            $error_desc = isset($_GET['error_description']) ? sanitize_text_field(wp_unslash($_GET['error_description'])) : (isset($_GET['error']) ? sanitize_text_field(wp_unslash($_GET['error'])) : '');
             $this->redirect_with_error(sprintf(__('Google authentication failed: %s', 'caretochina-medical'), $error_desc));
             return;
         }
 
-        $code = sanitize_text_field($_GET['code'] ?? '');
-        $state = sanitize_text_field($_GET['state'] ?? '');
+        $code = isset($_GET['code']) ? sanitize_text_field(wp_unslash($_GET['code'])) : '';
+        $state = isset($_GET['state']) ? sanitize_text_field(wp_unslash($_GET['state'])) : '';
 
         if (empty($code) || empty($state)) {
             $this->redirect_with_error(__('Invalid Google authentication response.', 'caretochina-medical'));
@@ -212,26 +212,25 @@ class CareToChina_Google_Login {
             
             // Sync all previous bookings to this user ID
             global $wpdb;
-            $table_bookings = $wpdb->prefix . 'caretochina_bookings';
             $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
             
             $wpdb->query($wpdb->prepare(
-                "UPDATE $table_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE LOWER(email) = LOWER(%s)",
+                "UPDATE {$wpdb->prefix}caretochina_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE LOWER(email) = LOWER(%s)",
                 $existing_user->ID,
                 $google_email
             ));
 
             $user_booking_ids = $wpdb->get_col($wpdb->prepare(
-                "SELECT id FROM $table_bookings WHERE LOWER(email) = LOWER(%s)",
+                "SELECT id FROM {$wpdb->prefix}caretochina_bookings WHERE LOWER(email) = LOWER(%s)",
                 $google_email
             ));
 
-            if (!empty($user_booking_ids) && $wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
-                $ids_placeholder = implode(',', array_map('intval', $user_booking_ids));
-                $wpdb->query($wpdb->prepare(
-                    "UPDATE $table_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($ids_placeholder)",
-                    $existing_user->ID
-                ));
+            if (!empty($user_booking_ids) && $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_requests))) === $table_requests) {
+                $how_many = count($user_booking_ids);
+                $placeholders = implode(', ', array_fill(0, $how_many, '%d'));
+                $query = "UPDATE {$wpdb->prefix}caretochina_payment_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($placeholders)";
+                $params = array_merge([$existing_user->ID], array_map('intval', $user_booking_ids));
+                $wpdb->query($wpdb->prepare($query, ...$params));
             }
 
             $this->login_user_and_redirect($existing_user);
@@ -266,25 +265,24 @@ class CareToChina_Google_Login {
 
         // Sync any prior bookings made with this email
         global $wpdb;
-        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
         $wpdb->query($wpdb->prepare(
-            "UPDATE $table_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE LOWER(email) = LOWER(%s)",
+            "UPDATE {$wpdb->prefix}caretochina_bookings SET patient_id = %d, is_guest = 0, guest_token_hash = '' WHERE LOWER(email) = LOWER(%s)",
             $new_user_id,
             $google_email
         ));
 
         $new_booking_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT id FROM $table_bookings WHERE LOWER(email) = LOWER(%s)",
+            "SELECT id FROM {$wpdb->prefix}caretochina_bookings WHERE LOWER(email) = LOWER(%s)",
             $google_email
         ));
 
-        if (!empty($new_booking_ids) && $wpdb->get_var("SHOW TABLES LIKE '$table_requests'") === $table_requests) {
-            $ids_placeholder = implode(',', array_map('intval', $new_booking_ids));
-            $wpdb->query($wpdb->prepare(
-                "UPDATE $table_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($ids_placeholder)",
-                $new_user_id
-            ));
+        if (!empty($new_booking_ids) && $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_requests))) === $table_requests) {
+            $how_many = count($new_booking_ids);
+            $placeholders = implode(', ', array_fill(0, $how_many, '%d'));
+            $query = "UPDATE {$wpdb->prefix}caretochina_payment_requests SET patient_id = %d WHERE chat_thread_booking_id IN ($placeholders)";
+            $params = array_merge([$new_user_id], array_map('intval', $new_booking_ids));
+            $wpdb->query($wpdb->prepare($query, ...$params));
         }
 
         $new_user = get_user_by('id', $new_user_id);
@@ -299,13 +297,14 @@ class CareToChina_Google_Login {
             return;
         }
 
-        if (!wp_verify_nonce($_POST['ctc_link_nonce'] ?? '', 'ctc_link_account_action')) {
+        $link_nonce = isset($_POST['ctc_link_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_link_nonce'])) : '';
+        if (!wp_verify_nonce($link_nonce, 'ctc_link_account_action')) {
             $this->redirect_with_error(__('Security verification failed. Please try linking again.', 'caretochina-medical'));
             return;
         }
 
-        $token = sanitize_text_field($_POST['link_token'] ?? '');
-        $password = $_POST['account_password'] ?? '';
+        $token = isset($_POST['link_token']) ? sanitize_text_field(wp_unslash($_POST['link_token'])) : '';
+        $password = isset($_POST['account_password']) ? wp_unslash($_POST['account_password']) : '';
 
         if (empty($token) || empty($password)) {
             $this->redirect_with_error(__('Please enter your account password to confirm account linking.', 'caretochina-medical'));
