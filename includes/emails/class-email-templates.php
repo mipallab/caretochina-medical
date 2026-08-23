@@ -425,7 +425,8 @@ class CareToChina_Email_Templates {
             return;
         }
 
-        if (!wp_verify_nonce($_POST['ctc_email_settings_nonce'], 'ctc_save_email_settings')) {
+        $nonce = isset($_POST['ctc_email_settings_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_email_settings_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_save_email_settings')) {
             wp_die(__('Security verification failed.', 'caretochina-medical'));
         }
 
@@ -435,34 +436,35 @@ class CareToChina_Email_Templates {
 
         // 1. Save Branding Settings
         if (isset($_POST['ctc_email_brand_color'])) {
-            update_option('ctc_email_brand_color', sanitize_hex_color($_POST['ctc_email_brand_color']));
+            update_option('ctc_email_brand_color', sanitize_hex_color(wp_unslash($_POST['ctc_email_brand_color'])));
         }
         if (isset($_POST['ctc_email_accent_color'])) {
-            update_option('ctc_email_accent_color', sanitize_hex_color($_POST['ctc_email_accent_color']));
+            update_option('ctc_email_accent_color', sanitize_hex_color(wp_unslash($_POST['ctc_email_accent_color'])));
         }
         if (isset($_POST['ctc_email_bg_color'])) {
-            update_option('ctc_email_bg_color', sanitize_hex_color($_POST['ctc_email_bg_color']));
+            update_option('ctc_email_bg_color', sanitize_hex_color(wp_unslash($_POST['ctc_email_bg_color'])));
         }
         if (isset($_POST['ctc_email_card_bg'])) {
-            update_option('ctc_email_card_bg', sanitize_hex_color($_POST['ctc_email_card_bg']));
+            update_option('ctc_email_card_bg', sanitize_hex_color(wp_unslash($_POST['ctc_email_card_bg'])));
         }
         if (isset($_POST['ctc_email_logo_url'])) {
-            update_option('ctc_email_logo_url', esc_url_raw($_POST['ctc_email_logo_url']));
+            update_option('ctc_email_logo_url', esc_url_raw(wp_unslash($_POST['ctc_email_logo_url'])));
         }
         if (isset($_POST['ctc_email_from_name'])) {
-            update_option('ctc_email_from_name', sanitize_text_field($_POST['ctc_email_from_name']));
+            update_option('ctc_email_from_name', sanitize_text_field(wp_unslash($_POST['ctc_email_from_name'])));
         }
         if (isset($_POST['ctc_email_from_email'])) {
-            update_option('ctc_email_from_email', sanitize_email($_POST['ctc_email_from_email']));
+            update_option('ctc_email_from_email', sanitize_email(wp_unslash($_POST['ctc_email_from_email'])));
         }
         if (isset($_POST['ctc_email_footer_text'])) {
-            update_option('ctc_email_footer_text', sanitize_textarea_field($_POST['ctc_email_footer_text']));
+            update_option('ctc_email_footer_text', sanitize_textarea_field(wp_unslash($_POST['ctc_email_footer_text'])));
         }
 
         // 2. Save Event Mapping
         if (isset($_POST['ctc_event_map']) && is_array($_POST['ctc_event_map'])) {
             $cleaned_map = [];
-            foreach ($_POST['ctc_event_map'] as $ev => $tid) {
+            $raw_map = wp_unslash($_POST['ctc_event_map']);
+            foreach ($raw_map as $ev => $tid) {
                 $cleaned_map[sanitize_key($ev)] = sanitize_key($tid);
             }
             update_option('ctc_email_event_mapping', $cleaned_map);
@@ -471,7 +473,8 @@ class CareToChina_Email_Templates {
         // 3. Save Templates
         if (isset($_POST['ctc_templates']) && is_array($_POST['ctc_templates'])) {
             $saved_templates = self::get_all_templates();
-            foreach ($_POST['ctc_templates'] as $tid => $tdata) {
+            $raw_templates = wp_unslash($_POST['ctc_templates']);
+            foreach ($raw_templates as $tid => $tdata) {
                 $tid = sanitize_key($tid);
                 $saved_templates[$tid] = [
                     'id'        => $tid,
@@ -489,18 +492,18 @@ class CareToChina_Email_Templates {
 
         // Add custom new template if submitted
         if (!empty($_POST['new_template_name'])) {
-            $new_name = sanitize_text_field($_POST['new_template_name']);
+            $new_name = sanitize_text_field(wp_unslash($_POST['new_template_name']));
             $new_id = sanitize_key(str_replace(' ', '_', strtolower($new_name))) . '_' . rand(100, 999);
             $saved_templates = self::get_all_templates();
             $saved_templates[$new_id] = [
                 'id'        => $new_id,
                 'name'      => $new_name,
-                'subject'   => sanitize_text_field($_POST['new_template_subject'] ?? $new_name),
-                'heading'   => sanitize_text_field($_POST['new_template_heading'] ?? $new_name),
+                'subject'   => isset($_POST['new_template_subject']) ? sanitize_text_field(wp_unslash($_POST['new_template_subject'])) : $new_name,
+                'heading'   => isset($_POST['new_template_heading']) ? sanitize_text_field(wp_unslash($_POST['new_template_heading'])) : $new_name,
                 'preheader' => '',
-                'content'   => wp_kses_post($_POST['new_template_content'] ?? '<p>Dear {patient_name},</p><p>Custom template content here.</p>'),
-                'btn_text'  => sanitize_text_field($_POST['new_template_btn_text'] ?? __('View Details →', 'caretochina-medical')),
-                'btn_url'   => sanitize_text_field($_POST['new_template_btn_url'] ?? '{chat_url}'),
+                'content'   => isset($_POST['new_template_content']) ? wp_kses_post(wp_unslash($_POST['new_template_content'])) : '<p>Dear {patient_name},</p><p>Custom template content here.</p>',
+                'btn_text'  => isset($_POST['new_template_btn_text']) ? sanitize_text_field(wp_unslash($_POST['new_template_btn_text'])) : __('View Details →', 'caretochina-medical'),
+                'btn_url'   => isset($_POST['new_template_btn_url']) ? sanitize_text_field(wp_unslash($_POST['new_template_btn_url'])) : '{chat_url}',
             ];
             update_option('ctc_email_templates', $saved_templates);
         }
@@ -513,13 +516,16 @@ class CareToChina_Email_Templates {
      * AJAX Test Email Sender
      */
     public function handle_ajax_send_test_email() {
-        check_ajax_referer('ctc_email_ajax_nonce', 'nonce');
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_email_ajax_nonce')) {
+            wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-medical')]);
+        }
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => __('Permission denied.', 'caretochina-medical')]);
         }
 
-        $email = sanitize_email($_POST['test_email'] ?? '');
-        $template_id = sanitize_key($_POST['template_id'] ?? 'guest_booking');
+        $email = isset($_POST['test_email']) ? sanitize_email(wp_unslash($_POST['test_email'])) : '';
+        $template_id = isset($_POST['template_id']) ? sanitize_key(wp_unslash($_POST['template_id'])) : 'guest_booking';
 
         if (empty($email)) {
             wp_send_json_error(['message' => __('Please enter a valid recipient email address.', 'caretochina-medical')]);
@@ -559,12 +565,15 @@ class CareToChina_Email_Templates {
      * AJAX Live HTML Preview
      */
     public function handle_ajax_preview_template() {
-        check_ajax_referer('ctc_email_ajax_nonce', 'nonce');
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_email_ajax_nonce')) {
+            wp_die(__('Security verification failed.', 'caretochina-medical'));
+        }
         if (!current_user_can('manage_options')) {
-            wp_die('Permission denied');
+            wp_die(__('Permission denied.', 'caretochina-medical'));
         }
 
-        $template_id = sanitize_key($_POST['template_id'] ?? 'guest_booking');
+        $template_id = isset($_POST['template_id']) ? sanitize_key(wp_unslash($_POST['template_id'])) : 'guest_booking';
         $templates = self::get_all_templates();
         $tpl = $templates[$template_id] ?? reset($templates);
 
@@ -649,7 +658,7 @@ class CareToChina_Email_Templates {
             'chat_message'             => __('Live Chat Message Alert (Sent when Coordinator messages Patient)', 'caretochina-medical'),
         ];
 
-        $active_subtab = sanitize_key($_GET['tab'] ?? 'templates');
+        $active_subtab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'templates';
         ?>
         <div class="wrap" style="max-width:1120px; font-family:'Manrope', -apple-system, sans-serif;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid #CBD5E1; padding-bottom:14px;">
