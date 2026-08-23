@@ -1290,6 +1290,19 @@ class CareToChina_Staff_Portal {
             wp_send_json_error(['message' => __('All staff credential fields are required.', 'caretochina-staff')]);
         }
 
+        if (preg_match('/\s/', $password)) {
+            wp_send_json_error(['message' => __('Staff password cannot contain spaces or whitespace.', 'caretochina-staff')]);
+        }
+
+        $pass_len = strlen($password);
+        if ($pass_len < 6 || $pass_len > 20) {
+            wp_send_json_error(['message' => __('Staff password must be between 6 and 20 characters long.', 'caretochina-staff')]);
+        }
+
+        if (!preg_match('/[a-zA-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            wp_send_json_error(['message' => __('Staff password must contain both letters and numbers.', 'caretochina-staff')]);
+        }
+
         if (username_exists($username) || email_exists($email)) {
             wp_send_json_error(['message' => __('Username or Email is already registered.', 'caretochina-staff')]);
         }

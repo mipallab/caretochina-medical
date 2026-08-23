@@ -359,7 +359,7 @@ class CareToChina_Booking_Auth {
                                 <label class="form-label"><?php _e('Password *', 'caretochina-booking'); ?></label>
                                 <input type="password" name="user_pass" id="reg_user_pass" class="form-input" placeholder="••••••••" minlength="6" maxlength="20" required autocomplete="new-password">
                                 <div id="reg_pass_rules" style="font-size:11px; color:#64748B; margin-top:4px; line-height:1.3;">
-                                    <i class="fa-solid fa-shield-halved"></i> <?php _e('6–20 characters, must include letters & numbers', 'caretochina-booking'); ?>
+                                    <i class="fa-solid fa-shield-halved"></i> <?php _e('6–20 characters (a-z, A-Z, 0-9), no spaces allowed', 'caretochina-booking'); ?>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -479,6 +479,10 @@ class CareToChina_Booking_Auth {
 
         if ($pass !== $pass_confirm) {
             wp_send_json_error(['message' => __('Passwords do not match. Please verify your password.', 'caretochina-booking')]);
+        }
+
+        if (preg_match('/\s/', $pass)) {
+            wp_send_json_error(['message' => __('Password cannot contain spaces or whitespace.', 'caretochina-booking')]);
         }
 
         $pass_len = strlen($pass);

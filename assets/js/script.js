@@ -1177,6 +1177,9 @@ jQuery(document).ready(function($) {
     if (!pass) {
       return { valid: false, message: 'Password is required.' };
     }
+    if (/\s/.test(pass)) {
+      return { valid: false, message: 'Password cannot contain spaces or whitespace.' };
+    }
     if (pass.length < 6) {
       return { valid: false, message: 'Password must be at least 6 characters long.' };
     }
@@ -1199,7 +1202,7 @@ jQuery(document).ready(function($) {
     if (!rulesBox.length) return;
 
     if (!pass) {
-      rulesBox.html('<i class="fa-solid fa-shield-halved"></i> 6–20 characters, must include letters & numbers').css('color', '#64748B');
+      rulesBox.html('<i class="fa-solid fa-shield-halved"></i> 6–20 characters (a-z, A-Z, 0-9), no spaces allowed').css('color', '#64748B');
       return;
     }
 

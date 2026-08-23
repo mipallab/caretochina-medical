@@ -156,34 +156,85 @@ class CareToChina_Hospitals_Plugin {
         $rating             = get_post_meta($post->ID, '_hospital_rating', true);
         $certification      = get_post_meta($post->ID, '_hospital_certification', true);
         $quote_url          = get_post_meta($post->ID, '_hospital_quote_url', true);
+        $whatsapp           = get_post_meta($post->ID, '_hospital_whatsapp', true);
+        $phone              = get_post_meta($post->ID, '_hospital_phone', true);
+        $email              = get_post_meta($post->ID, '_hospital_email', true);
+        $facebook           = get_post_meta($post->ID, '_hospital_facebook', true);
+        $instagram          = get_post_meta($post->ID, '_hospital_instagram', true);
+        $youtube            = get_post_meta($post->ID, '_hospital_youtube', true);
+        $x_twitter          = get_post_meta($post->ID, '_hospital_x', true);
         ?>
         <style>
-            .ctc-mb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+            .ctc-mb-section { margin-top: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; background: #ffffff; }
+            .ctc-mb-sec-title { margin: 0 0 12px 0; font-size: 14px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+            .ctc-mb-sec-title i { color: #0f766e; }
+            .ctc-mb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
             .ctc-mb-field { display: flex; flex-direction: column; gap: 4px; }
             .ctc-mb-field.full { grid-column: span 2; }
-            .ctc-mb-field label { font-weight: 600; font-size: 13px; color: #1e293b; }
-            .ctc-mb-field input { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; width: 100%; }
+            .ctc-mb-field label { font-weight: 600; font-size: 12.5px; color: #334155; }
+            .ctc-mb-field input { padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; width: 100%; font-size: 13px; }
+            .ctc-mb-hint { font-size: 11px; color: #64748b; margin-top: 2px; }
         </style>
-        <div class="ctc-mb-grid">
-            <div class="ctc-mb-field">
-                <label><?php _e('Hospital Type', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_type" value="<?php echo esc_attr($type); ?>" placeholder="e.g. JCI Accredited Multi-Specialty Hospital Center">
+
+        <div class="ctc-mb-section">
+            <div class="ctc-mb-sec-title"><i class="fas fa-hospital-alt"></i> <?php _e('Hospital Profile & Badges', 'caretochina-hospitals'); ?></div>
+            <div class="ctc-mb-grid">
+                <div class="ctc-mb-field">
+                    <label><?php _e('Hospital Type', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_type" value="<?php echo esc_attr($type); ?>" placeholder="e.g. JCI Accredited Multi-Specialty Hospital Center">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><?php _e('Location Badge', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_location" value="<?php echo esc_attr($location); ?>" placeholder="e.g. Shanghai, China">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><?php _e('Rating & Reviews', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_rating" value="<?php echo esc_attr($rating ? $rating : '4.9 (1,240 Reviews)'); ?>">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><?php _e('Accreditation Badge', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_certification" value="<?php echo esc_attr($certification ? $certification : 'JCI Certified'); ?>">
+                </div>
+                <div class="ctc-mb-field full">
+                    <label><?php _e('Free Quote / Booking Link', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_quote_url" value="<?php echo esc_attr($quote_url ? $quote_url : '#booking'); ?>">
+                    <span class="ctc-mb-hint"><?php _e('Target URL for consultation/quote buttons (e.g. #booking or custom booking page).', 'caretochina-hospitals'); ?></span>
+                </div>
             </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Location Badge', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_location" value="<?php echo esc_attr($location); ?>" placeholder="e.g. Shanghai, China">
-            </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Rating & Reviews', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_rating" value="<?php echo esc_attr($rating ? $rating : '4.9 (1,240 Reviews)'); ?>">
-            </div>
-            <div class="ctc-mb-field">
-                <label><?php _e('Accreditation Badge', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_certification" value="<?php echo esc_attr($certification ? $certification : 'JCI Certified'); ?>">
-            </div>
-            <div class="ctc-mb-field full">
-                <label><?php _e('Free Quote Button Link', 'caretochina-hospitals'); ?></label>
-                <input type="text" name="hospital_quote_url" value="<?php echo esc_attr($quote_url ? $quote_url : '#booking'); ?>">
+        </div>
+
+        <div class="ctc-mb-section">
+            <div class="ctc-mb-sec-title"><i class="fas fa-comments"></i> <?php _e('Hospital Contact & Booking Channels (Overrides Global Settings if specified)', 'caretochina-hospitals'); ?></div>
+            <p style="font-size: 12px; color: #64748b; margin: 0 0 12px 0;"><?php _e('Leave any field blank to automatically inherit global values configured under Hospitals > Settings & Channels.', 'caretochina-hospitals'); ?></p>
+            <div class="ctc-mb-grid">
+                <div class="ctc-mb-field">
+                    <label><i class="fab fa-whatsapp" style="color:#25D366;"></i> <?php _e('WhatsApp Number (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_whatsapp" value="<?php echo esc_attr($whatsapp); ?>" placeholder="Leave blank to use global WhatsApp">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><i class="fas fa-phone-alt" style="color:#0ea5e9;"></i> <?php _e('Direct Hotline Phone (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="text" name="hospital_phone" value="<?php echo esc_attr($phone); ?>" placeholder="Leave blank to use global Hotline">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><i class="fas fa-envelope" style="color:#8b5cf6;"></i> <?php _e('Direct Email (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="email" name="hospital_email" value="<?php echo esc_attr($email); ?>" placeholder="Leave blank to use global Email">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><i class="fab fa-facebook" style="color:#1877F2;"></i> <?php _e('Facebook Page / Messenger (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="url" name="hospital_facebook" value="<?php echo esc_attr($facebook); ?>" placeholder="Leave blank to use global Facebook">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><i class="fab fa-instagram" style="color:#E4405F;"></i> <?php _e('Instagram URL (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="url" name="hospital_instagram" value="<?php echo esc_attr($instagram); ?>" placeholder="Leave blank to use global Instagram">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><i class="fab fa-youtube" style="color:#FF0000;"></i> <?php _e('YouTube URL (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="url" name="hospital_youtube" value="<?php echo esc_attr($youtube); ?>" placeholder="Leave blank to use global YouTube">
+                </div>
+                <div class="ctc-mb-field">
+                    <label><i class="fab fa-x-twitter" style="color:#0f172a;"></i> <?php _e('X (Twitter) URL (Override)', 'caretochina-hospitals'); ?></label>
+                    <input type="url" name="hospital_x" value="<?php echo esc_attr($x_twitter); ?>" placeholder="Leave blank to use global X (Twitter)">
+                </div>
             </div>
         </div>
         <?php
@@ -200,11 +251,24 @@ class CareToChina_Hospitals_Plugin {
             'hospital_rating'        => '_hospital_rating',
             'hospital_certification' => '_hospital_certification',
             'hospital_quote_url'     => '_hospital_quote_url',
+            'hospital_whatsapp'      => '_hospital_whatsapp',
+            'hospital_phone'         => '_hospital_phone',
+            'hospital_email'         => '_hospital_email',
+            'hospital_facebook'      => '_hospital_facebook',
+            'hospital_instagram'     => '_hospital_instagram',
+            'hospital_youtube'       => '_hospital_youtube',
+            'hospital_x'             => '_hospital_x',
         ];
 
         foreach ($fields as $input_key => $meta_key) {
             if (isset($_POST[$input_key])) {
-                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$input_key]));
+                if (strpos($input_key, 'email') !== false) {
+                    update_post_meta($post_id, $meta_key, sanitize_email($_POST[$input_key]));
+                } elseif (strpos($input_key, 'facebook') !== false || strpos($input_key, 'instagram') !== false || strpos($input_key, 'youtube') !== false || strpos($input_key, '_x') !== false || $input_key === 'hospital_x') {
+                    update_post_meta($post_id, $meta_key, esc_url_raw($_POST[$input_key]));
+                } else {
+                    update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$input_key]));
+                }
             }
         }
 
@@ -215,6 +279,102 @@ class CareToChina_Hospitals_Plugin {
         delete_post_meta($post_id, '_hospital_phone_dept');
         delete_post_meta($post_id, '_hospital_phone_emergency');
         delete_post_meta($post_id, '_hospital_website');
+    }
+
+    /**
+     * Helper to retrieve all active concierge channels for a given hospital
+     */
+    public static function get_hospital_concierge_data($post_id) {
+        $settings = class_exists('CareToChina_Hospital_Settings') ? CareToChina_Hospital_Settings::get_settings() : [];
+        $hospital_title = get_the_title($post_id);
+
+        $whatsapp  = get_post_meta($post_id, '_hospital_whatsapp', true);
+        $phone     = get_post_meta($post_id, '_hospital_phone', true);
+        $email     = get_post_meta($post_id, '_hospital_email', true);
+        $facebook  = get_post_meta($post_id, '_hospital_facebook', true);
+        $instagram = get_post_meta($post_id, '_hospital_instagram', true);
+        $youtube   = get_post_meta($post_id, '_hospital_youtube', true);
+        $x_twitter = get_post_meta($post_id, '_hospital_x', true);
+        $booking   = get_post_meta($post_id, '_hospital_quote_url', true);
+
+        $final_whatsapp  = !empty($whatsapp) ? $whatsapp : ($settings['whatsapp_number'] ?? '');
+        $final_phone     = !empty($phone) ? $phone : ($settings['phone_number'] ?? '');
+        $final_email     = !empty($email) ? $email : ($settings['email'] ?? '');
+        $final_facebook  = !empty($facebook) ? $facebook : ($settings['facebook_url'] ?? '');
+        $final_instagram = !empty($instagram) ? $instagram : ($settings['instagram_url'] ?? '');
+        $final_youtube   = !empty($youtube) ? $youtube : ($settings['youtube_url'] ?? '');
+        $final_x         = !empty($x_twitter) ? $x_twitter : ($settings['x_url'] ?? '');
+        $final_booking   = !empty($booking) ? $booking : ($settings['booking_url'] ?? '#booking');
+
+        // Formatted WhatsApp Click-To-Chat URL
+        $whatsapp_url = '';
+        if (!empty($final_whatsapp)) {
+            $clean_phone = preg_replace('/[^0-9]/', '', $final_whatsapp);
+            $raw_msg = $settings['whatsapp_message'] ?? 'Hello CareToChina Concierge, I want to inquire and confirm my booking at {hospital_name}.';
+            $resolved_msg = str_replace('{hospital_name}', $hospital_title, $raw_msg);
+            $whatsapp_url = 'https://api.whatsapp.com/send?phone=' . urlencode($clean_phone) . '&text=' . rawurlencode($resolved_msg);
+        }
+
+        // Formatted Phone link
+        $phone_url = '';
+        if (!empty($final_phone)) {
+            $clean_tel = preg_replace('/[^+0-9]/', '', $final_phone);
+            $phone_url = 'tel:' . $clean_tel;
+        }
+
+        // Formatted Email mailto link
+        $email_url = '';
+        if (!empty($final_email)) {
+            $subject = sprintf(__('Booking Inquiry - %s', 'caretochina-hospitals'), $hospital_title);
+            $email_url = 'mailto:' . sanitize_email($final_email) . '?subject=' . rawurlencode($subject);
+        }
+
+        return [
+            'title'               => !empty($settings['concierge_title']) ? $settings['concierge_title'] : __('CareToChina Concierge', 'caretochina-hospitals'),
+            'subtitle'            => $settings['concierge_subtitle'] ?? '',
+            'badge'               => $settings['concierge_badge'] ?? __('24/7 Dedicated Support', 'caretochina-hospitals'),
+            'services'            => $settings['services'] ?? [],
+            'show_concierge_card' => $settings['show_concierge_card'] ?? 'yes',
+            'show_social_bar'     => $settings['show_social_bar'] ?? 'yes',
+            'show_booking_button' => $settings['show_booking_button'] ?? 'yes',
+            'whatsapp'            => [
+                'number' => $final_whatsapp,
+                'url'    => $whatsapp_url,
+                'label'  => $settings['whatsapp_label'] ?? __('Chat & Confirm on WhatsApp', 'caretochina-hospitals'),
+            ],
+            'phone'               => [
+                'number' => $final_phone,
+                'url'    => $phone_url,
+                'label'  => $settings['phone_label'] ?? __('Hotline Phone Line', 'caretochina-hospitals'),
+            ],
+            'email'               => [
+                'address' => $final_email,
+                'url'     => $email_url,
+                'label'   => $settings['email_label'] ?? __('Direct Email Concierge', 'caretochina-hospitals'),
+            ],
+            'facebook'            => [
+                'url'   => $final_facebook,
+                'label' => $settings['facebook_label'] ?? __('Facebook', 'caretochina-hospitals'),
+            ],
+            'instagram'           => [
+                'url'   => $final_instagram,
+                'label' => $settings['instagram_label'] ?? __('Instagram', 'caretochina-hospitals'),
+            ],
+            'youtube'             => [
+                'url'   => $final_youtube,
+                'label' => $settings['youtube_label'] ?? __('YouTube', 'caretochina-hospitals'),
+            ],
+            'x'                   => [
+                'url'   => $final_x,
+                'label' => $settings['x_label'] ?? __('X (Twitter)', 'caretochina-hospitals'),
+            ],
+            'booking'             => [
+                'url'   => $final_booking,
+                'label' => $settings['booking_label'] ?? __('Online Booking Solution', 'caretochina-hospitals'),
+            ],
+            'custom_socials'      => $settings['custom_socials'] ?? [],
+            'custom_channels'     => $settings['custom_channels'] ?? [],
+        ];
     }
 
     public function enqueue_scripts() {
