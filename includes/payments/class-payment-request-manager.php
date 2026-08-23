@@ -27,7 +27,7 @@ class CareToChina_Payment_Request_Manager {
      * Staff creates a new payment request inside chat
      */
     public function handle_create_payment_request() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (
             !wp_verify_nonce($nonce, 'caretochina_staff_nonce') &&
             !wp_verify_nonce($nonce, 'careyou_staff_nonce') &&
@@ -57,12 +57,12 @@ class CareToChina_Payment_Request_Manager {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $chat_thread_booking_id = intval($_POST['booking_id'] ?? 0);
+        $chat_thread_booking_id = isset($_POST['booking_id']) ? absint(wp_unslash($_POST['booking_id'])) : 0;
         if ($chat_thread_booking_id <= 0) {
             wp_send_json_error(['message' => __('Invalid booking/thread context.', 'caretochina-medical')]);
         }
 
-        $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $chat_thread_booking_id));
+        $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $chat_thread_booking_id));
         if (!$thread_booking) {
             wp_send_json_error(['message' => __('Chat thread booking not found.', 'caretochina-medical')]);
         }
@@ -85,14 +85,14 @@ class CareToChina_Payment_Request_Manager {
         $current_user = wp_get_current_user();
         $created_by = $current_user->ID;
 
-        $pricing_type = sanitize_text_field($_POST['pricing_type'] ?? '');
-        $treatment_id = intval($_POST['treatment_id'] ?? 0);
-        $pricing_plan_id = intval($_POST['pricing_plan_id'] ?? 0);
-        $plan_name    = sanitize_text_field($_POST['plan_name'] ?? '');
-        $custom_title = sanitize_text_field($_POST['custom_title'] ?? '');
-        $custom_content = wp_kses_post($_POST['custom_content'] ?? '');
-        $custom_amount = floatval($_POST['custom_amount'] ?? 0);
-        $currency     = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_store_currency() : get_option('ctc_payment_currency', 'USD');
+        $pricing_type   = isset($_POST['pricing_type']) ? sanitize_text_field(wp_unslash($_POST['pricing_type'])) : '';
+        $treatment_id   = isset($_POST['treatment_id']) ? absint(wp_unslash($_POST['treatment_id'])) : 0;
+        $pricing_plan_id= isset($_POST['pricing_plan_id']) ? absint(wp_unslash($_POST['pricing_plan_id'])) : 0;
+        $plan_name      = isset($_POST['plan_name']) ? sanitize_text_field(wp_unslash($_POST['plan_name'])) : '';
+        $custom_title   = isset($_POST['custom_title']) ? sanitize_text_field(wp_unslash($_POST['custom_title'])) : '';
+        $custom_content = isset($_POST['custom_content']) ? wp_kses_post(wp_unslash($_POST['custom_content'])) : '';
+        $custom_amount  = isset($_POST['custom_amount']) ? floatval(wp_unslash($_POST['custom_amount'])) : 0;
+        $currency       = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_store_currency() : get_option('ctc_payment_currency', 'USD');
 
         $final_amount = 0.00;
         $final_title = '';
@@ -230,7 +230,7 @@ class CareToChina_Payment_Request_Manager {
      * Staff cancels / withdraws a pending payment request
      */
     public function handle_cancel_payment_request() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (
             !wp_verify_nonce($nonce, 'caretochina_staff_nonce') &&
             !wp_verify_nonce($nonce, 'careyou_staff_nonce') &&
@@ -257,13 +257,13 @@ class CareToChina_Payment_Request_Manager {
 
         global $wpdb;
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
-        $request_id = intval($_POST['request_id'] ?? 0);
+        $request_id = isset($_POST['request_id']) ? absint(wp_unslash($_POST['request_id'])) : 0;
 
         if ($request_id <= 0) {
             wp_send_json_error(['message' => __('Invalid payment request ID.', 'caretochina-medical')]);
         }
 
-        $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_requests WHERE id = %d", $request_id));
+        $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_payment_requests WHERE id = %d", $request_id));
         if (!$request) {
             wp_send_json_error(['message' => __('Payment request not found.', 'caretochina-medical')]);
         }
@@ -275,7 +275,7 @@ class CareToChina_Payment_Request_Manager {
 
         // Atomic update status to cancelled
         $updated = $wpdb->query($wpdb->prepare(
-            "UPDATE $table_requests SET status = 'cancelled' WHERE id = %d AND status IN ('pending', 'processing')",
+            "UPDATE {$wpdb->prefix}caretochina_payment_requests SET status = 'cancelled' WHERE id = %d AND status IN ('pending', 'processing')",
             $request_id
         ));
 
@@ -290,7 +290,7 @@ class CareToChina_Payment_Request_Manager {
      * Patient clicks "Accept & Pay" on a payment request card
      */
     public function handle_accept_payment_request() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (
             !wp_verify_nonce($nonce, 'caretochina_patient_nonce') &&
             !wp_verify_nonce($nonce, 'careyou_patient_nonce') &&
@@ -310,19 +310,19 @@ class CareToChina_Payment_Request_Manager {
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $request_id = intval($_POST['request_id'] ?? 0);
+        $request_id = isset($_POST['request_id']) ? absint(wp_unslash($_POST['request_id'])) : 0;
         if ($request_id <= 0) {
             wp_send_json_error(['message' => __('Invalid payment request ID.', 'caretochina-medical')]);
         }
 
-        $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_requests WHERE id = %d", $request_id));
+        $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_payment_requests WHERE id = %d", $request_id));
         if (!$request) {
             wp_send_json_error(['message' => __('Payment request not found.', 'caretochina-medical')]);
         }
 
         // SECURITY CHECK: Dual-layer patient ownership verification
         $current_patient_id = get_current_user_id();
-        $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
+        $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
         
         $is_owner = (intval($request->patient_id) === $current_patient_id);
         if (!$is_owner && intval($request->patient_id) === 0 && $thread_booking) {
@@ -351,7 +351,7 @@ class CareToChina_Payment_Request_Manager {
 
         // ATOMIC COMPARE-AND-SWAP DUPLICATE-ACCEPT IDEMPOTENCY LOCK
         $affected = $wpdb->query($wpdb->prepare(
-            "UPDATE $table_requests SET status = 'processing' WHERE id = %d AND status = 'pending'",
+            "UPDATE {$wpdb->prefix}caretochina_payment_requests SET status = 'processing' WHERE id = %d AND status = 'pending'",
             $request_id
         ));
 
@@ -362,7 +362,7 @@ class CareToChina_Payment_Request_Manager {
             $patient_user = wp_get_current_user();
             $booking_code = 'BK-' . strtoupper(wp_generate_password(8, false, false));
 
-            $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
+            $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
 
             $full_name = $patient_user->display_name ?: ($thread_booking ? $thread_booking->full_name : 'Patient');
             $email     = $patient_user->user_email ?: ($thread_booking ? $thread_booking->email : '');
@@ -408,7 +408,7 @@ class CareToChina_Payment_Request_Manager {
     public static function render_card($request_id, $is_staff = false) {
         global $wpdb;
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
-        $req = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_requests WHERE id = %d", $request_id));
+        $req = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_payment_requests WHERE id = %d", $request_id));
 
         if (!$req) {
             return '';
@@ -459,7 +459,7 @@ class CareToChina_Payment_Request_Manager {
 
             <div class="ctc-pay-card-total-box" style="border:1px solid #E2E8F0; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
                 <span class="ctc-pay-card-total-lbl" style="font-size:12px; color:#64748B; font-weight:600;"><?php _e('Authoritative Total:', 'caretochina-medical'); ?></span>
-                <span class="ctc-pay-card-total-val" style="font-size:18px; font-weight:800; color:#0F766E;"><?php echo esc_html($currency_symbol . number_format($req->amount, 2) . ' ' . $req->currency); ?></span>
+                <span class="ctc-pay-card-total-val" style="font-size:18px; font-weight:800; color:#0F766E;"><?php echo esc_html($currency_symbol . number_format((float)$req->amount, 2) . ' ' . $req->currency); ?></span>
             </div>
 
             <?php if (!$is_staff) : ?>
@@ -471,7 +471,7 @@ class CareToChina_Payment_Request_Manager {
                         </a>
                         <p style="margin:6px 0 0 0; font-size:11px; color:#64748B; text-align:center;"><?php _e('Payment requires an authenticated patient account.', 'caretochina-medical'); ?></p>
                     <?php else : ?>
-                        <button type="button" class="ctc-btn-accept-pay" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr($req->id); ?>)" style="width:100%; background:#0F766E; color:#FFFFFF; border:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); transition:all 0.2s;">
+                        <button type="button" class="ctc-btn-accept-pay" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr(intval($req->id)); ?>)" style="width:100%; background:#0F766E; color:#FFFFFF; border:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); transition:all 0.2s;">
                             <i class="fa-solid fa-lock"></i> <?php _e('Accept & Pay Online', 'caretochina-medical'); ?>
                         </button>
                     <?php endif; ?>
@@ -488,7 +488,7 @@ class CareToChina_Payment_Request_Manager {
             <?php else : ?>
                 <!-- STAFF ACTIONS -->
                 <?php if ($status === 'pending' || $status === 'processing') : ?>
-                    <button type="button" class="ctc-btn-staff-cancel-req" onclick="ctcStaffCancelPaymentRequest(<?php echo esc_attr($req->id); ?>)" style="width:100%; background:#FFF; color:#DC2626; border:1px solid #FCA5A5; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                    <button type="button" class="ctc-btn-staff-cancel-req" onclick="ctcStaffCancelPaymentRequest(<?php echo esc_attr(intval($req->id)); ?>)" style="width:100%; background:#FFF; color:#DC2626; border:1px solid #FCA5A5; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">
                         <i class="fa-solid fa-xmark"></i> <?php _e('Cancel / Withdraw Request', 'caretochina-medical'); ?>
                     </button>
                 <?php endif; ?>
