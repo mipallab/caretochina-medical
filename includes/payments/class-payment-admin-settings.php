@@ -42,7 +42,8 @@ class CareToChina_Payment_Admin_Settings {
             return;
         }
 
-        if (!wp_verify_nonce($_POST['ctc_payment_settings_nonce'], 'ctc_save_payment_settings')) {
+        $nonce = isset($_POST['ctc_payment_settings_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_payment_settings_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_save_payment_settings')) {
             wp_die(__('Security verification failed.', 'caretochina-medical'));
         }
 
@@ -50,87 +51,87 @@ class CareToChina_Payment_Admin_Settings {
             wp_die(__('Permission denied.', 'caretochina-medical'));
         }
 
-        $mode = sanitize_text_field($_POST['ctc_payment_environment_mode'] ?? 'test');
+        $mode = isset($_POST['ctc_payment_environment_mode']) ? sanitize_text_field(wp_unslash($_POST['ctc_payment_environment_mode'])) : 'test';
         update_option('ctc_payment_environment_mode', $mode);
 
-        $currency = sanitize_text_field($_POST['ctc_payment_currency'] ?? 'USD');
+        $currency = isset($_POST['ctc_payment_currency']) ? sanitize_text_field(wp_unslash($_POST['ctc_payment_currency'])) : 'USD';
         update_option('ctc_payment_currency', $currency);
 
         // Stripe Test Keys
         if (isset($_POST['ctc_stripe_test_pub_key'])) {
-            update_option('ctc_stripe_test_pub_key', sanitize_text_field($_POST['ctc_stripe_test_pub_key']));
+            update_option('ctc_stripe_test_pub_key', sanitize_text_field(wp_unslash($_POST['ctc_stripe_test_pub_key'])));
         }
         if (!empty($_POST['ctc_stripe_test_sec_key']) && strpos($_POST['ctc_stripe_test_sec_key'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_stripe_test_sec_key']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_stripe_test_sec_key'])));
             update_option('ctc_stripe_test_sec_key', $enc);
         }
         if (!empty($_POST['ctc_stripe_test_wh_secret']) && strpos($_POST['ctc_stripe_test_wh_secret'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_stripe_test_wh_secret']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_stripe_test_wh_secret'])));
             update_option('ctc_stripe_test_wh_secret', $enc);
         }
 
         // Stripe Live Keys
         if (isset($_POST['ctc_stripe_live_pub_key'])) {
-            update_option('ctc_stripe_live_pub_key', sanitize_text_field($_POST['ctc_stripe_live_pub_key']));
+            update_option('ctc_stripe_live_pub_key', sanitize_text_field(wp_unslash($_POST['ctc_stripe_live_pub_key'])));
         }
         if (!empty($_POST['ctc_stripe_live_sec_key']) && strpos($_POST['ctc_stripe_live_sec_key'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_stripe_live_sec_key']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_stripe_live_sec_key'])));
             update_option('ctc_stripe_live_sec_key', $enc);
         }
         if (!empty($_POST['ctc_stripe_live_wh_secret']) && strpos($_POST['ctc_stripe_live_wh_secret'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_stripe_live_wh_secret']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_stripe_live_wh_secret'])));
             update_option('ctc_stripe_live_wh_secret', $enc);
         }
 
         // PayPal Test Keys
         if (isset($_POST['ctc_paypal_test_client_id'])) {
-            update_option('ctc_paypal_test_client_id', sanitize_text_field($_POST['ctc_paypal_test_client_id']));
+            update_option('ctc_paypal_test_client_id', sanitize_text_field(wp_unslash($_POST['ctc_paypal_test_client_id'])));
         }
         if (!empty($_POST['ctc_paypal_test_client_secret']) && strpos($_POST['ctc_paypal_test_client_secret'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_paypal_test_client_secret']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_paypal_test_client_secret'])));
             update_option('ctc_paypal_test_client_secret', $enc);
         }
 
         // PayPal Live Keys
         if (isset($_POST['ctc_paypal_live_client_id'])) {
-            update_option('ctc_paypal_live_client_id', sanitize_text_field($_POST['ctc_paypal_live_client_id']));
+            update_option('ctc_paypal_live_client_id', sanitize_text_field(wp_unslash($_POST['ctc_paypal_live_client_id'])));
         }
         if (!empty($_POST['ctc_paypal_live_client_secret']) && strpos($_POST['ctc_paypal_live_client_secret'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_paypal_live_client_secret']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_paypal_live_client_secret'])));
             update_option('ctc_paypal_live_client_secret', $enc);
         }
 
         // Google OAuth 2.0 Keys & Toggle
         update_option('ctc_google_login_enabled', isset($_POST['ctc_google_login_enabled']) ? 1 : 0);
         if (isset($_POST['ctc_google_client_id'])) {
-            update_option('ctc_google_client_id', sanitize_text_field($_POST['ctc_google_client_id']));
+            update_option('ctc_google_client_id', sanitize_text_field(wp_unslash($_POST['ctc_google_client_id'])));
         }
         if (!empty($_POST['ctc_google_client_secret']) && strpos($_POST['ctc_google_client_secret'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_google_client_secret']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_google_client_secret'])));
             update_option('ctc_google_client_secret', $enc);
         }
 
         // Google reCAPTCHA Settings
         update_option('ctc_recaptcha_master_enabled', isset($_POST['ctc_recaptcha_master_enabled']) ? 1 : 0);
         if (isset($_POST['ctc_recaptcha_version'])) {
-            update_option('ctc_recaptcha_version', sanitize_text_field($_POST['ctc_recaptcha_version']));
+            update_option('ctc_recaptcha_version', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_version'])));
         }
         if (isset($_POST['ctc_recaptcha_v2_site_key'])) {
-            update_option('ctc_recaptcha_v2_site_key', sanitize_text_field($_POST['ctc_recaptcha_v2_site_key']));
+            update_option('ctc_recaptcha_v2_site_key', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_site_key'])));
         }
         if (!empty($_POST['ctc_recaptcha_v2_secret_key']) && strpos($_POST['ctc_recaptcha_v2_secret_key'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_recaptcha_v2_secret_key']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_secret_key'])));
             update_option('ctc_recaptcha_v2_secret_key', $enc);
         }
         if (isset($_POST['ctc_recaptcha_v3_site_key'])) {
-            update_option('ctc_recaptcha_v3_site_key', sanitize_text_field($_POST['ctc_recaptcha_v3_site_key']));
+            update_option('ctc_recaptcha_v3_site_key', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_site_key'])));
         }
         if (!empty($_POST['ctc_recaptcha_v3_secret_key']) && strpos($_POST['ctc_recaptcha_v3_secret_key'], '••••') === false) {
-            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_recaptcha_v3_secret_key']));
+            $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_secret_key'])));
             update_option('ctc_recaptcha_v3_secret_key', $enc);
         }
         if (isset($_POST['ctc_recaptcha_v3_threshold'])) {
-            update_option('ctc_recaptcha_v3_threshold', floatval($_POST['ctc_recaptcha_v3_threshold']));
+            update_option('ctc_recaptcha_v3_threshold', floatval(wp_unslash($_POST['ctc_recaptcha_v3_threshold'])));
         }
         update_option('ctc_recaptcha_enable_login', isset($_POST['ctc_recaptcha_enable_login']) ? 1 : 0);
         update_option('ctc_recaptcha_enable_register', isset($_POST['ctc_recaptcha_enable_register']) ? 1 : 0);
@@ -139,20 +140,20 @@ class CareToChina_Payment_Admin_Settings {
 
         // Global Brand Logo & Assets
         if (isset($_POST['ctc_brand_logo_url'])) {
-            update_option('ctc_brand_logo_url', esc_url_raw($_POST['ctc_brand_logo_url']));
-            update_option('ctc_email_logo_url', esc_url_raw($_POST['ctc_brand_logo_url']));
+            update_option('ctc_brand_logo_url', esc_url_raw(wp_unslash($_POST['ctc_brand_logo_url'])));
+            update_option('ctc_email_logo_url', esc_url_raw(wp_unslash($_POST['ctc_brand_logo_url'])));
         }
 
         // Guest Token Expiration Setting (in Days)
         if (isset($_POST['ctc_guest_token_expiry_days'])) {
-            $days = max(1, min(365, intval($_POST['ctc_guest_token_expiry_days'])));
+            $days = max(1, min(365, intval(wp_unslash($_POST['ctc_guest_token_expiry_days']))));
             update_option('ctc_guest_token_expiry_days', $days);
         }
 
         // International Telephone Input Feature Toggle
         update_option('ctc_enable_intl_phone_flags', isset($_POST['ctc_enable_intl_phone_flags']) ? 1 : 0);
         if (isset($_POST['ctc_phone_selector_format'])) {
-            update_option('ctc_phone_selector_format', sanitize_text_field($_POST['ctc_phone_selector_format']));
+            update_option('ctc_phone_selector_format', sanitize_text_field(wp_unslash($_POST['ctc_phone_selector_format'])));
         }
 
         // Data Safety / Uninstall Option
