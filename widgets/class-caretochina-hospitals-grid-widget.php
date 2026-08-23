@@ -220,8 +220,8 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
                 <div class="ctc-hosp-pagination-box" id="ctc-pagination-<?php echo esc_attr($widget_id); ?>">
                     <?php if ($query->max_num_pages > 1) : ?>
                         <?php for ($i = 1; $i <= $query->max_num_pages; $i++) : ?>
-                            <button type="button" class="ctc-hosp-page-btn <?php echo ($i === intval($paged)) ? 'active' : ''; ?>" data-page="<?php echo $i; ?>">
-                                <?php echo $i; ?>
+                            <button type="button" class="ctc-hosp-page-btn <?php echo ($i === intval($paged)) ? 'active' : ''; ?>" data-page="<?php echo intval($i); ?>">
+                                <?php echo intval($i); ?>
                             </button>
                         <?php endfor; ?>
                     <?php endif; ?>
@@ -462,7 +462,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
 
         <script>
         jQuery(document).ready(function($) {
-            var $section = $('#ctc-hospitals-<?php echo esc_attr($widget_id); ?>');
+            var $section = $('#ctc-hospitals-<?php echo esc_js($widget_id); ?>');
             var $grid = $section.find('.ctc-hospitals-grid');
             var $pagBox = $section.find('.ctc-hosp-pagination-box');
             var currentCity = 'all';
@@ -473,11 +473,11 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
             function getResponsivePostsPerPage() {
                 var width = $(window).width();
                 if (width <= 767) {
-                    return <?php echo $ppp_mobile; ?>;
+                    return <?php echo intval($ppp_mobile); ?>;
                 } else if (width <= 1024) {
-                    return <?php echo $ppp_tablet; ?>;
+                    return <?php echo intval($ppp_tablet); ?>;
                 }
-                return <?php echo $ppp_desktop; ?>;
+                return <?php echo intval($ppp_desktop); ?>;
             }
 
             function doFilter(page, force) {
@@ -494,7 +494,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
                 $grid.css('opacity', '0.5');
 
                 $.ajax({
-                    url: '<?php echo wp_parse_url(admin_url('admin-ajax.php'), PHP_URL_PATH); ?>',
+                    url: '<?php echo esc_url_raw(admin_url('admin-ajax.php')); ?>',
                     type: 'POST',
                     data: {
                         action: 'caretochina_filter_hospitals',
@@ -515,7 +515,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
 
             // Initial check on load: if device is Tablet or Mobile, refresh grid with exact responsive PPP
             var initialPPP = getResponsivePostsPerPage();
-            if (initialPPP !== <?php echo $ppp_desktop; ?>) {
+            if (initialPPP !== <?php echo intval($ppp_desktop); ?>) {
                 doFilter(1, true);
             }
 
