@@ -36,7 +36,7 @@ class CareToChina_Setup_Wizard {
     }
 
     public function get_current_step() {
-        $step = isset($_GET['step']) ? intval($_GET['step']) : 1;
+        $step = isset($_GET['step']) ? absint(wp_unslash($_GET['step'])) : 1;
         if ($step < 1 || $step > 6) {
             $step = 1;
         }
@@ -52,7 +52,8 @@ class CareToChina_Setup_Wizard {
             return;
         }
 
-        if (!wp_verify_nonce($_POST['ctc_wizard_nonce'], 'ctc_setup_wizard_action')) {
+        $nonce = isset($_POST['ctc_wizard_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_wizard_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_setup_wizard_action')) {
             wp_die(__('Security verification failed.', 'caretochina-medical'));
         }
 
@@ -60,14 +61,14 @@ class CareToChina_Setup_Wizard {
             wp_die(__('Permission denied.', 'caretochina-medical'));
         }
 
-        $step = intval($_POST['ctc_wizard_step']);
+        $step = isset($_POST['ctc_wizard_step']) ? absint(wp_unslash($_POST['ctc_wizard_step'])) : 1;
 
         // STEP 3: DEDICATED PAGES
         if ($step === 3) {
             $types = ['patient_dashboard', 'staff_portal', 'privacy_policy', 'terms'];
             foreach ($types as $type) {
-                $action_val = sanitize_text_field($_POST['page_action_' . $type] ?? 'create');
-                $existing_id = intval($_POST['page_select_' . $type] ?? 0);
+                $action_val = isset($_POST['page_action_' . $type]) ? sanitize_text_field(wp_unslash($_POST['page_action_' . $type])) : 'create';
+                $existing_id = isset($_POST['page_select_' . $type]) ? absint(wp_unslash($_POST['page_select_' . $type])) : 0;
 
                 if ($action_val === 'assign' && $existing_id > 0) {
                     CareToChina_Page_Manager::create_or_assign_page($type, $existing_id);
@@ -81,26 +82,26 @@ class CareToChina_Setup_Wizard {
 
         // STEP 4: GOOGLE RECAPTCHA
         if ($step === 4) {
-            $version = sanitize_text_field($_POST['ctc_recaptcha_version'] ?? 'v2');
+            $version = isset($_POST['ctc_recaptcha_version']) ? sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_version'])) : 'v2';
             update_option('ctc_recaptcha_version', $version);
 
             if (isset($_POST['ctc_recaptcha_v2_site_key'])) {
-                update_option('ctc_recaptcha_v2_site_key', sanitize_text_field($_POST['ctc_recaptcha_v2_site_key']));
+                update_option('ctc_recaptcha_v2_site_key', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_site_key'])));
             }
             if (!empty($_POST['ctc_recaptcha_v2_secret_key']) && strpos($_POST['ctc_recaptcha_v2_secret_key'], '••••') === false) {
-                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_recaptcha_v2_secret_key']));
+                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_secret_key'])));
                 update_option('ctc_recaptcha_v2_secret_key', $enc);
             }
 
             if (isset($_POST['ctc_recaptcha_v3_site_key'])) {
-                update_option('ctc_recaptcha_v3_site_key', sanitize_text_field($_POST['ctc_recaptcha_v3_site_key']));
+                update_option('ctc_recaptcha_v3_site_key', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_site_key'])));
             }
             if (!empty($_POST['ctc_recaptcha_v3_secret_key']) && strpos($_POST['ctc_recaptcha_v3_secret_key'], '••••') === false) {
-                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_recaptcha_v3_secret_key']));
+                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_secret_key'])));
                 update_option('ctc_recaptcha_v3_secret_key', $enc);
             }
 
-            $threshold = floatval($_POST['ctc_recaptcha_v3_threshold'] ?? 0.5);
+            $threshold = isset($_POST['ctc_recaptcha_v3_threshold']) ? floatval(wp_unslash($_POST['ctc_recaptcha_v3_threshold'])) : 0.5;
             update_option('ctc_recaptcha_v3_threshold', $threshold);
 
             update_option('ctc_recaptcha_enable_login', isset($_POST['ctc_recaptcha_enable_login']) ? 1 : 0);
@@ -115,10 +116,10 @@ class CareToChina_Setup_Wizard {
         // STEP 5: GOOGLE LOGIN
         if ($step === 5) {
             if (isset($_POST['ctc_google_client_id'])) {
-                update_option('ctc_google_client_id', sanitize_text_field($_POST['ctc_google_client_id']));
+                update_option('ctc_google_client_id', sanitize_text_field(wp_unslash($_POST['ctc_google_client_id'])));
             }
             if (!empty($_POST['ctc_google_client_secret']) && strpos($_POST['ctc_google_client_secret'], '••••') === false) {
-                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field($_POST['ctc_google_client_secret']));
+                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_google_client_secret'])));
                 update_option('ctc_google_client_secret', $enc);
             }
 
@@ -140,7 +141,10 @@ class CareToChina_Setup_Wizard {
      * AJAX WooCommerce Auto-Install / Activation Handler
      */
     public function handle_ajax_install_woocommerce() {
-        check_ajax_referer('ctc_setup_wizard_action', 'nonce');
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_setup_wizard_action')) {
+            wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-medical')]);
+        }
 
         if (!current_user_can('install_plugins') || !current_user_can('activate_plugins')) {
             wp_send_json_error(['message' => __('You do not have permission to install or activate plugins.', 'caretochina-medical')]);
@@ -222,7 +226,7 @@ class CareToChina_Setup_Wizard {
             wp_die(__('Permission denied.', 'caretochina-medical'));
         }
 
-        $nonce = $_REQUEST['_wpnonce'] ?? $_REQUEST['nonce'] ?? '';
+        $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : (isset($_REQUEST['nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['nonce'])) : '');
         if (!wp_verify_nonce($nonce, 'ctc_export_data_nonce') && !wp_verify_nonce($nonce, 'ctc_setup_wizard_action')) {
             wp_die(__('Security verification failed.', 'caretochina-medical'));
         }
