@@ -86,8 +86,12 @@ class CareToChina_Data_Exporter {
         $tables = self::get_plugin_tables();
 
         foreach ($tables as $table) {
+            if (!in_array($table, self::get_plugin_tables(), true)) {
+                continue;
+            }
+
             // Check if table exists in database
-            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+            $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table)));
             if ($exists !== $table) {
                 continue;
             }
@@ -96,14 +100,14 @@ class CareToChina_Data_Exporter {
             $sql .= "-- Table structure & data for `$table`\n";
             $sql .= "-- -------------------------------------------------------------------------\n";
 
-            $create_row = $wpdb->get_row("SHOW CREATE TABLE `$table`", ARRAY_N);
+            $create_row = $wpdb->get_row($wpdb->prepare("SHOW CREATE TABLE %i", $table), ARRAY_N);
             if ($create_row && isset($create_row[1])) {
                 $sql .= "DROP TABLE IF EXISTS `$table`;\n";
                 $sql .= $create_row[1] . ";\n\n";
             }
 
             // Dump Table Data in Chunks
-            $rows = $wpdb->get_results("SELECT * FROM `$table`", ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM %i", $table), ARRAY_A);
             if (!empty($rows)) {
                 $columns = array_keys($rows[0]);
                 $col_names = '`' . implode('`, `', $columns) . '`';
@@ -131,7 +135,7 @@ class CareToChina_Data_Exporter {
 
         $query = $wpdb->prepare(
             "SELECT option_name, option_value, autoload FROM {$wpdb->options} WHERE option_name IN ($placeholders)",
-            $option_names
+            ...$option_names
         );
         $options_rows = $wpdb->get_results($query, ARRAY_A);
 
