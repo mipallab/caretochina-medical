@@ -82,18 +82,23 @@ class CareToChina_Pricing_Plans {
      */
     public function get_plans_for_treatment($treatment_id, $only_active = true) {
         global $wpdb;
-        $table = $wpdb->prefix . 'caretochina_pricing_plans';
         $treatment_id = intval($treatment_id);
 
         if ($treatment_id <= 0) {
             return [];
         }
 
-        $where = $only_active ? ' AND is_active = 1 ' : '';
-        $sql = $wpdb->prepare(
-            "SELECT * FROM $table WHERE treatment_id = %d $where ORDER BY display_order ASC, id ASC",
-            $treatment_id
-        );
+        if ($only_active) {
+            $sql = $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}caretochina_pricing_plans WHERE treatment_id = %d AND is_active = 1 ORDER BY display_order ASC, id ASC",
+                $treatment_id
+            );
+        } else {
+            $sql = $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}caretochina_pricing_plans WHERE treatment_id = %d ORDER BY display_order ASC, id ASC",
+                $treatment_id
+            );
+        }
 
         $results = $wpdb->get_results($sql);
         return $results ?: [];
@@ -104,14 +109,13 @@ class CareToChina_Pricing_Plans {
      */
     public function get_plan($plan_id) {
         global $wpdb;
-        $table = $wpdb->prefix . 'caretochina_pricing_plans';
         $plan_id = intval($plan_id);
 
         if ($plan_id <= 0) {
             return null;
         }
 
-        return $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $plan_id));
+        return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_pricing_plans WHERE id = %d", $plan_id));
     }
 
     /**
@@ -119,9 +123,8 @@ class CareToChina_Pricing_Plans {
      */
     public function has_active_plans($treatment_id) {
         global $wpdb;
-        $table = $wpdb->prefix . 'caretochina_pricing_plans';
         $count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $table WHERE treatment_id = %d AND is_active = 1",
+            "SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_pricing_plans WHERE treatment_id = %d AND is_active = 1",
             intval($treatment_id)
         ));
         return intval($count) > 0;
@@ -133,11 +136,9 @@ class CareToChina_Pricing_Plans {
     public function get_plan_reference_count($plan_id) {
         global $wpdb;
         $plan_id = intval($plan_id);
-        $tbl_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $tbl_requests = $wpdb->prefix . 'caretochina_payment_requests';
 
-        $cnt_bookings = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $tbl_bookings WHERE pricing_plan_id = %d", $plan_id));
-        $cnt_requests = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $tbl_requests WHERE pricing_plan_id = %d", $plan_id));
+        $cnt_bookings = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE pricing_plan_id = %d", $plan_id));
+        $cnt_requests = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_payment_requests WHERE pricing_plan_id = %d", $plan_id));
 
         return intval($cnt_bookings) + intval($cnt_requests);
     }
@@ -149,13 +150,13 @@ class CareToChina_Pricing_Plans {
         global $wpdb;
         $table = $wpdb->prefix . 'caretochina_pricing_plans';
 
-        $id           = intval($data['id'] ?? 0);
-        $treatment_id = intval($data['treatment_id'] ?? 0);
-        $name         = sanitize_text_field($data['name'] ?? '');
-        $price        = floatval($data['price'] ?? 0.00);
-        $description  = sanitize_textarea_field($data['description'] ?? '');
-        $display_order= intval($data['display_order'] ?? 0);
-        $is_active    = isset($data['is_active']) ? (intval($data['is_active']) ? 1 : 0) : 1;
+        $id           = isset($data['id']) ? absint(wp_unslash($data['id'])) : 0;
+        $treatment_id = isset($data['treatment_id']) ? absint(wp_unslash($data['treatment_id'])) : 0;
+        $name         = isset($data['name']) ? sanitize_text_field(wp_unslash($data['name'])) : '';
+        $price        = isset($data['price']) ? floatval(wp_unslash($data['price'])) : 0.00;
+        $description  = isset($data['description']) ? sanitize_textarea_field(wp_unslash($data['description'])) : '';
+        $display_order= isset($data['display_order']) ? intval(wp_unslash($data['display_order'])) : 0;
+        $is_active    = isset($data['is_active']) ? (intval(wp_unslash($data['is_active'])) ? 1 : 0) : 1;
 
         // SERVER-SIDE CURRENCY ENFORCEMENT: Ignore client input, strictly derive from store
         $currency     = self::get_store_currency();
@@ -251,7 +252,7 @@ class CareToChina_Pricing_Plans {
      * Public Read-Only Endpoint for Booking Wizard & anonymous users
      */
     public function handle_get_treatment_plans() {
-        $treatment_id = intval($_GET['treatment_id'] ?? $_POST['treatment_id'] ?? 0);
+        $treatment_id = isset($_REQUEST['treatment_id']) ? absint(wp_unslash($_REQUEST['treatment_id'])) : 0;
         if ($treatment_id <= 0) {
             wp_send_json_error(['message' => __('Invalid treatment ID.', 'caretochina-medical')]);
         }
@@ -268,7 +269,7 @@ class CareToChina_Pricing_Plans {
      * Admin Save Plan AJAX
      */
     public function handle_admin_save_plan() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-medical')]);
         }
@@ -292,7 +293,7 @@ class CareToChina_Pricing_Plans {
      * Admin Delete Plan AJAX
      */
     public function handle_admin_delete_plan() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-medical')]);
         }
@@ -301,7 +302,7 @@ class CareToChina_Pricing_Plans {
             wp_send_json_error(['message' => __('Permission denied.', 'caretochina-medical')]);
         }
 
-        $plan_id = intval($_POST['plan_id'] ?? 0);
+        $plan_id = isset($_POST['plan_id']) ? absint(wp_unslash($_POST['plan_id'])) : 0;
         $res = $this->delete_plan($plan_id);
 
         if (is_wp_error($res)) {
@@ -319,7 +320,7 @@ class CareToChina_Pricing_Plans {
      * Admin Toggle Status AJAX
      */
     public function handle_admin_toggle_plan() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_staff_nonce') && !wp_verify_nonce($nonce, 'caretochina_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-medical')]);
         }
@@ -328,7 +329,7 @@ class CareToChina_Pricing_Plans {
             wp_send_json_error(['message' => __('Permission denied.', 'caretochina-medical')]);
         }
 
-        $plan_id = intval($_POST['plan_id'] ?? 0);
+        $plan_id = isset($_POST['plan_id']) ? absint(wp_unslash($_POST['plan_id'])) : 0;
         $res = $this->toggle_plan_status($plan_id);
 
         if (is_wp_error($res)) {
@@ -366,7 +367,7 @@ class CareToChina_Pricing_Plans {
                 <div style="background:#FFF; border:1px solid #CBD5E1; border-radius:12px; padding:16px; max-width:650px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h4 style="margin:0; font-size:14px; color:#0F172A; font-weight:700;"><?php _e('Configured Plans for this Specialty', 'caretochina-medical'); ?></h4>
-                        <a href="<?php echo esc_url(admin_url('edit.php?post_type=hospital&page=caretochina-pricing-plans&treatment_id=' . $term->term_id)); ?>" class="button button-primary" style="background:#0F766E; border-color:#0F766E;">
+                        <a href="<?php echo esc_url(admin_url('edit.php?post_type=hospital&page=caretochina-pricing-plans&treatment_id=' . absint($term->term_id))); ?>" class="button button-primary" style="background:#0F766E; border-color:#0F766E;">
                             <?php _e('Manage All Plans', 'caretochina-medical'); ?> &rarr;
                         </a>
                     </div>
@@ -387,7 +388,7 @@ class CareToChina_Pricing_Plans {
                                 <?php foreach ($plans as $p) : ?>
                                     <tr style="border-bottom:1px solid #F1F5F9;">
                                         <td style="padding:6px; font-weight:600;"><?php echo esc_html($p->name); ?></td>
-                                        <td style="padding:6px; font-weight:700; color:#0F766E;">$<?php echo number_format((float)$p->price, 2); ?> <?php echo esc_html($p->currency); ?></td>
+                                        <td style="padding:6px; font-weight:700; color:#0F766E;">$<?php echo esc_html(number_format((float)$p->price, 2)); ?> <?php echo esc_html($p->currency); ?></td>
                                         <td style="padding:6px;">
                                             <span style="padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; <?php echo $p->is_active ? 'background:#D1FAE5; color:#065F46;' : 'background:#FEE2E2; color:#991B1B;'; ?>">
                                                 <?php echo $p->is_active ? __('Active', 'caretochina-medical') : __('Inactive', 'caretochina-medical'); ?>
@@ -411,7 +412,7 @@ class CareToChina_Pricing_Plans {
             'hide_empty' => false,
         ]);
 
-        $selected_treatment_id = intval($_GET['treatment_id'] ?? (count($specialties) > 0 ? $specialties[0]->term_id : 0));
+        $selected_treatment_id = isset($_GET['treatment_id']) ? absint(wp_unslash($_GET['treatment_id'])) : (count($specialties) > 0 ? $specialties[0]->term_id : 0);
         $plans = $selected_treatment_id > 0 ? $this->get_plans_for_treatment($selected_treatment_id, false) : [];
 
         // Check for any treatments with 0 active plans
@@ -499,7 +500,7 @@ class CareToChina_Pricing_Plans {
                                     </td>
                                     <td>
                                         <span style="font-size:15px; font-weight:800; color:#0F766E;">
-                                            $<?php echo number_format((float)$p->price, 2); ?>
+                                            $<?php echo esc_html(number_format((float)$p->price, 2)); ?>
                                         </span>
                                         <span style="font-size:11px; color:#64748B; font-weight:700;"><?php echo esc_html($p->currency); ?></span>
                                     </td>
@@ -513,15 +514,15 @@ class CareToChina_Pricing_Plans {
                                     </td>
                                     <td style="text-align:center;">
                                         <span class="badge" style="background:#F1F5F9; color:#475569; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;" title="<?php _e('Total bookings and payment requests referencing this plan', 'caretochina-medical'); ?>">
-                                            <?php echo $ref_count; ?> refs
+                                            <?php echo esc_html($ref_count); ?> refs
                                         </span>
                                     </td>
                                     <td style="text-align:right;">
                                         <button type="button" class="button button-small" onclick='editPlan(<?php echo esc_attr(json_encode($p)); ?>)' style="margin-right:4px;">
                                             <i class="fa-solid fa-pen"></i> <?php _e('Edit', 'caretochina-medical'); ?>
                                         </button>
-                                        <button type="button" class="button button-small button-link-delete" onclick="deletePlan(<?php echo esc_attr($p->id); ?>, <?php echo $ref_count; ?>)" style="color:#EF4444;">
-                                            <i class="fa-solid fa-trash-can"></i> <?php echo $ref_count > 0 ? __('Deactivate', 'caretochina-medical') : __('Delete', 'caretochina-medical'); ?>
+                                        <button type="button" class="button button-small button-link-delete" onclick="deletePlan(<?php echo esc_attr($p->id); ?>, <?php echo esc_attr($ref_count); ?>)" style="color:#EF4444;">
+                                            <i class="fa-solid fa-trash-can"></i> <?php echo esc_html($ref_count > 0 ? __('Deactivate', 'caretochina-medical') : __('Delete', 'caretochina-medical')); ?>
                                         </button>
                                     </td>
                                 </tr>
