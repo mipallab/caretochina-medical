@@ -487,7 +487,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                 </div>
 
                 <?php if ($settings['show_arrows'] === 'yes') : ?>
-                    <button type="button" class="ctc-slider-arrow ctc-prev-arrow" aria-label="Previous Slide">
+                    <button type="button" class="ctc-slider-arrow ctc-prev-arrow" aria-label="<?php esc_attr_e('Previous Slide', 'caretochina-hospitals'); ?>">
                         <?php if ($arrow_style === 'arrow') : ?>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                         <?php elseif ($arrow_style === 'caret') : ?>
@@ -499,7 +499,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                         <?php endif; ?>
                     </button>
 
-                    <button type="button" class="ctc-slider-arrow ctc-next-arrow" aria-label="Next Slide">
+                    <button type="button" class="ctc-slider-arrow ctc-next-arrow" aria-label="<?php esc_attr_e('Next Slide', 'caretochina-hospitals'); ?>">
                         <?php if ($arrow_style === 'arrow') : ?>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                         <?php elseif ($arrow_style === 'caret') : ?>
@@ -657,23 +657,23 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                 function getActiveDeviceSlides() {
                     if (window.elementorFrontend && typeof elementorFrontend.getCurrentDeviceMode === 'function') {
                         var dev = elementorFrontend.getCurrentDeviceMode();
-                        if (dev === 'mobile') return <?php echo $slides_mobile; ?>;
-                        if (dev === 'mobile_extra') return <?php echo $slides_mob_ext; ?>;
-                        if (dev === 'tablet') return <?php echo $slides_tablet; ?>;
-                        if (dev === 'tablet_extra') return <?php echo $slides_tab_ext; ?>;
-                        if (dev === 'laptop') return <?php echo $slides_laptop; ?>;
+                        if (dev === 'mobile') return <?php echo intval($slides_mobile); ?>;
+                        if (dev === 'mobile_extra') return <?php echo intval($slides_mob_ext); ?>;
+                        if (dev === 'tablet') return <?php echo intval($slides_tablet); ?>;
+                        if (dev === 'tablet_extra') return <?php echo intval($slides_tab_ext); ?>;
+                        if (dev === 'laptop') return <?php echo intval($slides_laptop); ?>;
                     }
                     var w = window.innerWidth;
-                    if (w <= 480) return <?php echo $slides_mobile; ?>;
-                    if (w <= 767) return <?php echo $slides_mob_ext; ?>;
-                    if (w <= 880) return <?php echo $slides_tablet; ?>;
-                    if (w <= 1024) return <?php echo $slides_tab_ext; ?>;
-                    if (w <= 1200) return <?php echo $slides_laptop; ?>;
-                    return <?php echo $slides_desktop; ?>;
+                    if (w <= 480) return <?php echo intval($slides_mobile); ?>;
+                    if (w <= 767) return <?php echo intval($slides_mob_ext); ?>;
+                    if (w <= 880) return <?php echo intval($slides_tablet); ?>;
+                    if (w <= 1024) return <?php echo intval($slides_tab_ext); ?>;
+                    if (w <= 1200) return <?php echo intval($slides_laptop); ?>;
+                    return <?php echo intval($slides_desktop); ?>;
                 }
 
                 function runHospitalsSwiper() {
-                    var wrapper = document.getElementById('ctc-hosp-slider-<?php echo esc_attr($widget_id); ?>');
+                    var wrapper = document.getElementById('ctc-hosp-slider-<?php echo esc_js($widget_id); ?>');
                     if (!wrapper) return;
 
                     var container = wrapper.querySelector('.ctc-hosp-swiper');
@@ -691,7 +691,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
 
                         var swiperConfig = {
                             slidesPerView: currentSlides,
-                            spaceBetween: <?php echo $gap_desktop; ?>,
+                            spaceBetween: <?php echo intval($gap_desktop); ?>,
                             loop: true,
                             observer: true,
                             observeParents: true,
@@ -703,12 +703,12 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                             shortSwipes: true,
                             longSwipes: true,
                             breakpoints: {
-                                1201: { slidesPerView: <?php echo $slides_desktop; ?>, spaceBetween: <?php echo $gap_desktop; ?> },
-                                1025: { slidesPerView: <?php echo $slides_laptop; ?>, spaceBetween: <?php echo $gap_desktop; ?> },
-                                881:  { slidesPerView: <?php echo $slides_tab_ext; ?>, spaceBetween: <?php echo $gap_tablet; ?> },
-                                768:  { slidesPerView: <?php echo $slides_tablet; ?>, spaceBetween: <?php echo $gap_tablet; ?> },
-                                481:  { slidesPerView: <?php echo $slides_mob_ext; ?>, spaceBetween: <?php echo $gap_mobile; ?> },
-                                0:    { slidesPerView: <?php echo $slides_mobile; ?>, spaceBetween: <?php echo $gap_mobile; ?> }
+                                1201: { slidesPerView: <?php echo intval($slides_desktop); ?>, spaceBetween: <?php echo intval($gap_desktop); ?> },
+                                1025: { slidesPerView: <?php echo intval($slides_laptop); ?>, spaceBetween: <?php echo intval($gap_desktop); ?> },
+                                881:  { slidesPerView: <?php echo intval($slides_tab_ext); ?>, spaceBetween: <?php echo intval($gap_tablet); ?> },
+                                768:  { slidesPerView: <?php echo intval($slides_tablet); ?>, spaceBetween: <?php echo intval($gap_tablet); ?> },
+                                481:  { slidesPerView: <?php echo intval($slides_mob_ext); ?>, spaceBetween: <?php echo intval($gap_mobile); ?> },
+                                0:    { slidesPerView: <?php echo intval($slides_mobile); ?>, spaceBetween: <?php echo intval($gap_mobile); ?> }
                             }
                         };
 
