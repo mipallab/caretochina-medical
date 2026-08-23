@@ -57,13 +57,14 @@ class CareToChina_Booking_Admin {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $search = sanitize_text_field($_GET['s'] ?? '');
+        $search = isset($_GET['s']) ? sanitize_text_field(wp_unslash($_GET['s'])) : '';
         $where = '';
         if (!empty($search)) {
-            $where = $wpdb->prepare(" WHERE full_name LIKE %s OR booking_code LIKE %s OR email LIKE %s OR phone LIKE %s ", "%$search%", "%$search%", "%$search%", "%$search%");
+            $like = '%' . $wpdb->esc_like($search) . '%';
+            $where = $wpdb->prepare(" WHERE full_name LIKE %s OR booking_code LIKE %s OR email LIKE %s OR phone LIKE %s ", $like, $like, $like, $like);
         }
 
-        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings $where ORDER BY id DESC");
+        $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings $where ORDER BY id DESC");
         ?>
         <style>
         .ctc-admin-dashboard {
@@ -329,7 +330,7 @@ class CareToChina_Booking_Admin {
             }
         } catch(e) {}
 
-        var adminNonce = '<?php echo wp_create_nonce("caretochina_admin_nonce"); ?>';
+        var adminNonce = '<?php echo esc_js(wp_create_nonce("caretochina_admin_nonce")); ?>';
 
         function openAdminAddBookingModal() {
             document.getElementById('admin-add-booking-modal').style.display = 'flex';
@@ -578,7 +579,7 @@ class CareToChina_Booking_Admin {
     }
 
     public function handle_get_admin_bookings() {
-        $nonce = $_POST['_wpnonce'] ?? '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
             wp_send_json_error(['message' => __('Unauthorized security token.', 'caretochina-booking')]);
         }
@@ -589,20 +590,21 @@ class CareToChina_Booking_Admin {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $search = sanitize_text_field($_POST['s'] ?? '');
+        $search = isset($_POST['s']) ? sanitize_text_field(wp_unslash($_POST['s'])) : '';
         $where = '';
         if (!empty($search)) {
-            $where = $wpdb->prepare("WHERE full_name LIKE %s OR email LIKE %s OR booking_code LIKE %s OR phone LIKE %s", "%$search%", "%$search%", "%$search%", "%$search%");
+            $like = '%' . $wpdb->esc_like($search) . '%';
+            $where = $wpdb->prepare("WHERE full_name LIKE %s OR email LIKE %s OR booking_code LIKE %s OR phone LIKE %s", $like, $like, $like, $like);
         }
 
-        $bookings = $wpdb->get_results("SELECT * FROM $table_bookings $where ORDER BY id DESC");
+        $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings $where ORDER BY id DESC");
         $html = $this->generate_admin_table_rows($bookings);
 
         wp_send_json_success(['html' => $html, 'count' => count($bookings)]);
     }
 
     public function handle_update_status() {
-        $nonce = $_POST['_wpnonce'] ?? '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
             wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
         }
@@ -613,8 +615,8 @@ class CareToChina_Booking_Admin {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $id = intval($_POST['booking_id'] ?? 0);
-        $status = sanitize_text_field($_POST['status'] ?? 'pending');
+        $id = isset($_POST['booking_id']) ? absint(wp_unslash($_POST['booking_id'])) : 0;
+        $status = isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : 'pending';
 
         if ($id > 0) {
             $wpdb->update($table_bookings, ['status' => $status], ['id' => $id]);
@@ -624,7 +626,7 @@ class CareToChina_Booking_Admin {
     }
 
     public function handle_delete_booking() {
-        $nonce = $_POST['_wpnonce'] ?? '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
             wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
         }
@@ -634,7 +636,7 @@ class CareToChina_Booking_Admin {
 
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $id = intval($_POST['booking_id'] ?? 0);
+        $id = isset($_POST['booking_id']) ? absint(wp_unslash($_POST['booking_id'])) : 0;
 
         if ($id > 0) {
             $wpdb->delete($table_bookings, ['id' => $id]);
@@ -644,7 +646,7 @@ class CareToChina_Booking_Admin {
     }
 
     public function handle_get_booking_details() {
-        $nonce = $_POST['_wpnonce'] ?? '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
             wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
         }
@@ -654,10 +656,10 @@ class CareToChina_Booking_Admin {
 
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $id = intval($_POST['booking_id'] ?? 0);
+        $id = isset($_POST['booking_id']) ? absint(wp_unslash($_POST['booking_id'])) : 0;
 
         if ($id > 0) {
-            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_bookings WHERE id = %d", $id));
+            $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
             if ($booking) {
                 wp_send_json_success($booking);
             }
@@ -666,7 +668,7 @@ class CareToChina_Booking_Admin {
     }
 
     public function handle_add_booking() {
-        $nonce = $_POST['_wpnonce'] ?? '';
+        $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
             wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-booking')]);
         }
@@ -677,14 +679,14 @@ class CareToChina_Booking_Admin {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
-        $name = sanitize_text_field($_POST['name'] ?? '');
-        $email = sanitize_email($_POST['email'] ?? '');
-        $phone = sanitize_text_field($_POST['phone'] ?? '');
-        $specialty = sanitize_text_field($_POST['specialty'] ?? '');
-        $hospital = sanitize_text_field($_POST['hospital'] ?? '');
-        $doctor = sanitize_text_field($_POST['doctor'] ?? '');
-        $date = sanitize_text_field($_POST['date'] ?? date('Y-m-d'));
-        $cost = sanitize_text_field($_POST['cost'] ?? '$14,500.00');
+        $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+        $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+        $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+        $specialty = isset($_POST['specialty']) ? sanitize_text_field(wp_unslash($_POST['specialty'])) : '';
+        $hospital = isset($_POST['hospital']) ? sanitize_text_field(wp_unslash($_POST['hospital'])) : '';
+        $doctor = isset($_POST['doctor']) ? sanitize_text_field(wp_unslash($_POST['doctor'])) : '';
+        $date = isset($_POST['date']) ? sanitize_text_field(wp_unslash($_POST['date'])) : date('Y-m-d');
+        $cost = isset($_POST['cost']) ? sanitize_text_field(wp_unslash($_POST['cost'])) : '$14,500.00';
 
         if (empty($name) || empty($email) || empty($phone)) {
             wp_send_json_error(['message' => __('Please fill in Name, Email, and Phone fields.', 'caretochina-booking')]);
