@@ -139,6 +139,14 @@
                 $modal.remove();
             }
 
+            var currCode = (currency || 'USD').toUpperCase();
+            var currSym = '$';
+            if (currCode === 'CNY' || currCode === 'RMB') currSym = '¥';
+            else if (currCode === 'EUR') currSym = '€';
+            else if (currCode === 'GBP') currSym = '£';
+            else if (currCode === 'BDT') currSym = '৳';
+            else if (currCode === 'JPY') currSym = '¥';
+
             var modalHtml = [
                 '<div id="' + modalId + '" class="ctc-payment-modal-overlay" style="display:flex;">',
                 '  <div class="ctc-payment-modal-dialog">',
@@ -151,7 +159,7 @@
                 '        <span style="font-size:11px; text-transform:uppercase; font-weight:700; letter-spacing:0.5px; opacity:0.85;">Service Total</span>',
                 '        <div style="font-size:14px; font-weight:800; color:#0F172A; margin-top:2px;">' + (title || 'Medical Treatment') + '</div>',
                 '      </div>',
-                '      <div style="font-size:22px; font-weight:900; color:#0F766E; font-family:\'Manrope\', sans-serif;">$' + parseFloat(amount).toFixed(2) + ' <span style="font-size:13px; font-weight:700;">' + (currency || 'USD') + '</span></div>',
+                '      <div style="font-size:22px; font-weight:900; color:#0F766E; font-family:\'Manrope\', sans-serif;">' + currSym + parseFloat(amount).toFixed(2) + ' <span style="font-size:13px; font-weight:700;">' + currCode + '</span></div>',
                 '    </div>',
                 '    <div id="ctc-payment-notice" class="wiz-auth-notice" style="display:none;"></div>',
                 '    <div class="ctc-pay-method-tabs">',
@@ -160,7 +168,7 @@
                 '    </div>',
                 '    <div id="ctc-stripe-container">',
                 '      <div id="ctc-stripe-element-mount" style="min-height:140px; margin-bottom:16px;"></div>',
-                '      <button type="button" id="ctc-stripe-pay-btn" class="ctc-pay-submit-btn"><i class="fa-solid fa-lock"></i> Pay $' + parseFloat(amount).toFixed(2) + ' ' + (currency || 'USD') + '</button>',
+                '      <button type="button" id="ctc-stripe-pay-btn" class="ctc-pay-submit-btn"><i class="fa-solid fa-lock"></i> Pay ' + currSym + parseFloat(amount).toFixed(2) + ' ' + currCode + '</button>',
                 '    </div>',
                 '    <div id="ctc-paypal-container" style="display:none; min-height:140px;"></div>',
                 '    <div class="wiz-auth-modal-footer" style="margin-top:18px; padding-top:14px; border-top:1px solid #E2E8F0; text-align:center;">',

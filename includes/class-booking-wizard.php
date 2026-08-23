@@ -430,6 +430,65 @@ class CareToChina_Booking_Wizard {
             $guest_token_hash = hash('sha256', $raw_guest_token);
         }
 
+        // DUPLICATE CONSULTATION / BOOKING PROTECTION
+        // 1. Debounce Lock (Concurrent submission protection)
+        $lock_key = 'ctc_sub_lock_' . md5($email . '|' . strtolower($specialty_str));
+        if (get_transient($lock_key)) {
+            wp_send_json_error(['message' => __('A booking request for this specialty is currently being processed. Please wait a moment.', 'caretochina-booking')]);
+        }
+        set_transient($lock_key, 1, 10);
+
+        // 2. Active Consultation / Booking Duplicate Check
+        $existing_active = null;
+        if ($patient_id > 0) {
+            $existing_active = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_bookings WHERE (patient_id = %d OR email = %s) AND specialty = %s AND status IN ('pending', 'confirmed', 'waiting') ORDER BY id DESC LIMIT 1",
+                $patient_id, $email, $specialty_str
+            ));
+        } else {
+            $existing_active = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_bookings WHERE email = %s AND specialty = %s AND status IN ('pending', 'confirmed', 'waiting') ORDER BY id DESC LIMIT 1",
+                $email, $specialty_str
+            ));
+        }
+
+        if ($existing_active) {
+            delete_transient($lock_key);
+            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+            $existing_chat_url = (!empty($existing_active->is_guest)) ? add_query_arg([
+                'booking_code' => $existing_active->booking_code,
+            ], $dash_url) : $dash_url;
+
+            $is_already_paid = in_array(strtolower($existing_active->status), ['confirmed', 'completed', 'paid']) 
+                && (strpos(strtolower($existing_active->invoice_status), 'paid') !== false || !empty($existing_active->paid_at));
+
+            if ($is_already_paid) {
+                wp_send_json_success([
+                    'booking_id'      => $existing_active->id,
+                    'booking_code'    => $existing_active->booking_code,
+                    'is_guest'        => (bool) $existing_active->is_guest,
+                    'chat_url'        => $existing_chat_url,
+                    'amount'          => floatval($existing_active->amount),
+                    'currency'        => $existing_active->currency ?: $currency,
+                    'specialty'       => $existing_active->specialty,
+                    'already_active'  => true,
+                    'message'         => sprintf(__('You already have an active, confirmed case (#%s) for %s. Redirecting to your live consultation desk...', 'caretochina-booking'), $existing_active->booking_code, $existing_active->specialty)
+                ]);
+            } else {
+                wp_send_json_success([
+                    'booking_id'      => $existing_active->id,
+                    'booking_code'    => $existing_active->booking_code,
+                    'is_guest'        => (bool) $existing_active->is_guest,
+                    'chat_url'        => $existing_chat_url,
+                    'amount'          => floatval($existing_active->amount),
+                    'currency'        => $existing_active->currency ?: $currency,
+                    'specialty'       => $existing_active->specialty,
+                    'already_active'  => true,
+                    'message'         => sprintf(__('You already have an active request (#%s) for %s in progress. Redirecting to your dashboard...', 'caretochina-booking'), $existing_active->booking_code, $existing_active->specialty)
+                ]);
+            }
+        }
+
         $inserted = $wpdb->insert($table_bookings, [
             'booking_code'     => $booking_code,
             'patient_id'       => $patient_id,

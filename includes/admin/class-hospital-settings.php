@@ -33,6 +33,9 @@ class CareToChina_Hospital_Settings {
             if (!wp_style_is('font-awesome', 'enqueued')) {
                 wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', [], '6.4.0');
             }
+            if (function_exists('wp_enqueue_media')) {
+                wp_enqueue_media();
+            }
         }
     }
 
@@ -76,6 +79,10 @@ class CareToChina_Hospital_Settings {
             'whatsapp_number'        => '',
             'whatsapp_label'         => __('Chat & Confirm on WhatsApp', 'caretochina-medical'),
             'whatsapp_message'       => __('Hello CareToChina Concierge, I want to inquire and confirm my booking at {hospital_name}.', 'caretochina-medical'),
+            'wechat_id'              => '',
+            'wechat_label'           => __('Chat & Confirm on WeChat', 'caretochina-medical'),
+            'wechat_qr'              => '',
+            'wechat_message'         => __('Scan QR code or search WeChat ID to connect with our China Medical Concierge.', 'caretochina-medical'),
             'phone_number'           => '',
             'phone_label'            => __('Hotline Phone Line', 'caretochina-medical'),
             'email'                  => '',
@@ -133,6 +140,11 @@ class CareToChina_Hospital_Settings {
         $settings['whatsapp_number']     = sanitize_text_field($_POST['whatsapp_number'] ?? '');
         $settings['whatsapp_label']      = sanitize_text_field($_POST['whatsapp_label'] ?? '');
         $settings['whatsapp_message']    = sanitize_textarea_field($_POST['whatsapp_message'] ?? '');
+
+        $settings['wechat_id']           = sanitize_text_field($_POST['wechat_id'] ?? '');
+        $settings['wechat_label']        = sanitize_text_field($_POST['wechat_label'] ?? '');
+        $settings['wechat_qr']           = esc_url_raw($_POST['wechat_qr'] ?? '');
+        $settings['wechat_message']      = sanitize_textarea_field($_POST['wechat_message'] ?? '');
 
         $settings['phone_number']        = sanitize_text_field($_POST['phone_number'] ?? '');
         $settings['phone_label']         = sanitize_text_field($_POST['phone_label'] ?? '');
@@ -364,6 +376,38 @@ class CareToChina_Hospital_Settings {
                                 <label for="whatsapp_message"><?php _e('Pre-filled WhatsApp Booking Message Template', 'caretochina-medical'); ?></label>
                                 <textarea id="whatsapp_message" name="whatsapp_message" rows="2" class="large-text" placeholder="Hello CareToChina Concierge, I want to inquire and confirm my booking at {hospital_name}."><?php echo esc_textarea($settings['whatsapp_message']); ?></textarea>
                                 <span class="ctc-hint"><?php _e('Use placeholder {hospital_name} to automatically insert the current hospital name.', 'caretochina-medical'); ?></span>
+                            </div>
+                        </div>
+
+                        <!-- WeChat Integration -->
+                        <div class="ctc-channel-block">
+                            <div class="ctc-channel-header">
+                                <span class="ctc-channel-pill ctc-wechat"><i class="fab fa-weixin"></i> <?php _e('WeChat Chat & Booking Confirmation', 'caretochina-medical'); ?></span>
+                            </div>
+                            <div class="ctc-grid-2">
+                                <div class="ctc-field">
+                                    <label for="wechat_id"><?php _e('WeChat ID / Official Account ID', 'caretochina-medical'); ?></label>
+                                    <input type="text" id="wechat_id" name="wechat_id" value="<?php echo esc_attr($settings['wechat_id']); ?>" class="regular-text" placeholder="CareToChina_Official">
+                                    <span class="ctc-hint"><?php _e('Enter your official WeChat ID, phone number or account handle.', 'caretochina-medical'); ?></span>
+                                </div>
+                                <div class="ctc-field">
+                                    <label for="wechat_label"><?php _e('WeChat Button Label', 'caretochina-medical'); ?></label>
+                                    <input type="text" id="wechat_label" name="wechat_label" value="<?php echo esc_attr($settings['wechat_label']); ?>" class="regular-text" placeholder="Chat & Confirm on WeChat">
+                                </div>
+                            </div>
+                            <div class="ctc-grid-2" style="margin-top: 10px;">
+                                <div class="ctc-field">
+                                    <label for="wechat_qr"><?php _e('WeChat QR Code Image URL', 'caretochina-medical'); ?></label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="wechat_qr" name="wechat_qr" value="<?php echo esc_attr($settings['wechat_qr']); ?>" class="regular-text" placeholder="https://example.com/wechat-qr.png" style="flex:1;">
+                                        <button type="button" class="button ctc-upload-media-btn" data-target="#wechat_qr"><i class="fas fa-image"></i> <?php _e('Upload QR', 'caretochina-medical'); ?></button>
+                                    </div>
+                                    <span class="ctc-hint"><?php _e('Upload your WeChat personal or corporate QR code for patients to scan on desktop or mobile.', 'caretochina-medical'); ?></span>
+                                </div>
+                                <div class="ctc-field">
+                                    <label for="wechat_message"><?php _e('WeChat Welcome Note / Instructions', 'caretochina-medical'); ?></label>
+                                    <textarea id="wechat_message" name="wechat_message" rows="2" class="large-text" placeholder="Scan QR code or search WeChat ID to connect with our China Medical Concierge."><?php echo esc_textarea($settings['wechat_message']); ?></textarea>
+                                </div>
                             </div>
                         </div>
 
@@ -720,6 +764,7 @@ class CareToChina_Hospital_Settings {
                 font-weight: 700;
             }
             .ctc-whatsapp { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+            .ctc-wechat { background: #e6f9ed; color: #07c160; border: 1px solid #a3e9be; }
             .ctc-social { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; }
             .ctc-booking { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
             
@@ -888,6 +933,20 @@ class CareToChina_Hospital_Settings {
                     '<div class="ctc-col-actions"><button type="button" class="button ctc-remove-row-btn" title="<?php echo esc_js(__('Remove social link', 'caretochina-medical')); ?>"><i class="fas fa-trash-alt"></i></button></div>' +
                 '</div>';
                 container.append(html);
+            });
+
+            // WordPress Media Uploader for WeChat QR Image
+            $(document).on('click', '.ctc-upload-media-btn', function(e) {
+                e.preventDefault();
+                var targetSelector = $(this).data('target');
+                var customUploader = wp.media({
+                    title: '<?php echo esc_js(__('Select or Upload WeChat QR Code Image', 'caretochina-medical')); ?>',
+                    button: { text: '<?php echo esc_js(__('Use This Image', 'caretochina-medical')); ?>' },
+                    multiple: false
+                }).on('select', function() {
+                    var attachment = customUploader.state().get('selection').first().toJSON();
+                    $(targetSelector).val(attachment.url);
+                }).open();
             });
         });
         </script>

@@ -237,7 +237,7 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                             <!-- Direct Channels -->
                             <div class="ctc-channels-action-group">
                                 <?php if (!empty($concierge['whatsapp']['url']) && !empty($concierge['whatsapp']['number'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['whatsapp']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-channel-btn ctc-btn-whatsapp" title="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-hospitals'); ?>">
+                                    <a href="<?php echo esc_url($concierge['whatsapp']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-channel-btn ctc-btn-whatsapp" title="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-hospitals'); ?>" aria-label="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-hospitals'); ?>">
                                         <div class="ctc-ch-icon-wrap"><i class="fab fa-whatsapp"></i></div>
                                         <div class="ctc-ch-info">
                                             <span class="ctc-ch-sub"><?php echo esc_html($concierge['whatsapp']['label']); ?></span>
@@ -245,6 +245,17 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                                         </div>
                                         <div class="ctc-ch-arrow"><i class="fas fa-paper-plane"></i></div>
                                     </a>
+                                <?php endif; ?>
+
+                                <?php if (!empty($concierge['wechat']['id']) || !empty($concierge['wechat']['qr'])) : ?>
+                                    <button type="button" class="ctc-channel-btn ctc-btn-wechat" onclick="ctcOpenWeChatModal('<?php echo esc_js($concierge['wechat']['id']); ?>', '<?php echo esc_js($concierge['wechat']['qr']); ?>', '<?php echo esc_js($concierge['wechat']['label']); ?>', '<?php echo esc_js($concierge['wechat']['message']); ?>')" title="<?php esc_attr_e('Chat on WeChat', 'caretochina-hospitals'); ?>" aria-label="<?php esc_attr_e('Chat on WeChat', 'caretochina-hospitals'); ?>" style="width:100%; border:none; cursor:pointer; text-align:left;">
+                                        <div class="ctc-ch-icon-wrap"><i class="fab fa-weixin"></i></div>
+                                        <div class="ctc-ch-info">
+                                            <span class="ctc-ch-sub"><?php echo esc_html($concierge['wechat']['label']); ?></span>
+                                            <span class="ctc-ch-main"><?php echo esc_html(!empty($concierge['wechat']['id']) ? 'ID: ' . $concierge['wechat']['id'] : __('Scan QR Code', 'caretochina-hospitals')); ?></span>
+                                        </div>
+                                        <div class="ctc-ch-arrow"><i class="fas fa-qrcode"></i></div>
+                                    </button>
                                 <?php endif; ?>
 
                                 <?php if (!empty($concierge['phone']['url']) && !empty($concierge['phone']['number'])) : ?>
@@ -670,6 +681,15 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                 background: linear-gradient(135deg, #166534 0%, #15803d 100%) !important;
                 box-shadow: 0 6px 18px rgba(34, 197, 94, 0.45);
             }
+            .ctc-btn-wechat {
+                background: linear-gradient(135deg, #07c160 0%, #059648 100%) !important;
+                border-color: #07c160 !important;
+                box-shadow: 0 4px 14px rgba(7, 193, 96, 0.35);
+            }
+            .ctc-btn-wechat:hover {
+                background: linear-gradient(135deg, #05a050 0%, #047a3b 100%) !important;
+                box-shadow: 0 6px 18px rgba(7, 193, 96, 0.45);
+            }
             .ctc-ch-icon-wrap {
                 width: 32px;
                 height: 32px;
@@ -822,6 +842,117 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                 }
             }
         </style>
+
+        <!-- WeChat Interactive QR & ID Modal Dialog -->
+        <div id="ctc-wechat-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.7); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:999999; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;" role="dialog" aria-modal="true" aria-labelledby="ctc-wc-modal-title">
+            <div style="background:#FFFFFF; border-radius:20px; width:100%; max-width:440px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); overflow:hidden; animation:ctcSlideUp 0.25s ease-out; font-family:'Inter', sans-serif;">
+                <div style="background:linear-gradient(135deg, #07C160, #059648); color:#FFFFFF; padding:20px 24px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fab fa-weixin" style="font-size:26px;"></i>
+                        <div>
+                            <h3 id="ctc-wc-modal-title" style="margin:0; font-size:17px; font-weight:700; color:#FFFFFF;"><?php _e('WeChat Medical Concierge', 'caretochina-hospitals'); ?></h3>
+                            <span style="font-size:12px; opacity:0.9;"><?php _e('Direct Hospital Consultation', 'caretochina-hospitals'); ?></span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="ctcCloseWeChatModal()" style="background:rgba(255,255,255,0.2); border:none; color:#FFFFFF; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" aria-label="<?php esc_attr_e('Close WeChat dialog', 'caretochina-hospitals'); ?>">&times;</button>
+                </div>
+                <div style="padding:24px; text-align:center;">
+                    <div id="ctc-wc-qr-container" style="display:none; margin-bottom:18px;">
+                        <img id="ctc-wc-qr-img" src="" alt="WeChat QR Code" style="width:180px; height:180px; object-fit:contain; border-radius:12px; border:1px solid #E2E8F0; padding:8px; background:#F8FAFC; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+                        <p style="font-size:12px; color:#64748B; margin:8px 0 0 0;"><i class="fas fa-camera"></i> <?php _e('Scan QR code using WeChat app', 'caretochina-hospitals'); ?></p>
+                    </div>
+
+                    <div id="ctc-wc-id-container" style="display:none; background:#F0FDF4; border:1.5px dashed #86EFAC; border-radius:12px; padding:14px; margin-bottom:18px;">
+                        <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#15803D; letter-spacing:0.5px; display:block; margin-bottom:4px;"><?php _e('Official WeChat ID / Account', 'caretochina-hospitals'); ?></span>
+                        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:6px;">
+                            <span id="ctc-wc-id-val" style="font-family:monospace; font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.5px;"></span>
+                            <button type="button" id="ctc-wc-copy-btn" onclick="ctcCopyWeChatId()" style="background:#07C160; color:#FFFFFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;" aria-label="<?php esc_attr_e('Copy WeChat ID', 'caretochina-hospitals'); ?>">
+                                <i class="fas fa-copy"></i> <span><?php _e('Copy ID', 'caretochina-hospitals'); ?></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p id="ctc-wc-note" style="font-size:13px; color:#475569; line-height:1.5; margin:0 0 18px 0;"></p>
+
+                    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                        <a id="ctc-wc-app-link" href="#" style="display:none; background:#07C160; color:#FFFFFF; text-decoration:none; padding:10px 18px; border-radius:999px; font-size:13px; font-weight:700; align-items:center; gap:8px;">
+                            <i class="fab fa-weixin"></i> <?php _e('Open WeChat App', 'caretochina-hospitals'); ?>
+                        </a>
+                        <button type="button" onclick="ctcCloseWeChatModal()" style="background:#F1F5F9; color:#475569; border:none; padding:10px 20px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;">
+                            <?php _e('Close', 'caretochina-hospitals'); ?>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        if (typeof window.ctcOpenWeChatModal === 'undefined') {
+            window.ctcOpenWeChatModal = function(wechatId, wechatQr, label, message) {
+                var modal = document.getElementById('ctc-wechat-modal');
+                var qrContainer = document.getElementById('ctc-wc-qr-container');
+                var qrImg = document.getElementById('ctc-wc-qr-img');
+                var idContainer = document.getElementById('ctc-wc-id-container');
+                var idVal = document.getElementById('ctc-wc-id-val');
+                var note = document.getElementById('ctc-wc-note');
+                var appLink = document.getElementById('ctc-wc-app-link');
+
+                if (wechatQr) {
+                    qrImg.src = wechatQr;
+                    qrContainer.style.display = 'block';
+                } else {
+                    qrContainer.style.display = 'none';
+                }
+
+                if (wechatId) {
+                    idVal.innerText = wechatId;
+                    idContainer.style.display = 'block';
+                    appLink.href = 'weixin://dl/chat?' + encodeURIComponent(wechatId);
+                    appLink.style.display = 'inline-flex';
+                } else {
+                    idContainer.style.display = 'none';
+                    appLink.style.display = 'none';
+                }
+
+                note.innerText = message || '<?php echo esc_js(__('Search the WeChat ID above or scan the QR code to connect with our China Medical Concierge.', 'caretochina-hospitals')); ?>';
+
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            };
+
+            window.ctcCloseWeChatModal = function() {
+                var modal = document.getElementById('ctc-wechat-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            };
+
+            window.ctcCopyWeChatId = function() {
+                var idVal = document.getElementById('ctc-wc-id-val').innerText;
+                if (!idVal) return;
+                navigator.clipboard.writeText(idVal).then(function() {
+                    var btn = document.getElementById('ctc-wc-copy-btn');
+                    var origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> <span><?php echo esc_js(__('Copied! ✓', 'caretochina-hospitals')); ?></span>';
+                    btn.style.background = '#15803D';
+                    setTimeout(function() {
+                        btn.innerHTML = origHtml;
+                        btn.style.background = '#07C160';
+                    }, 2500);
+                });
+            };
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') window.ctcCloseWeChatModal();
+            });
+
+            document.addEventListener('click', function(e) {
+                var modal = document.getElementById('ctc-wechat-modal');
+                if (modal && e.target === modal) window.ctcCloseWeChatModal();
+            });
+        }
+        </script>
         <?php
     }
 }

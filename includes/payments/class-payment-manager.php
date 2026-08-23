@@ -36,6 +36,13 @@ class CareToChina_Payment_Manager {
             return new WP_Error('booking_not_found', __('Booking record not found.', 'caretochina-medical'));
         }
 
+        // DUPLICATE PAYMENT PROTECTION: Reject if booking is already fully paid
+        $is_already_paid = in_array(strtolower($booking->status), ['confirmed', 'completed', 'paid']) 
+            && (strpos(strtolower($booking->invoice_status), 'paid') !== false || !empty($booking->paid_at));
+        if ($is_already_paid) {
+            return new WP_Error('already_paid', __('This medical booking has already been paid and confirmed. Duplicate payment is blocked.', 'caretochina-medical'));
+        }
+
         // Re-use existing order if present and not already paid/completed
         if (!empty($booking->wc_order_id) && $booking->wc_order_id > 0) {
             $existing_order = wc_get_order($booking->wc_order_id);

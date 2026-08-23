@@ -92,6 +92,13 @@ class CareToChina_Payment_API {
             return new WP_REST_Response(['success' => false, 'message' => __('Booking not found.', 'caretochina-medical')], 404);
         }
 
+        // Check if already paid
+        $is_already_paid = in_array(strtolower($booking->status), ['confirmed', 'completed', 'paid']) 
+            && (strpos(strtolower($booking->invoice_status), 'paid') !== false || !empty($booking->paid_at));
+        if ($is_already_paid) {
+            return new WP_REST_Response(['success' => false, 'message' => __('This booking has already been paid and confirmed. Duplicate payment is blocked.', 'caretochina-medical')], 400);
+        }
+
         if (intval($booking->patient_id) !== $current_user_id && !current_user_can('caretochina_manage_bookings')) {
             return new WP_REST_Response(['success' => false, 'message' => __('Unauthorized access to booking payment.', 'caretochina-medical')], 403);
         }

@@ -381,8 +381,8 @@ class CareToChina_Payment_Request_Manager {
                 'full_name'        => $full_name,
                 'email'            => $email,
                 'phone'            => $phone,
-                'status'           => 'pending',
-                'timeline_stage'   => 1,
+                'status'           => 'confirmed', // Pre-approved: Coordinator authored this request in active consultation
+                'timeline_stage'   => $thread_booking ? max(1, intval($thread_booking->timeline_stage)) : 1,
                 'invoice_status'   => 'Payment In Progress',
                 'amount'           => floatval($request->amount),
                 'currency'         => sanitize_text_field($request->currency),
