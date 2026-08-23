@@ -24,6 +24,16 @@ class CareToChina_Hospital_Settings {
         add_action('admin_menu', [$this, 'register_admin_menu']);
         add_action('admin_init', [$this, 'handle_save_settings']);
         add_action('admin_notices', [$this, 'display_admin_notices']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
+    }
+
+    public function enqueue_admin_assets($hook) {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (($screen && $screen->post_type === 'hospital') || (is_string($hook) && strpos($hook, 'caretochina-hospital-settings') !== false)) {
+            if (!wp_style_is('font-awesome', 'enqueued')) {
+                wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', [], '6.4.0');
+            }
+        }
     }
 
     public function register_admin_menu() {

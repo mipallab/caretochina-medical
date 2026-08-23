@@ -380,6 +380,13 @@ class CareToChina_Hospitals_Plugin {
     public function enqueue_scripts() {
         wp_enqueue_script('jquery');
         
+        if (!wp_style_is('font-awesome', 'enqueued')) {
+            wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', [], '6.4.0');
+        }
+        if (!wp_style_is('google-fonts-caretochina', 'enqueued')) {
+            wp_enqueue_style('google-fonts-caretochina', 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap', [], null);
+        }
+
         // Always enqueue Swiper JS and CSS
         if (defined('ELEMENTOR_ASSETS_URL')) {
             wp_enqueue_script('swiper', ELEMENTOR_ASSETS_URL . 'lib/swiper/swiper.min.js', ['jquery'], '5.3.6', false);

@@ -775,6 +775,19 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                     grid-template-columns: 1fr;
                 }
             }
+            @media (max-width: 480px) {
+                .ctc-concierge-card-box {
+                    padding: 20px 16px;
+                }
+                .ctc-concierge-social-bar {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 12px;
+                }
+                .ctc-social-icons {
+                    flex-wrap: wrap;
+                }
+            }
         </style>
         <?php
     }
