@@ -120,7 +120,7 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
         $concierge = CareToChina_Hospitals_Plugin::get_hospital_concierge_data($post_id);
         ?>
 
-        <div class="ctc-single-hosp-wrapper post-<?php echo $post_id; ?>">
+        <div class="ctc-single-hosp-wrapper post-<?php echo esc_attr($post_id); ?>">
             
             <div class="ctc-hosp-hero">
                 <div class="ctc-hosp-hero-img-box">
@@ -348,7 +348,7 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                             <p style="color: #CCFBF1; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px;">
                                 <?php _e('Get matched with top doctors and receive a transparent treatment cost estimate in 24 hours.', 'caretochina-hospitals'); ?>
                             </p>
-                            <a href="<?php echo esc_attr($concierge['booking']['url'] ?: $quote_url); ?>" class="ctc-sidebar-quote-btn">
+                            <a href="<?php echo esc_url($concierge['booking']['url'] ?: $quote_url); ?>" class="ctc-sidebar-quote-btn">
                                 <i class="fas fa-paper-plane"></i> <?php echo esc_html($concierge['booking']['label'] ?: __('Get Free Quote', 'caretochina-hospitals')); ?>
                             </a>
                         </div>
