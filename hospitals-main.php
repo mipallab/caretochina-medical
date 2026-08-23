@@ -157,8 +157,6 @@ class CareToChina_Hospitals_Plugin {
         $certification      = get_post_meta($post->ID, '_hospital_certification', true);
         $quote_url          = get_post_meta($post->ID, '_hospital_quote_url', true);
         $whatsapp           = get_post_meta($post->ID, '_hospital_whatsapp', true);
-        $wechat_id          = get_post_meta($post->ID, '_hospital_wechat_id', true);
-        $wechat_qr          = get_post_meta($post->ID, '_hospital_wechat_qr', true);
         $phone              = get_post_meta($post->ID, '_hospital_phone', true);
         $email              = get_post_meta($post->ID, '_hospital_email', true);
         $facebook           = get_post_meta($post->ID, '_hospital_facebook', true);
@@ -214,14 +212,6 @@ class CareToChina_Hospitals_Plugin {
                     <input type="text" name="hospital_whatsapp" value="<?php echo esc_attr($whatsapp); ?>" placeholder="Leave blank to use global WhatsApp">
                 </div>
                 <div class="ctc-mb-field">
-                    <label><i class="fab fa-weixin" style="color:#07C160;"></i> <?php _e('WeChat ID / Handle (Override)', 'caretochina-hospitals'); ?></label>
-                    <input type="text" name="hospital_wechat_id" value="<?php echo esc_attr($wechat_id); ?>" placeholder="Leave blank to use global WeChat ID">
-                </div>
-                <div class="ctc-mb-field full">
-                    <label><i class="fab fa-weixin" style="color:#07C160;"></i> <?php _e('WeChat QR Code Image URL (Override)', 'caretochina-hospitals'); ?></label>
-                    <input type="text" name="hospital_wechat_qr" value="<?php echo esc_attr($wechat_qr); ?>" placeholder="https://example.com/wechat-qr.png">
-                </div>
-                <div class="ctc-mb-field">
                     <label><i class="fas fa-phone-alt" style="color:#0ea5e9;"></i> <?php _e('Direct Hotline Phone (Override)', 'caretochina-hospitals'); ?></label>
                     <input type="text" name="hospital_phone" value="<?php echo esc_attr($phone); ?>" placeholder="Leave blank to use global Hotline">
                 </div>
@@ -262,8 +252,6 @@ class CareToChina_Hospitals_Plugin {
             'hospital_certification' => '_hospital_certification',
             'hospital_quote_url'     => '_hospital_quote_url',
             'hospital_whatsapp'      => '_hospital_whatsapp',
-            'hospital_wechat_id'     => '_hospital_wechat_id',
-            'hospital_wechat_qr'     => '_hospital_wechat_qr',
             'hospital_phone'         => '_hospital_phone',
             'hospital_email'         => '_hospital_email',
             'hospital_facebook'      => '_hospital_facebook',
@@ -276,7 +264,7 @@ class CareToChina_Hospitals_Plugin {
             if (isset($_POST[$input_key])) {
                 if (strpos($input_key, 'email') !== false) {
                     update_post_meta($post_id, $meta_key, sanitize_email($_POST[$input_key]));
-                } elseif (strpos($input_key, 'facebook') !== false || strpos($input_key, 'instagram') !== false || strpos($input_key, 'youtube') !== false || strpos($input_key, '_x') !== false || $input_key === 'hospital_x' || strpos($input_key, 'wechat_qr') !== false) {
+                } elseif (strpos($input_key, 'facebook') !== false || strpos($input_key, 'instagram') !== false || strpos($input_key, 'youtube') !== false || strpos($input_key, '_x') !== false || $input_key === 'hospital_x') {
                     update_post_meta($post_id, $meta_key, esc_url_raw($_POST[$input_key]));
                 } else {
                     update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$input_key]));
@@ -285,6 +273,8 @@ class CareToChina_Hospitals_Plugin {
         }
 
         // Clean up legacy direct contact fields from database for this hospital
+        delete_post_meta($post_id, '_hospital_wechat_id');
+        delete_post_meta($post_id, '_hospital_wechat_qr');
         delete_post_meta($post_id, '_hospital_address');
         delete_post_meta($post_id, '_hospital_phone_main');
         delete_post_meta($post_id, '_hospital_phone_appointment');
@@ -301,8 +291,6 @@ class CareToChina_Hospitals_Plugin {
         $hospital_title = get_the_title($post_id);
 
         $whatsapp  = get_post_meta($post_id, '_hospital_whatsapp', true);
-        $wechat_id = get_post_meta($post_id, '_hospital_wechat_id', true);
-        $wechat_qr = get_post_meta($post_id, '_hospital_wechat_qr', true);
         $phone     = get_post_meta($post_id, '_hospital_phone', true);
         $email     = get_post_meta($post_id, '_hospital_email', true);
         $facebook  = get_post_meta($post_id, '_hospital_facebook', true);
@@ -312,8 +300,8 @@ class CareToChina_Hospitals_Plugin {
         $booking   = get_post_meta($post_id, '_hospital_quote_url', true);
 
         $final_whatsapp  = !empty($whatsapp) ? $whatsapp : ($settings['whatsapp_number'] ?? '');
-        $final_wechat_id = !empty($wechat_id) ? $wechat_id : ($settings['wechat_id'] ?? '');
-        $final_wechat_qr = !empty($wechat_qr) ? $wechat_qr : ($settings['wechat_qr'] ?? '');
+        $final_wechat_id = $settings['wechat_id'] ?? '';
+        $final_wechat_qr = $settings['wechat_qr'] ?? '';
         $final_phone     = !empty($phone) ? $phone : ($settings['phone_number'] ?? '');
         $final_email     = !empty($email) ? $email : ($settings['email'] ?? '');
         $final_facebook  = !empty($facebook) ? $facebook : ($settings['facebook_url'] ?? '');
