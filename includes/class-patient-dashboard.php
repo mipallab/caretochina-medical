@@ -452,32 +452,32 @@ class CareToChina_Patient_Dashboard {
                                                     }
                                                     ?>
                                                     <tr>
-                                                        <td class="ctc-td-code">
+                                                        <td class="ctc-td-code" data-label="<?php esc_attr_e('Case Code', 'caretochina-booking'); ?>">
                                                             <span style="font-weight:800; color:#0F766E;">#<?php echo esc_html($pr->request_code); ?></span>
                                                         </td>
-                                                        <td>
+                                                        <td data-label="<?php esc_attr_e('Service / Treatment', 'caretochina-booking'); ?>">
                                                             <strong><?php echo esc_html($pr->custom_title); ?></strong>
                                                             <br><span style="font-size:11px; color:#0F766E;"><i class="fa-solid fa-headset"></i> <?php _e('Staff Payment Request', 'caretochina-booking'); ?></span>
                                                         </td>
-                                                        <td style="font-weight:700; color:#0F766E;">
+                                                        <td data-label="<?php esc_attr_e('Amount', 'caretochina-booking'); ?>" style="font-weight:700; color:#0F766E;">
                                                             <?php 
-                                                            $pr_curr = $pr->currency ?: 'USD';
-                                                            $pr_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($pr_curr) : '$';
-                                                            echo esc_html($pr_sym . number_format((float)$pr->amount, 2) . ' ' . $pr_curr); 
+                                                             $pr_curr = $pr->currency ?: 'USD';
+                                                             $pr_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($pr_curr) : '$';
+                                                             echo esc_html($pr_sym . number_format((float)$pr->amount, 2) . ' ' . $pr_curr); 
                                                             ?>
                                                         </td>
-                                                        <td>
+                                                        <td data-label="<?php esc_attr_e('Gateway', 'caretochina-booking'); ?>">
                                                             <?php if ($pr_status === 'accepted_paid') : ?>
                                                                 <span style="font-weight:600; font-size:12px; color:#475569;"><i class="fa-solid fa-credit-card"></i> <?php echo esc_html($pr->gateway ?: 'Online Gateway'); ?></span>
                                                             <?php else : ?>
                                                                 <span style="color:#94A3B8; font-size:13px;">—</span>
                                                             <?php endif; ?>
                                                         </td>
-                                                        <td><span class="ctc-badge-pill <?php echo esc_attr($pr_badge_class); ?>"><?php echo esc_html($pr_badge_lbl); ?></span></td>
-                                                        <td style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pr->created_at))); ?></td>
-                                                        <td>
+                                                        <td data-label="<?php esc_attr_e('Status', 'caretochina-booking'); ?>"><span class="ctc-badge-pill <?php echo esc_attr($pr_badge_class); ?>"><?php echo esc_html($pr_badge_lbl); ?></span></td>
+                                                        <td data-label="<?php esc_attr_e('Date', 'caretochina-booking'); ?>" style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pr->created_at))); ?></td>
+                                                        <td data-label="<?php esc_attr_e('Action', 'caretochina-booking'); ?>">
                                                             <?php if ($pr_status === 'pending' || $pr_status === 'processing') : ?>
-                                                                <button type="button" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr($pr->id); ?>)" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                                                <button type="button" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr($pr->id); ?>)" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" aria-label="<?php esc_attr_e('Pay now for this medical service', 'caretochina-booking'); ?>">
                                                                     <i class="fa-solid fa-lock"></i> <?php _e('Pay Now', 'caretochina-booking'); ?>
                                                                 </button>
                                                             <?php elseif ($pr_status === 'accepted_paid') : ?>
@@ -492,7 +492,7 @@ class CareToChina_Patient_Dashboard {
                                                                     'gateway'   => 'Online Checkout',
                                                                     'date'      => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($pr->updated_at ?: $pr->created_at)),
                                                                     'status'    => 'Paid in Full'
-                                                                ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                                                ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;" aria-label="<?php esc_attr_e('View receipt for this payment', 'caretochina-booking'); ?>">
                                                                     <i class="fa-solid fa-receipt"></i> <?php _e('View Receipt', 'caretochina-booking'); ?>
                                                                 </button>
                                                             <?php else : ?>
@@ -526,21 +526,21 @@ class CareToChina_Patient_Dashboard {
                                                     }
                                                     ?>
                                                     <tr>
-                                                        <td class="ctc-td-code">#<?php echo esc_html($pb->booking_code); ?></td>
-                                                        <td>
+                                                        <td class="ctc-td-code" data-label="<?php esc_attr_e('Booking Code', 'caretochina-booking'); ?>">#<?php echo esc_html($pb->booking_code); ?></td>
+                                                        <td data-label="<?php esc_attr_e('Specialty & Hospital', 'caretochina-booking'); ?>">
                                                             <strong><?php echo esc_html($pb->specialty); ?></strong>
                                                             <?php if (!empty($pb->hospital_name)) : ?>
                                                                 <br><span style="font-size:11px; color:#64748B;"><?php echo esc_html($pb->hospital_name); ?></span>
                                                             <?php endif; ?>
                                                         </td>
-                                                        <td style="font-weight:700; color:#0F766E;">
+                                                        <td data-label="<?php esc_attr_e('Amount', 'caretochina-booking'); ?>" style="font-weight:700; color:#0F766E;">
                                                             <?php 
                                                             $pb_curr = $pb->currency ?: 'USD';
                                                             $pb_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($pb_curr) : '$';
                                                             echo esc_html($pb_sym . number_format((float)$pb->amount, 2) . ' ' . $pb_curr); 
                                                             ?>
                                                         </td>
-                                                        <td>
+                                                        <td data-label="<?php esc_attr_e('Payment Gateway', 'caretochina-booking'); ?>">
                                                             <?php 
                                                             $is_paid_status = in_array(strtolower($status), ['confirmed', 'paid', 'completed', 'refunded', 'partially_refunded']);
                                                             if ($is_paid_status && !empty($pb->payment_gateway)) {
@@ -556,9 +556,9 @@ class CareToChina_Patient_Dashboard {
                                                             }
                                                             ?>
                                                         </td>
-                                                        <td><span class="ctc-badge-pill <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge_lbl); ?></span></td>
-                                                        <td style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pb->created_at))); ?></td>
-                                                        <td>
+                                                        <td data-label="<?php esc_attr_e('Status', 'caretochina-booking'); ?>"><span class="ctc-badge-pill <?php echo esc_attr($badge_class); ?>"><?php echo esc_html($badge_lbl); ?></span></td>
+                                                        <td data-label="<?php esc_attr_e('Date', 'caretochina-booking'); ?>" style="font-size:12px; color:#64748B;"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($pb->created_at))); ?></td>
+                                                        <td data-label="<?php esc_attr_e('Action', 'caretochina-booking'); ?>">
                                                             <?php if ($status === 'confirmed' || $status === 'paid' || $status === 'refunded' || $status === 'partially_refunded') : ?>
                                                                 <button type="button" onclick="window.ctcOpenReceiptModal(<?php echo esc_attr(json_encode([
                                                                     'code'      => $pb->booking_code,
@@ -571,11 +571,11 @@ class CareToChina_Patient_Dashboard {
                                                                     'gateway'   => ucfirst($pb->payment_gateway ?: 'Online'),
                                                                     'date'      => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($pb->paid_at ?: $pb->created_at)),
                                                                     'status'    => $badge_lbl
-                                                                ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                                                                ])); ?>)" class="ctc-btn-receipt" style="background:#F0FDFA; color:#0F766E; border:1px solid #99F6E4; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;" aria-label="<?php esc_attr_e('View receipt for this booking', 'caretochina-booking'); ?>">
                                                                     <i class="fa-solid fa-receipt"></i> <?php _e('View Receipt', 'caretochina-booking'); ?>
                                                                 </button>
                                                             <?php elseif ($status === 'pending' && floatval($pb->amount) > 0) : ?>
-                                                                <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($pb->id); ?>, <?php echo esc_attr($pb->amount); ?>, '<?php echo esc_attr($pb->currency ?: 'USD'); ?>', '<?php echo esc_attr($pb->specialty); ?>')" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                                                <button type="button" onclick="CareToChinaPayment.openPaymentModal(<?php echo esc_attr($pb->id); ?>, <?php echo esc_attr($pb->amount); ?>, '<?php echo esc_attr($pb->currency ?: 'USD'); ?>', '<?php echo esc_attr($pb->specialty); ?>')" class="ctc-btn-pay" style="background:#0F766E; color:#FFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" aria-label="<?php esc_attr_e('Pay deposit for this booking', 'caretochina-booking'); ?>">
                                                                     <i class="fa-solid fa-lock"></i> <?php _e('Pay Now', 'caretochina-booking'); ?>
                                                                 </button>
                                                             <?php else : ?>
@@ -586,7 +586,7 @@ class CareToChina_Patient_Dashboard {
                                                     <?php
                                                 }
                                             }
-                                            ?>
+                                            ?>        ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -787,16 +787,16 @@ class CareToChina_Patient_Dashboard {
                                         
                                         <div id="patient_attachment_preview" class="ctc-attachment-preview-box" style="display:none;">
                                             <span id="patient_attachment_name" class="ctc-attachment-name"></span>
-                                            <button type="button" onclick="appChat.clearAttachment()" class="ctc-attachment-clear-btn">&times;</button>
+                                            <button type="button" onclick="appChat.clearAttachment()" class="ctc-attachment-clear-btn" aria-label="<?php esc_attr_e('Remove attached file', 'caretochina-booking'); ?>" role="button">&times;</button>
                                         </div>
 
                                         <div class="ctc-chat-input-bar">
-                                            <label for="patient_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-booking'); ?>">
+                                            <label for="patient_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-booking'); ?>" aria-label="<?php esc_attr_e('Attach medical report or image (Max 2MB)', 'caretochina-booking'); ?>" role="button">
                                                 <i class="fa-solid fa-paperclip"></i>
                                             </label>
                                             <input type="file" id="patient_chat_file_input" name="attachment" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none;" onchange="appChat.handleFileSelected(this)">
                                             <input type="text" name="message" id="patient_msg_input" class="ctc-chat-text-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" autocomplete="off">
-                                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary ctc-chat-send-btn">
+                                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary ctc-chat-send-btn" aria-label="<?php esc_attr_e('Send message', 'caretochina-booking'); ?>">
                                                 <i class="fa-solid fa-paper-plane"></i>
                                                 <span class="ctc-btn-send-text"><?php _e('Send', 'caretochina-booking'); ?></span>
                                             </button>
@@ -1057,18 +1057,18 @@ class CareToChina_Patient_Dashboard {
 
                         <div id="patient_attachment_preview" class="ctc-attachment-preview-box" style="display:none;">
                             <span id="patient_attachment_name" class="ctc-attachment-name"></span>
-                            <button type="button" onclick="appChat.clearAttachment()" class="ctc-attachment-clear-btn">&times;</button>
+                            <button type="button" onclick="appChat.clearAttachment()" class="ctc-attachment-clear-btn" aria-label="<?php esc_attr_e('Remove attached file', 'caretochina-booking'); ?>" role="button">&times;</button>
                         </div>
 
                         <div class="ctc-chat-input-bar">
-                            <label for="patient_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-booking'); ?>">
+                            <label for="patient_chat_file_input" class="ctc-chat-attach-btn" title="<?php esc_attr_e('Attach Image or PDF (Max 2MB)', 'caretochina-booking'); ?>" aria-label="<?php esc_attr_e('Attach medical report or image (Max 2MB)', 'caretochina-booking'); ?>" role="button">
                                 <i class="fa-solid fa-paperclip"></i>
                             </label>
                             <input type="file" id="patient_chat_file_input" name="attachment" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none;" onchange="appChat.handleFileSelected(this)">
                             
                             <input type="text" name="message" id="patient_msg_input" class="ctc-chat-text-input" placeholder="<?php _e('Type a message to your coordinator...', 'caretochina-booking'); ?>" autocomplete="off">
                             
-                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary ctc-chat-send-btn">
+                            <button type="submit" id="patient_send_btn" class="ctc-solid-btn btn-teal-primary ctc-chat-send-btn" aria-label="<?php esc_attr_e('Send message', 'caretochina-booking'); ?>">
                                 <i class="fa-solid fa-paper-plane"></i>
                                 <span class="ctc-btn-send-text"><?php _e('Send', 'caretochina-booking'); ?></span>
                             </button>

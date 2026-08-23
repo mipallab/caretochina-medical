@@ -47,9 +47,14 @@ while (have_posts()) : the_post();
         <div class="ctc-hosp-hero">
             <div class="ctc-hosp-hero-img-box">
                 <?php if (has_post_thumbnail()) : ?>
-                    <?php the_post_thumbnail('full', ['class' => 'ctc-hero-img', 'alt' => esc_attr($title)]); ?>
+                    <?php echo wp_get_attachment_image(get_post_thumbnail_id($post_id), 'large', false, [
+                        'class' => 'ctc-hero-img',
+                        'alt' => esc_attr($title),
+                        'sizes' => '(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 1200px',
+                        'loading' => 'eager'
+                    ]); ?>
                 <?php else : ?>
-                    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80" class="ctc-hero-img" alt="<?php echo esc_attr($title); ?>">
+                    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80" class="ctc-hero-img" alt="<?php echo esc_attr($title); ?>" loading="eager">
                 <?php endif; ?>
 
                 <div class="ctc-hero-overlay">
@@ -66,7 +71,7 @@ while (have_posts()) : the_post();
                 <h1 class="cy-heading ctc-hero-title"><?php echo esc_html($title); ?></h1>
 
                 <div class="ctc-hero-cta-row">
-                    <a href="<?php echo esc_attr($quote_url); ?>" class="ctc-quote-btn">
+                    <a href="<?php echo esc_attr($quote_url); ?>" class="ctc-quote-btn" aria-label="<?php esc_attr_e('Request Free Quote and Consultation', 'caretochina-hospitals'); ?>">
                         <i class="fas fa-paper-plane"></i> <?php _e('Request Free Quote & Consultation', 'caretochina-hospitals'); ?>
                     </a>
                 </div>
@@ -226,22 +231,22 @@ while (have_posts()) : the_post();
                             <span class="ctc-social-heading"><?php _e('Social Channels & Media:', 'caretochina-hospitals'); ?></span>
                             <div class="ctc-social-icons">
                                 <?php if (!empty($concierge['facebook']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['facebook']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-fb" title="<?php echo esc_attr($concierge['facebook']['label']); ?>">
+                                    <a href="<?php echo esc_url($concierge['facebook']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-fb" title="<?php echo esc_attr($concierge['facebook']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on Facebook', 'caretochina-hospitals'); ?>">
                                         <i class="fab fa-facebook-f"></i>
                                     </a>
                                 <?php endif; ?>
                                 <?php if (!empty($concierge['instagram']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['instagram']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-ig" title="<?php echo esc_attr($concierge['instagram']['label']); ?>">
+                                    <a href="<?php echo esc_url($concierge['instagram']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-ig" title="<?php echo esc_attr($concierge['instagram']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on Instagram', 'caretochina-hospitals'); ?>">
                                         <i class="fab fa-instagram"></i>
                                     </a>
                                 <?php endif; ?>
                                 <?php if (!empty($concierge['youtube']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['youtube']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-yt" title="<?php echo esc_attr($concierge['youtube']['label']); ?>">
+                                    <a href="<?php echo esc_url($concierge['youtube']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-yt" title="<?php echo esc_attr($concierge['youtube']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on YouTube', 'caretochina-hospitals'); ?>">
                                         <i class="fab fa-youtube"></i>
                                     </a>
                                 <?php endif; ?>
                                 <?php if (!empty($concierge['x']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['x']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-x" title="<?php echo esc_attr($concierge['x']['label'] ?: 'X (Twitter)'); ?>">
+                                    <a href="<?php echo esc_url($concierge['x']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-x" title="<?php echo esc_attr($concierge['x']['label'] ?: 'X (Twitter)'); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on X (formerly Twitter)', 'caretochina-hospitals'); ?>">
                                         <i class="fab fa-x-twitter"></i>
                                     </a>
                                 <?php endif; ?>
@@ -249,8 +254,9 @@ while (have_posts()) : the_post();
                                     <?php foreach ($concierge['custom_socials'] as $csoc) : 
                                         if (empty($csoc['url'])) continue;
                                         $csoc_icon = !empty($csoc['icon']) ? $csoc['icon'] : 'fas fa-share-nodes';
+                                        $csoc_title = $csoc['name'] ?? __('Social Platform', 'caretochina-hospitals');
                                     ?>
-                                        <a href="<?php echo esc_url($csoc['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-custom" title="<?php echo esc_attr($csoc['name'] ?? __('Social Platform', 'caretochina-hospitals')); ?>">
+                                        <a href="<?php echo esc_url($csoc['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-custom" title="<?php echo esc_attr($csoc_title); ?>" aria-label="<?php echo esc_attr(sprintf(__('Visit CareToChina on %s', 'caretochina-hospitals'), $csoc_title)); ?>">
                                             <i class="<?php echo esc_attr($csoc_icon); ?>"></i>
                                         </a>
                                     <?php endforeach; ?>
@@ -734,9 +740,31 @@ while (have_posts()) : the_post();
             color: #94a3b8 !important;
         }
 
+        @media (min-width: 992px) {
+            .ctc-hosp-sidebar-col {
+                position: sticky;
+                top: 28px;
+                align-self: flex-start;
+            }
+        }
         @media (max-width: 991px) {
             .ctc-hosp-layout-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 600px) {
+            .ctc-hero-header-content {
+                padding: 20px 16px;
+            }
+            .ctc-hero-title {
+                font-size: clamp(1.4rem, 4vw + 0.5rem, 2rem);
+            }
+            .ctc-hero-cta-row a,
+            .ctc-sidebar-quote-btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+                min-height: 50px;
             }
         }
         @media (max-width: 480px) {
@@ -750,6 +778,11 @@ while (have_posts()) : the_post();
             }
             .ctc-social-icons {
                 flex-wrap: wrap;
+            }
+        }
+        @media (orientation: landscape) and (max-height: 500px) {
+            .ctc-hosp-hero-img-box {
+                height: 160px !important;
             }
         }
     </style>

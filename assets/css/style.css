@@ -4483,10 +4483,89 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
 }
 
 /* ==========================================================================
-   RESPONSIVE MEDIA QUERIES (DESKTOP, LAPTOP, TABLET & MOBILE)
+   RESPONSIVE MEDIA QUERIES & MOBILE-FIRST ACCESSIBILITY SYSTEM
    ========================================================================== */
 
-/* Tablet Landscape & Medium screens (up to 1024px) */
+/* 1. GLOBAL TOUCH TARGETS & SENIOR ACCESSIBILITY (48px - 56px) */
+.ctc-solid-btn,
+.ctc-channel-btn,
+.timing-tag-btn,
+.ctc-btn-receipt,
+.ctc-btn-pay,
+.auth-submit-btn,
+.ctc-chat-send-btn,
+.ctc-chat-attach-btn,
+.ctc-quote-btn,
+.ctc-sidebar-quote-btn,
+.ctc-hdr-btn-glass {
+  min-height: 48px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  touch-action: manipulation !important;
+  transition: transform 0.15s ease, background-color 0.2s ease !important;
+}
+
+.ctc-solid-btn:active,
+.ctc-channel-btn:active,
+.timing-tag-btn:active,
+.ctc-btn-receipt:active,
+.ctc-btn-pay:active,
+.auth-submit-btn:active,
+.ctc-chat-send-btn:active,
+.ctc-quote-btn:active,
+.ctc-sidebar-quote-btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* Primary Action Target Size Floor (48px - 56px) */
+.btn-wiz-primary,
+.auth-submit-btn,
+.ctc-btn-pay,
+#save_profile_btn,
+#ctc-wizard-submit-btn,
+.ctc-quote-btn,
+.ctc-sidebar-quote-btn {
+  min-height: 52px !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+/* 2. SAFE-AREA-INSETS FOR FIXED & STICKY BOTTOM ELEMENTS */
+.ctc-chat-form,
+.ctc-chat-input-bar {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+}
+.wiz-action-footer {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* 3. DYNAMIC VIEWPORT HEIGHT FOR LIVE CHAT VIEWPORT */
+.ctc-chat-viewport {
+  height: 450px;
+  min-height: 280px;
+  max-height: 60vh;
+  max-height: calc(100dvh - 180px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 4. TOUCH-DEVICE HOVER EQUIVALENTS (@media (hover: none)) */
+@media (hover: none) {
+  .ctc-avatar-upload-overlay {
+    opacity: 1 !important;
+    background: rgba(15, 118, 110, 0.75) !important;
+  }
+  .ctc-change-avatar-btn {
+    display: flex !important;
+    font-size: 14px !important;
+    padding: 6px 0 !important;
+  }
+}
+
+/* 5. TABLET LANDSCAPE & MEDIUM SCREENS (Up to 1024px) */
 @media (max-width: 1024px) {
   .caretochina-guest-dashboard {
     padding: 20px 16px;
@@ -4497,7 +4576,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   }
 }
 
-/* Tablet Portrait & Mobile Landscape (up to 900px) */
+/* 6. TABLET PORTRAIT & MOBILE SCREENS (Up to 900px) */
 @media (max-width: 900px) {
   .ctc-guest-layout {
     grid-template-columns: 1fr;
@@ -4530,14 +4609,123 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   .ctc-guest-summary-body {
     padding-top: 10px;
   }
+}
 
-  .ctc-chat-viewport {
-    min-height: 320px;
-    max-height: 55vh;
+/* 7. GLOBAL MOBILE FORMS (iOS Auto-Zoom Bug Fix: 16px Floor for <= 768px) */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .form-input,
+  .form-select,
+  .ctc-chat-text-input,
+  .wiz-hospital-grid input,
+  .specialty-checkbox-list input,
+  .ctc-form-grid-2 input,
+  .ctc-form-grid-2 select,
+  .ctc-form-grid-2 textarea,
+  .auth-input-group input,
+  .auth-input-group select,
+  .auth-input-group textarea,
+  .ctc-dash-panel input,
+  .ctc-dash-panel select,
+  .ctc-dash-panel textarea,
+  #wiz-hospital-search,
+  #wiz-hospital-city-filter,
+  #wiz_phone,
+  #patient_msg_input {
+    font-size: 16px !important;
+    min-height: 48px !important;
+  }
+
+  .form-label,
+  .auth-input-group label,
+  .ctc-form-grid-2 label {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* Chat Send Button Text remains permanently visible on mobile */
+  .ctc-btn-send-text {
+    display: inline-block !important;
+    margin-left: 6px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* 8. PAYMENT HISTORY TABLE → STACKED CARD PATTERN ON MOBILE */
+  .ctc-dash-panel .table-responsive {
+    overflow-x: visible !important;
+    border: none !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern,
+  .ctc-payment-history-table {
+    display: block !important;
+    width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern thead,
+  .ctc-payment-history-table thead {
+    display: none !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern tbody,
+  .ctc-payment-history-table tbody {
+    display: block !important;
+    width: 100% !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern tr,
+  .ctc-payment-history-table tr {
+    display: block !important;
+    background: var(--cymb-bg-card) !important;
+    border: 1.5px solid var(--cymb-border-color) !important;
+    border-radius: 16px !important;
+    padding: 16px 18px !important;
+    margin-bottom: 16px !important;
+    box-shadow: var(--cymb-shadow-sm) !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern td,
+  .ctc-payment-history-table td {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 0 !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    font-size: 15px !important;
+    text-align: right !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern td:last-child,
+  .ctc-payment-history-table td:last-child {
+    border-bottom: none !important;
+    padding-top: 14px !important;
+    justify-content: flex-end !important;
+  }
+  .ctc-dash-panel table.ctc-table-modern td::before,
+  .ctc-payment-history-table td::before {
+    content: attr(data-label) !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    color: var(--cymb-text-light) !important;
+    text-align: left !important;
+    margin-right: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  html.dark-theme .ctc-dash-panel table.ctc-table-modern tr,
+  body.dark-theme .ctc-dash-panel table.ctc-table-modern tr {
+    background: #1C2541 !important;
+    border-color: #2D3748 !important;
+  }
+  html.dark-theme .ctc-dash-panel table.ctc-table-modern td,
+  body.dark-theme .ctc-dash-panel table.ctc-table-modern td {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
   }
 }
 
-/* Mobile Portrait & Small Screens (up to 600px) */
+/* 9. MOBILE PORTRAIT & SMALL PHONES (Up to 600px) */
 @media (max-width: 600px) {
   .caretochina-guest-dashboard {
     padding: 12px 10px;
@@ -4570,17 +4758,17 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
 
   .ctc-guest-signin-btn {
     padding: 8px 14px !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
   }
 
   .ctc-guest-auth-banner {
-    padding: 12px 14px;
-    margin-bottom: 14px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
     border-radius: 12px;
   }
 
   .ctc-guest-auth-info {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .ctc-guest-summary-card,
@@ -4592,7 +4780,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
 
   .ctc-chat-viewport {
     min-height: 280px;
-    max-height: 50vh;
+    max-height: calc(100dvh - 160px);
     padding: 12px;
     border-radius: 12px;
     margin-bottom: 10px;
@@ -4601,45 +4789,135 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   .chat-msg.coordinator .msg-bubble,
   .chat-msg.patient .msg-bubble {
     max-width: 90%;
-    font-size: 13px;
-    padding: 9px 13px;
+    font-size: 14px;
+    padding: 10px 14px;
   }
 
   .chat-coordinator-avatar {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
 
   .ctc-chat-attach-btn {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
     font-size: 16px;
   }
 
   .ctc-chat-text-input {
-    height: 42px;
-    font-size: 14px;
+    height: 48px;
+    font-size: 16px !important;
     padding: 0 12px;
     border-radius: 10px;
   }
 
   .ctc-chat-send-btn {
-    height: 42px;
-    padding: 0 14px;
+    height: 48px;
+    padding: 0 16px;
     border-radius: 10px;
   }
 
-  .ctc-btn-send-text {
-    display: none;
+  /* Booking Wizard Modal Mobile Ergonomics */
+  .ctc-booking-modal-container {
+    width: 95% !important;
+    max-width: 95% !important;
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+    max-height: 92vh !important;
   }
 
-  .ctc-hide-mobile {
-    display: none !important;
+  .wizard-steps-indicator {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 8px !important;
+    padding-bottom: 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .wiz-step {
+    flex-shrink: 0 !important;
+    padding: 4px 8px !important;
+    font-size: 13px !important;
+  }
+
+  .wiz-step-filters {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .wiz-hospital-grid {
+    grid-template-columns: 1fr !important;
+    max-height: 260px !important;
+  }
+
+  .timing-tags-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .specialty-checkbox-list {
+    grid-template-columns: 1fr !important;
+    max-height: 200px !important;
+  }
+
+  .wiz-action-footer {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+  }
+
+  .wiz-action-footer button {
+    width: 100% !important;
+  }
+
+  .ctc-form-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .ctc-dash-banner {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .ctc-dash-banner-left {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .ctc-dash-banner-actions {
+    width: 100% !important;
+    justify-content: flex-start !important;
   }
 }
 
-/* Extra Small Phones (below 380px) */
+/* 10. LANDSCAPE HEIGHT CAPPING (Orientation: landscape & max-height: 500px) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .ctc-hosp-hero-img-box {
+    height: 160px !important;
+  }
+  .ctc-dash-banner {
+    padding: 14px 18px !important;
+    margin-bottom: 14px !important;
+  }
+  .ctc-dash-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+  .ctc-chat-viewport {
+    min-height: 180px !important;
+    max-height: 45vh !important;
+  }
+  .ctc-booking-modal-container {
+    max-height: 94vh !important;
+    padding: 14px 18px !important;
+  }
+}
+
+/* 11. EXTRA SMALL PHONES (Below 380px) */
 @media (max-width: 380px) {
   .ctc-guest-header-title {
     font-size: 16px;
@@ -4649,7 +4927,17 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   }
   .ctc-chat-viewport {
     min-height: 240px;
-    max-height: 45vh;
+    max-height: calc(100dvh - 160px);
+  }
+  .ctc-recaptcha-container {
+    overflow: hidden;
+    max-width: 100%;
+  }
+  .ctc-recaptcha-container .g-recaptcha {
+    transform: scale(0.85);
+    -webkit-transform: scale(0.85);
+    transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
   }
 }
 

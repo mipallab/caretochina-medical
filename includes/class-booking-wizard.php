@@ -83,10 +83,17 @@ class CareToChina_Booking_Wizard {
                     }
                 }
 
+                $thumb_id = get_post_thumbnail_id($id);
+                $image_thumb = $thumb_id ? wp_get_attachment_image_url($thumb_id, 'medium') : '';
+                $image_full = $thumb_id ? wp_get_attachment_image_url($thumb_id, 'medium_large') : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80';
+                $image_srcset = $thumb_id ? wp_get_attachment_image_srcset($thumb_id, 'medium') : '';
+
                 $hospitals[] = [
                     'id' => $id,
                     'title' => get_the_title(),
-                    'image' => has_post_thumbnail() ? get_the_post_thumbnail_url($id, 'medium_large') : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80',
+                    'image' => $image_full,
+                    'image_thumb' => $image_thumb ?: $image_full,
+                    'image_srcset' => $image_srcset ?: '',
                     'cities' => $cities_arr,
                     'specialties' => $specialties_arr,
                     'departments' => $departments_arr,
@@ -141,9 +148,9 @@ class CareToChina_Booking_Wizard {
         
         ?>
         <!-- CARETOCHINA BOOKING MODAL POPUP -->
-        <div id="ctc-booking-modal" class="ctc-booking-modal-overlay caretochina-booking-wizard-container" style="display:none;">
+        <div id="ctc-booking-modal" class="ctc-booking-modal-overlay caretochina-booking-wizard-container" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="wiz-modal-title">
             <div class="ctc-booking-modal-container">
-                <button type="button" class="ctc-booking-modal-close" onclick="appWizard.closeModal()">&times;</button>
+                <button type="button" class="ctc-booking-modal-close" onclick="appWizard.closeModal()" aria-label="<?php esc_attr_e('Close booking wizard', 'caretochina-booking'); ?>" role="button">&times;</button>
                 
                 <div class="wiz-header text-center" style="text-align:center; margin-bottom: 24px;">
                     <?php $brand_logo = get_option('ctc_brand_logo_url', ''); if (!empty($brand_logo)) : ?>
@@ -152,7 +159,7 @@ class CareToChina_Booking_Wizard {
                         </div>
                     <?php endif; ?>
                     <span class="badge-pill" style="background:#CCFBF1; color:#0F766E; padding:6px 14px; font-weight:700; font-size:12px; border-radius:999px;"><i class="fa-solid fa-wand-magic-sparkles"></i> <?php _e('CareToChina Consultation Wizard', 'caretochina-booking'); ?></span>
-                    <h2 class="section-title" style="font-family:var(--cymb-font-heading); color:var(--cymb-text-dark); margin: 24px 0 16px 0; font-size:26px; font-weight:800;"><?php _e('Instant Medical Travel Booking', 'caretochina-booking'); ?></h2>
+                    <h2 id="wiz-modal-title" class="section-title" style="font-family:var(--cymb-font-heading); color:var(--cymb-text-dark); margin: 24px 0 16px 0; font-size:26px; font-weight:800;"><?php _e('Instant Medical Travel Booking', 'caretochina-booking'); ?></h2>
                     <p class="section-subtitle text-muted" style="margin-bottom:30px; font-size:15px; color:#64748B;">
                         <?php echo $is_logged_in ? __('Lock in guaranteed treatment packages in 4 easy steps.', 'caretochina-booking') : __('Submit your medical travel inquiry in 3 quick steps. Our coordinators will review your case and send a tailored package.', 'caretochina-booking'); ?>
                     </p>

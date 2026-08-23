@@ -306,9 +306,12 @@ window.appWizard = {
       if (searchVal && h.title.toLowerCase().indexOf(searchVal) === -1) return;
       if (cityVal && !h.cities.some(c => c.id == cityVal)) return;
 
+      const imgSrc = h.image_thumb || h.image;
+      const srcsetAttribute = h.image_srcset ? `srcset="${h.image_srcset}" sizes="70px"` : '';
+
       const card = jQuery(`
         <div class="hospital-select-card" onclick="appWizard.selectHospitalCard(this, ${h.id}, '${h.title.replace(/'/g, "\\'")}')" style="border:1px solid #E2E8F0; padding:12px; border-radius:12px; cursor:pointer; background:#FFF; transition:all 0.2s; display:flex; gap:12px; align-items:center;">
-          <img src="${h.image}" style="width:70px; height:50px; border-radius:6px; object-fit:cover;">
+          <img src="${imgSrc}" ${srcsetAttribute} loading="lazy" alt="${h.title}" style="width:70px; height:50px; border-radius:6px; object-fit:cover;">
           <div style="flex:1; min-width:0;">
             <h4 style="margin:0 0 2px 0; font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#0F172A;">${h.title}</h4>
             <div style="font-size:11px; color:#64748B; display:flex; align-items:center; gap:4px;">
@@ -999,6 +1002,37 @@ jQuery(document).ready(function($) {
   });
 
   // ==========================================================================
+  // MOBILE VIRTUAL KEYBOARD DYNAMIC VIEWPORT HANDLER (iOS / Android)
+  // ==========================================================================
+  if (window.visualViewport) {
+    var chatViewport = document.getElementById('patient-chat-box');
+    var msgInput = document.getElementById('patient_msg_input');
+
+    var handleViewportChange = function() {
+      if (!chatViewport) {
+        chatViewport = document.getElementById('patient-chat-box');
+      }
+      if (chatViewport && document.activeElement === msgInput) {
+        // Smoothly scroll chat to latest message when keyboard pops up
+        setTimeout(function() {
+          chatViewport.scrollTop = chatViewport.scrollHeight;
+        }, 150);
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', handleViewportChange);
+    window.visualViewport.addEventListener('scroll', handleViewportChange);
+
+    if (msgInput) {
+      msgInput.addEventListener('focus', function() {
+        setTimeout(function() {
+          if (chatViewport) chatViewport.scrollTop = chatViewport.scrollHeight;
+        }, 300);
+      });
+    }
+  }
+
+  // ==========================================================================
   // INTERNATIONAL TELEPHONE INPUT ENGINE
   // ==========================================================================
   function updateItiPadding(el) {
@@ -1262,7 +1296,7 @@ jQuery(document).ready(function($) {
 
         setTimeout(function() {
           btn.html('<i class="fa-solid fa-floppy-disk"></i> Save Profile Changes');
-        }, 2500);
+        }, 6000);
       } else {
         box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ' + res.data.message + '</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-floppy-disk"></i> Save Profile Changes');
