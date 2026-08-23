@@ -334,7 +334,7 @@ class CareToChina_Booking_Wizard {
     }
 
     public function handle_booking_submission() {
-        $nonce = $_POST['nonce'] ?? '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_booking_nonce') && !wp_verify_nonce($nonce, 'careyou_booking_nonce')) {
             wp_send_json_error(['message' => __('Security verification failed.', 'caretochina-booking')]);
         }
@@ -354,28 +354,28 @@ class CareToChina_Booking_Wizard {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
         // Retrieve and sanitize fields
-        $hospital_id       = intval($_POST['hospital_id'] ?? 0);
-        $hospital_name     = sanitize_text_field($_POST['hospital_name'] ?? '');
-        $specialties       = isset($_POST['specialty']) ? (array)$_POST['specialty'] : [];
+        $hospital_id       = isset($_POST['hospital_id']) ? absint(wp_unslash($_POST['hospital_id'])) : 0;
+        $hospital_name     = isset($_POST['hospital_name']) ? sanitize_text_field(wp_unslash($_POST['hospital_name'])) : '';
+        $specialties       = isset($_POST['specialty']) ? (array)wp_unslash($_POST['specialty']) : [];
         $specialties       = array_map('sanitize_text_field', $specialties);
         $specialty_str     = implode(', ', $specialties);
         
-        $pricing_plan_id   = intval($_POST['pricing_plan_id'] ?? 0);
-        $treatment_timing  = sanitize_text_field($_POST['treatment_timing'] ?? '');
-        $quote_details     = sanitize_textarea_field($_POST['quote_details'] ?? '');
-        $country           = sanitize_text_field($_POST['country'] ?? '');
+        $pricing_plan_id   = isset($_POST['pricing_plan_id']) ? absint(wp_unslash($_POST['pricing_plan_id'])) : 0;
+        $treatment_timing  = isset($_POST['treatment_timing']) ? sanitize_text_field(wp_unslash($_POST['treatment_timing'])) : '';
+        $quote_details     = isset($_POST['quote_details']) ? sanitize_textarea_field(wp_unslash($_POST['quote_details'])) : '';
+        $country           = isset($_POST['country']) ? sanitize_text_field(wp_unslash($_POST['country'])) : '';
         
-        $full_name         = sanitize_text_field($_POST['full_name'] ?? '');
-        $age               = isset($_POST['age']) && $_POST['age'] !== '' ? intval($_POST['age']) : null;
-        $gender            = sanitize_text_field($_POST['gender'] ?? '');
+        $full_name         = isset($_POST['full_name']) ? sanitize_text_field(wp_unslash($_POST['full_name'])) : '';
+        $age               = (isset($_POST['age']) && $_POST['age'] !== '') ? intval(wp_unslash($_POST['age'])) : null;
+        $gender            = isset($_POST['gender']) ? sanitize_text_field(wp_unslash($_POST['gender'])) : '';
         
-        $email             = sanitize_email($_POST['email'] ?? '');
-        $phone             = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'phone') : sanitize_text_field($_POST['phone'] ?? '');
+        $email             = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+        $phone             = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'phone') : (isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '');
         
-        $whatsapp          = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'whatsapp') : sanitize_text_field($_POST['whatsapp'] ?? '');
-        $wechat            = sanitize_text_field($_POST['wechat'] ?? '');
-        $messenger         = sanitize_text_field($_POST['messenger'] ?? '');
-        $linkedin          = sanitize_text_field($_POST['linkedin'] ?? '');
+        $whatsapp          = class_exists('CareToChina_Country_Helper') ? CareToChina_Country_Helper::extract_submitted_phone($_POST, 'whatsapp') : (isset($_POST['whatsapp']) ? sanitize_text_field(wp_unslash($_POST['whatsapp'])) : '');
+        $wechat            = isset($_POST['wechat']) ? sanitize_text_field(wp_unslash($_POST['wechat'])) : '';
+        $messenger         = isset($_POST['messenger']) ? sanitize_text_field(wp_unslash($_POST['messenger'])) : '';
+        $linkedin          = isset($_POST['linkedin']) ? sanitize_text_field(wp_unslash($_POST['linkedin'])) : '';
 
         // Validation checks
         if (empty($full_name) || empty($email) || empty($phone) || empty($gender) || empty($specialty_str) || empty($treatment_timing) || empty($quote_details)) {
@@ -384,7 +384,7 @@ class CareToChina_Booking_Wizard {
 
         // Google reCAPTCHA Verification
         if (class_exists('CareToChina_Recaptcha')) {
-            $recaptcha_token = $_POST['g-recaptcha-response'] ?? '';
+            $recaptcha_token = isset($_POST['g-recaptcha-response']) ? sanitize_text_field(wp_unslash($_POST['g-recaptcha-response'])) : '';
             $rc_loc = is_user_logged_in() ? 'booking' : 'guest_booking';
             $rc_check = CareToChina_Recaptcha::verify_submission($recaptcha_token, $rc_loc);
             if (is_wp_error($rc_check)) {
@@ -442,12 +442,12 @@ class CareToChina_Booking_Wizard {
         $existing_active = null;
         if ($patient_id > 0) {
             $existing_active = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM $table_bookings WHERE (patient_id = %d OR email = %s) AND specialty = %s AND status IN ('pending', 'confirmed', 'waiting') ORDER BY id DESC LIMIT 1",
+                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE (patient_id = %d OR email = %s) AND specialty = %s AND status IN ('pending', 'confirmed', 'waiting') ORDER BY id DESC LIMIT 1",
                 $patient_id, $email, $specialty_str
             ));
         } else {
             $existing_active = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM $table_bookings WHERE email = %s AND specialty = %s AND status IN ('pending', 'confirmed', 'waiting') ORDER BY id DESC LIMIT 1",
+                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE email = %s AND specialty = %s AND status IN ('pending', 'confirmed', 'waiting') ORDER BY id DESC LIMIT 1",
                 $email, $specialty_str
             ));
         }
