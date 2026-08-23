@@ -41,7 +41,9 @@ $tables = [
 ];
 
 foreach ($tables as $tbl) {
-    $wpdb->query("DROP TABLE IF EXISTS `$tbl`");
+    if (in_array($tbl, $tables, true)) {
+        $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS %i", $tbl));
+    }
 }
 
 // 5. Explicit Enumerated Option Cleanup (including encrypted secrets)
