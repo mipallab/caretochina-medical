@@ -122,7 +122,8 @@ class CareToChina_Hospital_Settings {
             return;
         }
 
-        if (!wp_verify_nonce($_POST['ctc_hospital_settings_nonce'], 'ctc_save_hospital_settings')) {
+        $nonce = isset($_POST['ctc_hospital_settings_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_hospital_settings_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'ctc_save_hospital_settings')) {
             wp_die(__('Security verification failed. Please try again.', 'caretochina-medical'));
         }
 
@@ -132,40 +133,40 @@ class CareToChina_Hospital_Settings {
 
         $settings = [];
 
-        $settings['concierge_title']     = sanitize_text_field($_POST['concierge_title'] ?? '');
-        $settings['concierge_subtitle']  = sanitize_text_field($_POST['concierge_subtitle'] ?? '');
-        $settings['concierge_badge']     = sanitize_text_field($_POST['concierge_badge'] ?? '');
+        $settings['concierge_title']     = isset($_POST['concierge_title']) ? sanitize_text_field(wp_unslash($_POST['concierge_title'])) : '';
+        $settings['concierge_subtitle']  = isset($_POST['concierge_subtitle']) ? sanitize_text_field(wp_unslash($_POST['concierge_subtitle'])) : '';
+        $settings['concierge_badge']     = isset($_POST['concierge_badge']) ? sanitize_text_field(wp_unslash($_POST['concierge_badge'])) : '';
 
         // Core Channels
-        $settings['whatsapp_number']     = sanitize_text_field($_POST['whatsapp_number'] ?? '');
-        $settings['whatsapp_label']      = sanitize_text_field($_POST['whatsapp_label'] ?? '');
-        $settings['whatsapp_message']    = sanitize_textarea_field($_POST['whatsapp_message'] ?? '');
+        $settings['whatsapp_number']     = isset($_POST['whatsapp_number']) ? sanitize_text_field(wp_unslash($_POST['whatsapp_number'])) : '';
+        $settings['whatsapp_label']      = isset($_POST['whatsapp_label']) ? sanitize_text_field(wp_unslash($_POST['whatsapp_label'])) : '';
+        $settings['whatsapp_message']    = isset($_POST['whatsapp_message']) ? sanitize_textarea_field(wp_unslash($_POST['whatsapp_message'])) : '';
 
-        $settings['wechat_id']           = sanitize_text_field($_POST['wechat_id'] ?? '');
-        $settings['wechat_label']        = sanitize_text_field($_POST['wechat_label'] ?? '');
-        $settings['wechat_qr']           = esc_url_raw($_POST['wechat_qr'] ?? '');
-        $settings['wechat_message']      = sanitize_textarea_field($_POST['wechat_message'] ?? '');
+        $settings['wechat_id']           = isset($_POST['wechat_id']) ? sanitize_text_field(wp_unslash($_POST['wechat_id'])) : '';
+        $settings['wechat_label']        = isset($_POST['wechat_label']) ? sanitize_text_field(wp_unslash($_POST['wechat_label'])) : '';
+        $settings['wechat_qr']           = isset($_POST['wechat_qr']) ? esc_url_raw(wp_unslash($_POST['wechat_qr'])) : '';
+        $settings['wechat_message']      = isset($_POST['wechat_message']) ? sanitize_textarea_field(wp_unslash($_POST['wechat_message'])) : '';
 
-        $settings['phone_number']        = sanitize_text_field($_POST['phone_number'] ?? '');
-        $settings['phone_label']         = sanitize_text_field($_POST['phone_label'] ?? '');
+        $settings['phone_number']        = isset($_POST['phone_number']) ? sanitize_text_field(wp_unslash($_POST['phone_number'])) : '';
+        $settings['phone_label']         = isset($_POST['phone_label']) ? sanitize_text_field(wp_unslash($_POST['phone_label'])) : '';
 
-        $settings['email']               = sanitize_email($_POST['email'] ?? '');
-        $settings['email_label']         = sanitize_text_field($_POST['email_label'] ?? '');
+        $settings['email']               = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+        $settings['email_label']         = isset($_POST['email_label']) ? sanitize_text_field(wp_unslash($_POST['email_label'])) : '';
 
-        $settings['facebook_url']        = esc_url_raw($_POST['facebook_url'] ?? '');
-        $settings['facebook_label']      = sanitize_text_field($_POST['facebook_label'] ?? '');
+        $settings['facebook_url']        = isset($_POST['facebook_url']) ? esc_url_raw(wp_unslash($_POST['facebook_url'])) : '';
+        $settings['facebook_label']      = isset($_POST['facebook_label']) ? sanitize_text_field(wp_unslash($_POST['facebook_label'])) : '';
 
-        $settings['instagram_url']       = esc_url_raw($_POST['instagram_url'] ?? '');
-        $settings['instagram_label']     = sanitize_text_field($_POST['instagram_label'] ?? '');
+        $settings['instagram_url']       = isset($_POST['instagram_url']) ? esc_url_raw(wp_unslash($_POST['instagram_url'])) : '';
+        $settings['instagram_label']     = isset($_POST['instagram_label']) ? sanitize_text_field(wp_unslash($_POST['instagram_label'])) : '';
 
-        $settings['youtube_url']         = esc_url_raw($_POST['youtube_url'] ?? '');
-        $settings['youtube_label']       = sanitize_text_field($_POST['youtube_label'] ?? '');
+        $settings['youtube_url']         = isset($_POST['youtube_url']) ? esc_url_raw(wp_unslash($_POST['youtube_url'])) : '';
+        $settings['youtube_label']       = isset($_POST['youtube_label']) ? sanitize_text_field(wp_unslash($_POST['youtube_label'])) : '';
 
-        $settings['x_url']               = esc_url_raw($_POST['x_url'] ?? '');
-        $settings['x_label']             = sanitize_text_field($_POST['x_label'] ?? 'X (Twitter)');
+        $settings['x_url']               = isset($_POST['x_url']) ? esc_url_raw(wp_unslash($_POST['x_url'])) : '';
+        $settings['x_label']             = isset($_POST['x_label']) ? sanitize_text_field(wp_unslash($_POST['x_label'])) : 'X (Twitter)';
 
-        $settings['booking_url']         = esc_url_raw($_POST['booking_url'] ?? '');
-        $settings['booking_label']       = sanitize_text_field($_POST['booking_label'] ?? '');
+        $settings['booking_url']         = isset($_POST['booking_url']) ? esc_url_raw(wp_unslash($_POST['booking_url'])) : '';
+        $settings['booking_label']       = isset($_POST['booking_label']) ? sanitize_text_field(wp_unslash($_POST['booking_label'])) : '';
 
         $settings['show_concierge_card'] = isset($_POST['show_concierge_card']) ? 'yes' : 'no';
         $settings['show_social_bar']     = isset($_POST['show_social_bar']) ? 'yes' : 'no';
@@ -174,7 +175,8 @@ class CareToChina_Hospital_Settings {
         // Custom Social Links Repeater
         $custom_socials = [];
         if (!empty($_POST['custom_socials']) && is_array($_POST['custom_socials'])) {
-            foreach ($_POST['custom_socials'] as $soc) {
+            $raw_socials = wp_unslash($_POST['custom_socials']);
+            foreach ($raw_socials as $soc) {
                 $name  = sanitize_text_field($soc['name'] ?? '');
                 $url   = esc_url_raw($soc['url'] ?? '');
                 $icon  = sanitize_text_field($soc['icon'] ?? 'fas fa-share-nodes');
@@ -194,7 +196,8 @@ class CareToChina_Hospital_Settings {
         // Concierge Highlights Repeater
         $services = [];
         if (!empty($_POST['services']) && is_array($_POST['services'])) {
-            foreach ($_POST['services'] as $item) {
+            $raw_services = wp_unslash($_POST['services']);
+            foreach ($raw_services as $item) {
                 $label = sanitize_text_field($item['label'] ?? '');
                 $value = sanitize_text_field($item['value'] ?? '');
                 $icon  = sanitize_text_field($item['icon'] ?? 'fas fa-check-circle');
@@ -212,7 +215,8 @@ class CareToChina_Hospital_Settings {
         // Custom Channels Repeater
         $custom_channels = [];
         if (!empty($_POST['custom_channels']) && is_array($_POST['custom_channels'])) {
-            foreach ($_POST['custom_channels'] as $ch) {
+            $raw_channels = wp_unslash($_POST['custom_channels']);
+            foreach ($raw_channels as $ch) {
                 $name  = sanitize_text_field($ch['name'] ?? '');
                 $url   = esc_url_raw($ch['url'] ?? '');
                 $icon  = sanitize_text_field($ch['icon'] ?? 'fas fa-link');
