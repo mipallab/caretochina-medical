@@ -87,6 +87,7 @@ class CareToChina_PayPal_Gateway implements CareToChina_Payment_Gateway_Interfac
         ]);
 
         if (is_wp_error($response)) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
             error_log('PayPal OAuth token error: ' . $response->get_error_message());
             return false;
         }
@@ -121,6 +122,7 @@ class CareToChina_PayPal_Gateway implements CareToChina_Payment_Gateway_Interfac
             'purchase_units' => [
                 [
                     'reference_id' => 'ctc_booking_' . $booking_id,
+                    /* translators: %d: Booking ID */
                     'description'  => sprintf(__('CareToChina Medical Booking #%d', 'caretochina-medical'), $booking_id),
                     'custom_id'    => (string)$booking_id,
                     'amount'       => [
@@ -147,6 +149,7 @@ class CareToChina_PayPal_Gateway implements CareToChina_Payment_Gateway_Interfac
         ]);
 
         if (is_wp_error($response)) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
             error_log('PayPal Order Creation Error: ' . $response->get_error_message());
             return [
                 'success' => false,
@@ -158,6 +161,7 @@ class CareToChina_PayPal_Gateway implements CareToChina_Payment_Gateway_Interfac
         $status_code = wp_remote_retrieve_response_code($response);
 
         if ($status_code !== 201 || empty($body['id'])) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
             error_log('PayPal Order Creation Failed: ' . print_r($body, true));
             return [
                 'success' => false,
@@ -252,6 +256,7 @@ class CareToChina_PayPal_Gateway implements CareToChina_Payment_Gateway_Interfac
             if ($token) {
                 $verified = $this->verify_paypal_webhook_signature($request, $token);
                 if (!$verified) {
+                    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                     error_log('PayPal Webhook Signature Verification Failed.');
                     return new WP_REST_Response(['error' => 'Webhook signature verification failed'], 400);
                 }

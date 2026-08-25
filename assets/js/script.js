@@ -103,41 +103,30 @@ window.appWizard = {
   currentStep: 1,
   selectedHospitalId: 0,
   selectedHospitalName: '',
-  selectedTiming: '',
-  selectedSpecialties: [],
-  selectedTreatmentId: 0,
-  selectedPricingPlanId: 0,
-  selectedPricingPlanName: '',
-  selectedPricingPlanPrice: 0.00,
-  selectedPricingPlanCurrency: 'USD',
+  selectedPackageId: 0,
+  selectedPackageName: '',
+  selectedPackagePrice: 0.00,
+  selectedPackageCurrency: 'USD',
 
   openScenario1() {
     this.selectedHospitalId = 0;
     this.selectedHospitalName = '';
-    this.selectedTiming = '';
-    this.selectedSpecialties = [];
-    this.selectedTreatmentId = 0;
-    this.selectedPricingPlanId = 0;
-    this.selectedPricingPlanName = '';
-    this.selectedPricingPlanPrice = 0.00;
+    this.selectedPackageId = 0;
+    this.selectedPackageName = '';
+    this.selectedPackagePrice = 0.00;
     
-    // Clear selections
+    // Clear form inputs
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
-    jQuery('#wiz_treatment_timing').val('');
-    jQuery('#wiz_selected_treatment_id').val(0);
-    jQuery('#wiz_pricing_plan_id').val(0);
-    jQuery('#wiz_pricing_plan_name').val('');
-    jQuery('#wiz_pricing_plan_price').val(0);
-    jQuery('.timing-tag-btn').removeClass('active');
+    jQuery('#wiz_package_id').val(0);
+    jQuery('#wiz_package_name').val('');
+    jQuery('#wiz_package_price').val(0);
     
     // Reset steps
     this.currentStep = 1;
     this.renderHospitals();
+    this.renderPackages();
     this.showStep(1);
-    
-    // Show back button on step 2
-    jQuery('#wiz-back-btn-step-2').show();
     
     // Reset form and steps indicator visibility
     jQuery('#ctc-booking-wizard-form').show();
@@ -149,34 +138,51 @@ window.appWizard = {
   },
 
   openScenario2(hospitalData) {
-    this.selectedHospitalId = hospitalData.id;
-    this.selectedHospitalName = hospitalData.name;
-    this.selectedTiming = '';
-    this.selectedSpecialties = [];
-    this.selectedTreatmentId = 0;
-    this.selectedPricingPlanId = 0;
-    this.selectedPricingPlanName = '';
-    this.selectedPricingPlanPrice = 0.00;
+    this.selectedHospitalId = (hospitalData && hospitalData.id) ? hospitalData.id : 0;
+    this.selectedHospitalName = (hospitalData && hospitalData.name) ? hospitalData.name : '';
+    this.selectedPackageId = 0;
+    this.selectedPackageName = '';
+    this.selectedPackagePrice = 0.00;
 
     // Set selections
-    jQuery('#wiz_hospital_id').val(hospitalData.id);
-    jQuery('#wiz_hospital_name').val(hospitalData.name);
-    jQuery('#wiz_treatment_timing').val('');
-    jQuery('#wiz_selected_treatment_id').val(0);
-    jQuery('#wiz_pricing_plan_id').val(0);
-    jQuery('#wiz_pricing_plan_name').val('');
-    jQuery('#wiz_pricing_plan_price').val(0);
-    jQuery('.timing-tag-btn').removeClass('active');
+    jQuery('#wiz_hospital_id').val(this.selectedHospitalId);
+    jQuery('#wiz_hospital_name').val(this.selectedHospitalName);
+    jQuery('#wiz_package_id').val(0);
+    jQuery('#wiz_package_name').val('');
+    jQuery('#wiz_package_price').val(0);
     
-    // Reset steps and skip step 1
+    // Reset steps and jump directly to Step 2 (Package Selection)
     this.currentStep = 2;
-    this.renderSpecialtyCheckboxes(hospitalData.specialties);
+    this.renderPackages();
     this.showStep(2);
-    
-    // Hide back button on step 2 since hospital is fixed
-    jQuery('#wiz-back-btn-step-2').hide();
 
     // Reset form and steps indicator visibility
+    jQuery('#ctc-booking-wizard-form').show();
+    jQuery('.wizard-steps-indicator').show();
+    jQuery('#ctc-wizard-status').hide().empty();
+
+    jQuery('html, body').addClass('ctc-modal-open');
+    jQuery('#ctc-booking-modal').addClass('show');
+  },
+
+  openScenarioFromPackage(hospitalId, hospitalName, packageId, packageName, packagePrice) {
+    this.selectedHospitalId = hospitalId || 0;
+    this.selectedHospitalName = hospitalName || '';
+    this.selectedPackageId = packageId || 0;
+    this.selectedPackageName = packageName || '';
+    this.selectedPackagePrice = packagePrice || 0.00;
+
+    jQuery('#wiz_hospital_id').val(this.selectedHospitalId);
+    jQuery('#wiz_hospital_name').val(this.selectedHospitalName);
+    jQuery('#wiz_package_id').val(this.selectedPackageId);
+    jQuery('#wiz_package_name').val(this.selectedPackageName);
+    jQuery('#wiz_package_price').val(this.selectedPackagePrice);
+
+    // Render packages so state is primed, then jump to Step 3 (Patient Details)
+    this.renderPackages();
+    this.currentStep = 3;
+    this.showStep(3);
+
     jQuery('#ctc-booking-wizard-form').show();
     jQuery('.wizard-steps-indicator').show();
     jQuery('#ctc-wizard-status').hide().empty();
@@ -195,71 +201,41 @@ window.appWizard = {
     jQuery('.wiz-page').hide();
     jQuery('#wiz-step-' + stepNum).fadeIn(250);
 
-    var hasPricingStep = jQuery('#wiz-step-3').length > 0;
-    var indicatorStep = stepNum;
-    if (!hasPricingStep && stepNum === 4) {
-      indicatorStep = 3; // On 3-step guest indicator, page 4 maps to indicator 3
-    }
-
-    jQuery('.wiz-step').removeClass('active');
+    jQuery('.wiz-step').removeClass('active completed');
     jQuery('.wiz-step').each(function() {
       const step = parseInt(jQuery(this).data('step'));
-      if (step <= indicatorStep) {
+      if (step === stepNum) {
         jQuery(this).addClass('active');
+      } else if (step < stepNum) {
+        jQuery(this).addClass('completed');
       }
     });
   },
 
   nextStep(stepNum) {
-    var self = this;
     var bookingObj = getBookingObj();
 
-    // STEP 1 -> 2 VALIDATION
+    // STEP 1 -> 2 VALIDATION (Hospital selected or skipped)
     if (stepNum === 2 && this.currentStep === 1) {
       if (this.selectedHospitalId === 0) {
-        alert(bookingObj.hospitals.length ? 'Please select a hospital, or click "Skip Hospital" to proceed.' : 'No hospitals available. Please skip.');
+        // Offer quick proceed if no hospital explicitly clicked
+        this.skipHospital();
         return;
       }
-      const hosp = bookingObj.hospitals.find(h => h.id === this.selectedHospitalId);
-      this.renderSpecialtyCheckboxes(hosp ? hosp.specialties : []);
+      this.renderPackages();
     }
 
-    // STEP 2 VALIDATION (Timing & Specialty -> Step 3 or 4)
-    if ((stepNum === 3 || stepNum === 4) && this.currentStep === 2) {
-      this.selectedTiming = jQuery('#wiz_treatment_timing').val();
-      if (!this.selectedTiming) {
-        alert('Please select treatment timing.');
-        return;
-      }
-
-      this.selectedSpecialties = [];
-      this.selectedTreatmentId = 0;
-      jQuery('.specialty-checkbox:checked').each((index, el) => {
-        self.selectedSpecialties.push(jQuery(el).val());
-        var termId = parseInt(jQuery(el).data('term-id') || 0);
-        if (termId > 0 && !self.selectedTreatmentId) {
-          self.selectedTreatmentId = termId;
+    // STEP 2 -> 3 VALIDATION (Package selected)
+    if (stepNum === 3 && this.currentStep === 2) {
+      var pkgId = parseInt(jQuery('#wiz_package_id').val() || 0);
+      if (pkgId === 0 && this.selectedPackageId === 0) {
+        var $firstCard = jQuery('.wiz-package-card').first();
+        if ($firstCard.length) {
+          $firstCard.trigger('click');
+        } else {
+          alert('Please select a concierge package to proceed.');
+          return;
         }
-      });
-
-      if (this.selectedSpecialties.length === 0) {
-        alert('Please select at least one specialty / treatment.');
-        return;
-      }
-
-      jQuery('#wiz_selected_treatment_id').val(this.selectedTreatmentId);
-      if (stepNum === 3 && jQuery('#wiz-step-3').length > 0) {
-        this.loadPricingPlansForSelectedSpecialty();
-      }
-    }
-
-    // STEP 3 -> 4 VALIDATION (Pricing Plan Selection - Logged In only)
-    if (stepNum === 4 && this.currentStep === 3) {
-      var planId = parseInt(jQuery('#wiz_pricing_plan_id').val() || 0);
-      var plansCount = jQuery('.pricing-plan-card').length;
-      if (plansCount > 0 && planId === 0) {
-        alert('Please select a pricing plan tier to proceed.');
-        return;
       }
     }
 
@@ -268,13 +244,12 @@ window.appWizard = {
 
   skipHospital() {
     this.selectedHospitalId = 0;
-    this.selectedHospitalName = 'Skipped (General Enquiry)';
+    this.selectedHospitalName = 'General Inquiry (No Hospital Selected)';
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
     jQuery('.hospital-select-card').removeClass('selected');
     
-    // Load all specialties
-    this.renderSpecialtyCheckboxes(getBookingObj().all_specialties);
+    this.renderPackages();
     this.showStep(2);
   },
 
@@ -285,12 +260,6 @@ window.appWizard = {
     this.selectedHospitalName = name;
     jQuery('#wiz_hospital_id').val(id);
     jQuery('#wiz_hospital_name').val(name);
-  },
-
-  selectTiming(btn) {
-    jQuery('.timing-tag-btn').removeClass('active');
-    jQuery(btn).addClass('active');
-    jQuery('#wiz_treatment_timing').val(jQuery(btn).data('value'));
   },
 
   renderHospitals() {
@@ -336,103 +305,85 @@ window.appWizard = {
     }
   },
 
-  renderSpecialtyCheckboxes(specialties) {
-    const checkList = jQuery('#wiz-specialty-checkbox-list');
-    if (!checkList.length) return;
+  /**
+   * Render Concierge Packages (Plan A, B, C, D) into Step 2 Grid
+   */
+  renderPackages() {
+    var self = this;
+    var grid = jQuery('#wiz-packages-list-grid');
+    if (!grid.length) return;
 
-    checkList.empty();
-    
-    if (!specialties || specialties.length === 0) {
-      specialties = getBookingObj().all_specialties;
+    var bookingObj = getBookingObj();
+    var packages = (bookingObj.packages && bookingObj.packages.length > 0) ? bookingObj.packages : [];
+
+    if (packages.length === 0) {
+      grid.html('<div style="text-align:center; padding:24px; color:#0F766E;"><i class="fa-solid fa-spinner fa-spin"></i> Loading concierge packages...</div>');
+      jQuery.get(bookingObj.ajax_url, { action: 'ctc_get_packages' }, function(res) {
+        if (res.success && res.data && res.data.packages && res.data.packages.length > 0) {
+          bookingObj.packages = res.data.packages;
+          self.renderPackages();
+        } else {
+          grid.html('<div style="text-align:center; padding:20px; color:#64748B; font-size:13px;">Custom Medical Concierge Consultation will be arranged for your inquiry.</div>');
+        }
+      });
+      return;
     }
 
-    specialties.forEach(s => {
-      const checkbox = jQuery(`
-        <label class="specialty-check-item" style="display:flex; align-items:center; gap:8px; background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 14px; border-radius:10px; cursor:pointer; font-size:13px; transition:all 0.2s;">
-          <input type="checkbox" name="specialty[]" value="${s.name}" data-term-id="${s.id}" class="specialty-checkbox" style="accent-color:#0F766E;">
-          <span style="color:#0F172A; font-weight:500;">${s.name}</span>
-        </label>
-      `);
-      checkList.append(checkbox);
-    });
-  },
+    grid.empty();
 
-  /**
-   * Load active Pricing Plans for selected Specialty / Treatment via AJAX
-   */
-  loadPricingPlansForSelectedSpecialty() {
-    var self = this;
-    var grid = jQuery('#wiz-pricing-plans-grid');
-    var emptyBox = jQuery('#wiz-pricing-plans-empty');
-    var apiObj = getBookingObj();
-
-    grid.empty().html('<div style="text-align:center; padding:20px; color:#0F766E;"><i class="fa-solid fa-spinner fa-spin"></i> Loading pricing packages...</div>');
-    emptyBox.hide();
-
-    jQuery.get(apiObj.ajax_url, {
-      action: 'ctc_get_treatment_plans',
-      treatment_id: self.selectedTreatmentId
-    }, function(res) {
-      grid.empty();
-      if (res.success && res.data && res.data.plans && res.data.plans.length > 0) {
-        self.selectedPricingPlanCurrency = res.data.currency || 'USD';
-
-        res.data.plans.forEach(function(plan, idx) {
-          var isChecked = (self.selectedPricingPlanId == plan.id) || (self.selectedPricingPlanId === 0 && idx === 0);
-          if (isChecked) {
-            self.selectedPricingPlanId = plan.id;
-            self.selectedPricingPlanName = plan.name;
-            self.selectedPricingPlanPrice = plan.price;
-            jQuery('#wiz_pricing_plan_id').val(plan.id);
-            jQuery('#wiz_pricing_plan_name').val(plan.name);
-            jQuery('#wiz_pricing_plan_price').val(plan.price);
-          }
-
-          var cardHtml = `
-            <div class="pricing-plan-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPricingPlanCard(this, ${plan.id}, ${plan.price}, '${plan.name.replace(/'/g, "\\'")}', '${plan.currency}')">
-              <div class="plan-card-left">
-                <div class="plan-card-header">
-                  <input type="radio" name="plan_radio" value="${plan.id}" ${isChecked ? 'checked' : ''}>
-                  <h4 class="plan-card-title">${plan.name}</h4>
-                </div>
-                ${plan.description ? `<p class="plan-card-desc">${plan.description}</p>` : ''}
-              </div>
-              <div class="plan-card-right">
-                <div class="plan-price">$${parseFloat(plan.price).toFixed(2)}</div>
-                <div class="plan-currency">${plan.currency}</div>
-              </div>
-            </div>
-          `;
-          grid.append(cardHtml);
-        });
-      } else {
-        emptyBox.show();
-        self.selectedPricingPlanId = 0;
-        self.selectedPricingPlanName = 'Standard Deposit Consultation';
-        self.selectedPricingPlanPrice = 500.00;
-        jQuery('#wiz_pricing_plan_id').val(0);
-        jQuery('#wiz_pricing_plan_name').val('Standard Deposit Consultation');
-        jQuery('#wiz_pricing_plan_price').val(500.00);
+    packages.forEach(function(pkg, idx) {
+      var isChecked = (self.selectedPackageId == pkg.id) || (self.selectedPackageId === 0 && idx === 0);
+      if (isChecked && self.selectedPackageId === 0) {
+        self.selectedPackageId = pkg.id;
+        self.selectedPackageName = pkg.name;
+        self.selectedPackagePrice = pkg.price;
+        jQuery('#wiz_package_id').val(pkg.id);
+        jQuery('#wiz_package_name').val(pkg.name);
+        jQuery('#wiz_package_price').val(pkg.price);
       }
-    }).fail(function() {
-      grid.empty();
-      emptyBox.show();
+
+      var cardHtml = `
+        <div class="wiz-package-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPackage(this, ${pkg.id}, '${pkg.name.replace(/'/g, "\\'")}', ${pkg.price})" style="border:1.5px solid ${isChecked ? '#0F766E' : '#E2E8F0'}; background:${isChecked ? '#F0FDFA' : '#FFF'}; border-radius:12px; padding:14px 16px; cursor:pointer; transition:all 0.2s; position:relative;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="radio" name="wiz_pkg_radio" value="${pkg.id}" ${isChecked ? 'checked' : ''} style="accent-color:#0F766E; margin:0;">
+              <strong style="font-size:14px; color:#0F172A;">${pkg.name}</strong>
+              ${pkg.badge ? `<span style="background:#CCFBF1; color:#0F766E; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; text-transform:uppercase;">${pkg.badge}</span>` : ''}
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:15px; font-weight:900; color:#0F766E;">${pkg.price_formatted}</span>
+            </div>
+          </div>
+
+          ${pkg.positioning ? `<p style="margin:0 0 8px 0; font-size:12px; color:#475569; line-height:1.4;">${pkg.positioning}</p>` : ''}
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11.5px; color:#64748B; border-top:1px solid #E2E8F0; padding-top:8px; margin-top:6px;">
+            ${pkg.vehicle ? `<div><i class="fa-solid fa-car-side" style="color:#0F766E; width:14px;"></i> <strong>Vehicle:</strong> ${pkg.vehicle}</div>` : ''}
+            ${pkg.interpreter ? `<div><i class="fa-solid fa-language" style="color:#0F766E; width:14px;"></i> <strong>Interpreter:</strong> ${pkg.interpreter}</div>` : ''}
+            ${pkg.accommodation ? `<div><i class="fa-solid fa-hotel" style="color:#0F766E; width:14px;"></i> <strong>Hotel:</strong> ${pkg.accommodation}</div>` : ''}
+            ${pkg.dining ? `<div><i class="fa-solid fa-utensils" style="color:#0F766E; width:14px;"></i> <strong>Dining:</strong> ${pkg.dining}</div>` : ''}
+            ${pkg.companion ? `<div style="grid-column: span 2;"><i class="fa-solid fa-user-plus" style="color:#0F766E; width:14px;"></i> <strong>Companion:</strong> ${pkg.companion}</div>` : ''}
+            ${pkg.travel ? `<div style="grid-column: span 2;"><i class="fa-solid fa-compass" style="color:#0F766E; width:14px;"></i> <strong>Travel:</strong> ${pkg.travel}</div>` : ''}
+          </div>
+        </div>
+      `;
+
+      grid.append(cardHtml);
     });
   },
 
-  selectPricingPlanCard(element, planId, price, name, currency) {
-    jQuery('.pricing-plan-card').removeClass('selected');
-    jQuery(element).addClass('selected');
+  selectPackage(element, id, name, price) {
+    jQuery('.wiz-package-card').removeClass('selected').css({ 'border-color': '#E2E8F0', 'background': '#FFF' });
+    jQuery(element).addClass('selected').css({ 'border-color': '#0F766E', 'background': '#F0FDFA' });
     jQuery(element).find('input[type="radio"]').prop('checked', true);
 
-    this.selectedPricingPlanId = planId;
-    this.selectedPricingPlanName = name;
-    this.selectedPricingPlanPrice = price;
-    this.selectedPricingPlanCurrency = currency || 'USD';
+    this.selectedPackageId = id;
+    this.selectedPackageName = name;
+    this.selectedPackagePrice = price;
 
-    jQuery('#wiz_pricing_plan_id').val(planId);
-    jQuery('#wiz_pricing_plan_name').val(name);
-    jQuery('#wiz_pricing_plan_price').val(price);
+    jQuery('#wiz_package_id').val(id);
+    jQuery('#wiz_package_name').val(name);
+    jQuery('#wiz_package_price').val(price);
   },
 
   switchAuthModalTab(tab) {
@@ -744,6 +695,20 @@ jQuery(document).ready(function($) {
   // WIZARD FORM SUBMISSION HANDLER (Direct submission for both Guests and Logged-in Patients)
   $('#ctc-booking-wizard-form').on('submit', function(e) {
     e.preventDefault();
+
+    var fullName = ($('#wiz_full_name').val() || '').trim();
+    var email = ($('#wiz_email').val() || '').trim();
+    var phone = ($('#wiz_phone').val() || '').trim();
+    var gender = ($('#wiz_gender').val() || '').trim();
+    var country = ($('#wiz_country').val() || '').trim();
+    var details = ($('#wiz_quote_details').val() || '').trim();
+    var status = $('#ctc-wizard-status');
+
+    if (!fullName || !email || !phone || !gender || !country || !details) {
+      status.show().html('<div style="background:#FEE2E2; color:#991B1B; padding:12px 16px; border-radius:10px; font-weight:700; font-size:13px; margin-bottom:12px;"><i class="fa-solid fa-triangle-exclamation"></i> Please fill in all required fields: Condition Description, Full Name, Country, Gender, Email Address, and Phone Number.</div>');
+      return;
+    }
+
     syncIntlPhoneValues(this);
     var formSerialized = $(this).serialize();
     submitBookingForm(formSerialized);
@@ -1058,9 +1023,9 @@ jQuery(document).ready(function($) {
       return;
     }
 
-    $('input[type="tel"], input[name="phone"], input[name="user_phone"], input[name="whatsapp"], input[name="user_whatsapp"]').each(function() {
+    $('input.ctc-intl-phone, input[type="tel"]:not(.ctc-phone-input)').each(function() {
       var el = this;
-      if ($(el).closest('.ctc-phone-group-wrapper').length) {
+      if ($(el).closest('.ctc-phone-group-wrapper').length || $(el).closest('#ctc-booking-modal').length || $(el).attr('type') === 'hidden') {
         return; // Managed cleanly by native country code selector group
       }
       if ($(el).data('iti-initialized')) {

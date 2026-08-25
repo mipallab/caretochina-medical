@@ -872,48 +872,22 @@ jQuery(document).ready(function($) {
     $('input[name="pricing_type"][value="' + type + '"]').closest('.ctc-pricing-opt-label').addClass('active').css('border-color', '#0F766E');
   };
 
-  $(document).on('change', '#req_treatment_select', function() {
-    var treatmentId = $(this).val();
-    var $planSelect = $('#req_plan_select');
-    var $amountInput = $('#req_plan_amount');
-
-    if (!treatmentId || treatmentId == '0') {
-      $planSelect.empty().append('<option value="0">-- Select Specialty First --</option>');
-      $amountInput.val('');
-      return;
-    }
-
-    $planSelect.empty().append('<option value="0">Loading packages...</option>');
-
-    $.get(apiObj.ajax_url, {
-      action: 'ctc_get_treatment_plans',
-      treatment_id: treatmentId
-    }, function(res) {
-      $planSelect.empty();
-      if (res.success && res.data && res.data.plans && res.data.plans.length > 0) {
-        $planSelect.append('<option value="0">-- Select a Pricing Package --</option>');
-        res.data.plans.forEach(function(p) {
-          var curr = p.currency || 'USD';
-          $planSelect.append('<option value="' + p.id + '" data-price="' + p.price + '" data-name="' + p.name + '" data-currency="' + curr + '">' + p.name + ' (' + curr + ' ' + parseFloat(p.price).toFixed(2) + ')</option>');
-        });
-        $planSelect.val(res.data.plans[0].id).trigger('change');
-      } else {
-        $planSelect.append('<option value="0">Standard Consultation Deposit</option>');
-        $amountInput.val('500.00');
-      }
-    });
-  });
-
-  $(document).on('change', '#req_plan_select', function() {
-    var $selected = $(this).find(':selected');
-    var price = $selected.data('price');
-    var name = $selected.data('name');
-    if (price) {
+  window.ctcOnStaffPackageChange = function(selectEl) {
+    var $opt = $(selectEl).find(':selected');
+    var price = $opt.data('price');
+    var title = $opt.data('title');
+    if (price && parseFloat(price) > 0) {
       $('#req_plan_amount').val(parseFloat(price).toFixed(2));
+    } else {
+      $('#req_plan_amount').val('');
     }
-    if (name && !$('#req_plan_name_input').val()) {
-      $('#req_plan_name_input').val(name);
+    if (title) {
+      $('#req_plan_name_input').val(title);
     }
+  };
+
+  $(document).on('change', '#req_package_select', function() {
+    window.ctcOnStaffPackageChange(this);
   });
 
   $(document).on('submit', '#staff-send-payment-request-form', function(e) {
@@ -930,10 +904,9 @@ jQuery(document).ready(function($) {
       pricing_type: pricingType
     };
 
-    if (pricingType === 'treatment_plan') {
-      postData.treatment_id = $('#req_treatment_select').val();
-      postData.pricing_plan_id = $('#req_plan_select').val();
-      postData.plan_name = $('#req_plan_name_input').val() || $('#req_plan_select option:selected').data('name') || '';
+    if (pricingType === 'package' || pricingType === 'treatment_plan') {
+      postData.package_id = $('#req_package_select').val();
+      postData.plan_name = $('#req_plan_name_input').val() || $('#req_package_select option:selected').data('title') || '';
       postData.custom_amount = $('#req_plan_amount').val();
     } else if (pricingType === 'custom_amount') {
       postData.custom_title = $('input[name="custom_amount_title"]').val();

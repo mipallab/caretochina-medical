@@ -16,16 +16,11 @@ class CareToChina_Medical_Staff_Plugin {
     }
 
     public function __construct() {
-        add_action('plugins_loaded', [$this, 'load_textdomain']);
         add_action('init', [$this, 'register_polylang_strings']);
 
         add_action('wp_enqueue_scripts', [$this, 'enqueue_staff_assets']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
         CareToChina_Staff_Portal::instance();
-    }
-
-    public function load_textdomain() {
-        load_plugin_textdomain('caretochina-staff', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     public function register_polylang_strings() {
@@ -39,8 +34,7 @@ class CareToChina_Medical_Staff_Plugin {
     }
 
     public function enqueue_staff_assets() {
-        wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', [], '6.4.0');
-        wp_enqueue_style('google-fonts-caretochina-staff', 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap', [], null);
+        wp_enqueue_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
         wp_enqueue_style('caretochina-staff-style', CARETOCHINA_STAFF_URL . 'assets/css/staff-style.css', [], CARETOCHINA_STAFF_VERSION);
         wp_enqueue_script('caretochina-staff-script', CARETOCHINA_STAFF_URL . 'assets/js/staff-script.js', ['jquery'], CARETOCHINA_STAFF_VERSION, true);
 
@@ -55,7 +49,7 @@ class CareToChina_Medical_Staff_Plugin {
 
     public function enqueue_admin_assets($hook) {
         if (strpos($hook, 'caretochina-staff-desk') !== false || strpos($hook, 'careyou-staff-desk') !== false) {
-            wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', [], '6.4.0');
+            wp_enqueue_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
             wp_enqueue_style('caretochina-staff-admin-style', CARETOCHINA_STAFF_URL . 'assets/css/staff-style.css', [], CARETOCHINA_STAFF_VERSION);
             wp_enqueue_script('caretochina-staff-script', CARETOCHINA_STAFF_URL . 'assets/js/staff-script.js', ['jquery'], CARETOCHINA_STAFF_VERSION, true);
 

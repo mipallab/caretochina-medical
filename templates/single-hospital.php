@@ -2,9 +2,15 @@
 /**
  * Single Hospital Template - CareToChina
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 get_header();
 
-while (have_posts()) : the_post();
+(function() {
+    while (have_posts()) : the_post();
     $post_id = get_the_ID();
 
     // If post is built with Elementor or currently being edited in Elementor editor, render standard Elementor content container
@@ -71,8 +77,8 @@ while (have_posts()) : the_post();
                 <h1 class="cy-heading ctc-hero-title"><?php echo esc_html($title); ?></h1>
 
                 <div class="ctc-hero-cta-row">
-                    <a href="<?php echo esc_attr($quote_url); ?>" class="ctc-quote-btn" aria-label="<?php esc_attr_e('Request Free Quote and Consultation', 'caretochina-hospitals'); ?>">
-                        <i class="fas fa-paper-plane"></i> <?php _e('Request Free Quote & Consultation', 'caretochina-hospitals'); ?>
+                    <a href="<?php echo esc_attr($quote_url); ?>" class="ctc-quote-btn" aria-label="<?php esc_attr_e('Request Free Quote and Consultation', 'caretochina-medical'); ?>">
+                        <i class="fas fa-paper-plane"></i> <?php esc_html_e('Request Free Quote & Consultation', 'caretochina-medical'); ?>
                     </a>
                 </div>
             </div>
@@ -86,7 +92,7 @@ while (have_posts()) : the_post();
                 
                 <!-- Overview Section -->
                 <div class="ctc-hosp-card-box">
-                    <h2 class="cy-heading ctc-box-title"><i class="fas fa-info-circle"></i> <?php _e('Hospital Overview', 'caretochina-hospitals'); ?></h2>
+                    <h2 class="cy-heading ctc-box-title"><i class="fas fa-info-circle"></i> <?php esc_html_e('Hospital Overview', 'caretochina-medical'); ?></h2>
                     <div class="cy-paragraph ctc-box-body">
                         <?php the_content(); ?>
                     </div>
@@ -95,7 +101,7 @@ while (have_posts()) : the_post();
                 <!-- Specialities Section -->
                 <?php if (!empty($specialties) && !is_wp_error($specialties)) : ?>
                     <div class="ctc-hosp-card-box">
-                        <h2 class="cy-heading ctc-box-title"><i class="fas fa-stethoscope"></i> <?php _e('Specialities & Medical Programs', 'caretochina-hospitals'); ?></h2>
+                        <h2 class="cy-heading ctc-box-title"><i class="fas fa-stethoscope"></i> <?php esc_html_e('Specialities & Medical Programs', 'caretochina-medical'); ?></h2>
                         <div class="ctc-spec-pills">
                             <?php foreach ($specialties as $spec) : ?>
                                 <span class="ctc-spec-pill"><i class="fas fa-check-circle"></i> <?php echo esc_html($spec->name); ?></span>
@@ -107,7 +113,7 @@ while (have_posts()) : the_post();
                 <!-- Departments Section -->
                 <?php if (!empty($departments) && !is_wp_error($departments)) : ?>
                     <div class="ctc-hosp-card-box">
-                        <h2 class="cy-heading ctc-box-title"><i class="fas fa-clinic-medical"></i> <?php _e('Clinical Departments', 'caretochina-hospitals'); ?></h2>
+                        <h2 class="cy-heading ctc-box-title"><i class="fas fa-clinic-medical"></i> <?php esc_html_e('Clinical Departments', 'caretochina-medical'); ?></h2>
                         <div class="ctc-dept-tags">
                             <?php foreach ($departments as $dept) : ?>
                                 <span class="ctc-dept-tag">#<?php echo esc_html($dept->name); ?></span>
@@ -116,10 +122,86 @@ while (have_posts()) : the_post();
                     </div>
                 <?php endif; ?>
 
+                <!-- CareToChina Global Concierge Packages (Plan A, B, C, D) -->
+                <?php
+                $active_packages = class_exists('CareToChina_Packages') ? CareToChina_Packages::instance()->get_active_packages() : [];
+                if (!empty($active_packages)) :
+                ?>
+                    <div class="ctc-hosp-card-box ctc-packages-box" id="concierge-packages">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
+                            <h2 class="cy-heading ctc-box-title" style="margin:0;"><i class="fas fa-award" style="color:#0F766E;"></i> <?php esc_html_e('Global Concierge & Escort Packages', 'caretochina-medical'); ?></h2>
+                            <span style="font-size:12px; font-weight:700; color:#0F766E; background:#CCFBF1; padding:4px 10px; border-radius:20px;"><?php esc_html_e('Guaranteed Inclusions', 'caretochina-medical'); ?></span>
+                        </div>
+                        <p style="font-size:14px; color:#64748B; margin-top:0; margin-bottom:20px;">
+                            <?php esc_html_e('Choose an authorized medical escort package for your visit to this hospital. All packages include dedicated airport transfers, English/Chinese coordination, and full arrival support.', 'caretochina-medical'); ?>
+                        </p>
+
+                        <div class="ctc-packages-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:18px; margin-bottom:24px;">
+                            <?php foreach ($active_packages as $pkg) : ?>
+                                <div class="ctc-package-card" style="border:1.5px solid #E2E8F0; border-radius:16px; padding:20px; background:#FFF; display:flex; flex-direction:column; justify-content:space-between; transition:all 0.25s ease; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                                            <?php if (!empty($pkg->badge)) : ?>
+                                                <span style="background:#CCFBF1; color:#0F766E; font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;"><?php echo esc_html($pkg->badge); ?></span>
+                                            <?php else : ?>
+                                                <span></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <h3 style="font-size:16px; font-weight:800; color:#0F172A; margin:0 0 8px 0;"><?php echo esc_html($pkg->name); ?></h3>
+                                        <div style="font-size:22px; font-weight:900; color:#0F766E; margin-bottom:12px;">
+                                            <?php echo esc_html($pkg->price_formatted); ?>
+                                        </div>
+                                        <?php if (!empty($pkg->positioning)) : ?>
+                                            <p style="font-size:12.5px; color:#475569; line-height:1.5; margin-bottom:16px; min-height:40px;"><?php echo esc_html($pkg->positioning); ?></p>
+                                        <?php endif; ?>
+
+                                        <ul style="list-style:none; padding:0; margin:0 0 20px 0; font-size:12.5px; color:#334155; display:flex; flex-direction:column; gap:8px;">
+                                            <?php if (!empty($pkg->vehicle)) : ?>
+                                                <li style="display:flex; align-items:flex-start; gap:8px;"><i class="fas fa-car-side" style="color:#0F766E; margin-top:3px;"></i> <span><strong><?php esc_html_e('Vehicle:', 'caretochina-medical'); ?></strong> <?php echo esc_html($pkg->vehicle); ?></span></li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($pkg->interpreter)) : ?>
+                                                <li style="display:flex; align-items:flex-start; gap:8px;"><i class="fas fa-language" style="color:#0F766E; margin-top:3px;"></i> <span><strong><?php esc_html_e('Interpreter:', 'caretochina-medical'); ?></strong> <?php echo esc_html($pkg->interpreter); ?></span></li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($pkg->accommodation)) : ?>
+                                                <li style="display:flex; align-items:flex-start; gap:8px;"><i class="fas fa-hotel" style="color:#0F766E; margin-top:3px;"></i> <span><strong><?php esc_html_e('Hotel:', 'caretochina-medical'); ?></strong> <?php echo esc_html($pkg->accommodation); ?></span></li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($pkg->dining)) : ?>
+                                                <li style="display:flex; align-items:flex-start; gap:8px;"><i class="fas fa-utensils" style="color:#0F766E; margin-top:3px;"></i> <span><strong><?php esc_html_e('Dining:', 'caretochina-medical'); ?></strong> <?php echo esc_html($pkg->dining); ?></span></li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($pkg->companion)) : ?>
+                                                <li style="display:flex; align-items:flex-start; gap:8px;"><i class="fas fa-user-plus" style="color:#0F766E; margin-top:3px;"></i> <span><strong><?php esc_html_e('Companion:', 'caretochina-medical'); ?></strong> <?php echo esc_html($pkg->companion); ?></span></li>
+                                            <?php endif; ?>
+                                            <?php if (!empty($pkg->travel)) : ?>
+                                                <li style="display:flex; align-items:flex-start; gap:8px;"><i class="fas fa-compass" style="color:#0F766E; margin-top:3px;"></i> <span><strong><?php esc_html_e('Travel & Leisure:', 'caretochina-medical'); ?></strong> <?php echo esc_html($pkg->travel); ?></span></li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </div>
+
+                                    <button type="button" class="ctc-solid-btn btn-teal-primary" onclick="if(window.appWizard && window.appWizard.openScenarioFromPackage) { window.appWizard.openScenarioFromPackage(<?php echo esc_js($post_id); ?>, '<?php echo esc_js($title); ?>', <?php echo esc_js($pkg->id); ?>, '<?php echo esc_js($pkg->name); ?>', <?php echo esc_js($pkg->price); ?>); } else if(window.appWizard) { window.appWizard.openScenario2({id: <?php echo esc_js($post_id); ?>, name: '<?php echo esc_js($title); ?>'}); }" style="width:100%; padding:10px 16px; border-radius:10px; font-weight:700; font-size:13px; text-align:center; cursor:pointer; border:none;">
+                                        <i class="fas fa-check-circle"></i> <?php esc_html_e('Book This Package', 'caretochina-medical'); ?>
+                                    </button>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Global Service Notes Accordion -->
+                        <div class="ctc-service-notes-accordion" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                            <details style="cursor:pointer;">
+                                <summary style="font-weight:700; font-size:13.5px; color:#0F766E; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-circle-info"></i> <?php esc_html_e('View Global Concierge Service Notes & Inclusions', 'caretochina-medical'); ?>
+                                </summary>
+                                <div style="font-size:12.5px; color:#475569; margin-top:12px; line-height:1.7; white-space:pre-line; border-top:1px solid #E2E8F0; padding-top:10px;">
+                                    <?php echo esc_html(CareToChina_Packages::get_global_service_notes()); ?>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Patient Reviews / Comments -->
                 <?php if (comments_open() || get_comments_number()) : ?>
                     <div class="ctc-hosp-card-box ctc-comments-box">
-                        <h2 class="cy-heading ctc-box-title"><i class="fas fa-comments"></i> <?php _e('Patient Reviews & Enquiries', 'caretochina-hospitals'); ?></h2>
+                        <h2 class="cy-heading ctc-box-title"><i class="fas fa-comments"></i> <?php esc_html_e('Patient Reviews & Enquiries', 'caretochina-medical'); ?></h2>
                         <?php comments_template(); ?>
                     </div>
                 <?php endif; ?>
@@ -169,7 +251,7 @@ while (have_posts()) : the_post();
 
                         <!-- WhatsApp Direct Chat Button -->
                         <?php if (!empty($concierge['whatsapp']['url']) && !empty($concierge['whatsapp']['number'])) : ?>
-                            <a href="<?php echo esc_url($concierge['whatsapp']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-channel-btn ctc-btn-whatsapp" title="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-hospitals'); ?>" aria-label="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-hospitals'); ?>">
+                            <a href="<?php echo esc_url($concierge['whatsapp']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-channel-btn ctc-btn-whatsapp" title="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-medical'); ?>" aria-label="<?php esc_attr_e('Chat on WhatsApp', 'caretochina-medical'); ?>">
                                 <div class="ctc-ch-icon-wrap"><i class="fab fa-whatsapp"></i></div>
                                 <div class="ctc-ch-info">
                                     <span class="ctc-ch-sub"><?php echo esc_html($concierge['whatsapp']['label']); ?></span>
@@ -181,11 +263,11 @@ while (have_posts()) : the_post();
 
                         <!-- WeChat Direct Chat Button -->
                         <?php if (!empty($concierge['wechat']['id']) || !empty($concierge['wechat']['qr'])) : ?>
-                            <button type="button" class="ctc-channel-btn ctc-btn-wechat" onclick="ctcOpenWeChatModal('<?php echo esc_js($concierge['wechat']['id']); ?>', '<?php echo esc_js($concierge['wechat']['qr']); ?>', '<?php echo esc_js($concierge['wechat']['label']); ?>', '<?php echo esc_js($concierge['wechat']['message']); ?>')" title="<?php esc_attr_e('Chat on WeChat', 'caretochina-hospitals'); ?>" aria-label="<?php esc_attr_e('Chat on WeChat', 'caretochina-hospitals'); ?>" style="width:100%; border:none; cursor:pointer; text-align:left;">
+                            <button type="button" class="ctc-channel-btn ctc-btn-wechat" onclick="ctcOpenWeChatModal('<?php echo esc_js($concierge['wechat']['id']); ?>', '<?php echo esc_js($concierge['wechat']['qr']); ?>', '<?php echo esc_js($concierge['wechat']['label']); ?>', '<?php echo esc_js($concierge['wechat']['message']); ?>')" title="<?php esc_attr_e('Chat on WeChat', 'caretochina-medical'); ?>" aria-label="<?php esc_attr_e('Chat on WeChat', 'caretochina-medical'); ?>" style="width:100%; border:none; cursor:pointer; text-align:left;">
                                 <div class="ctc-ch-icon-wrap"><i class="fab fa-weixin"></i></div>
                                 <div class="ctc-ch-info">
                                     <span class="ctc-ch-sub"><?php echo esc_html($concierge['wechat']['label']); ?></span>
-                                    <span class="ctc-ch-main"><?php echo esc_html(!empty($concierge['wechat']['id']) ? 'ID: ' . $concierge['wechat']['id'] : __('Scan QR Code', 'caretochina-hospitals')); ?></span>
+                                    <span class="ctc-ch-main"><?php echo esc_html(!empty($concierge['wechat']['id']) ? 'ID: ' . $concierge['wechat']['id'] : __('Scan QR Code', 'caretochina-medical')); ?></span>
                                 </div>
                                 <div class="ctc-ch-arrow"><i class="fas fa-qrcode"></i></div>
                             </button>
@@ -193,7 +275,7 @@ while (have_posts()) : the_post();
 
                         <!-- Phone Hotline -->
                         <?php if (!empty($concierge['phone']['url']) && !empty($concierge['phone']['number'])) : ?>
-                            <a href="<?php echo esc_url($concierge['phone']['url']); ?>" class="ctc-channel-btn ctc-btn-phone" title="<?php esc_attr_e('Call Hotline', 'caretochina-hospitals'); ?>">
+                            <a href="<?php echo esc_url($concierge['phone']['url']); ?>" class="ctc-channel-btn ctc-btn-phone" title="<?php esc_attr_e('Call Hotline', 'caretochina-medical'); ?>">
                                 <div class="ctc-ch-icon-wrap"><i class="fas fa-phone-volume"></i></div>
                                 <div class="ctc-ch-info">
                                     <span class="ctc-ch-sub"><?php echo esc_html($concierge['phone']['label']); ?></span>
@@ -205,7 +287,7 @@ while (have_posts()) : the_post();
 
                         <!-- Email Channel -->
                         <?php if (!empty($concierge['email']['url']) && !empty($concierge['email']['address'])) : ?>
-                            <a href="<?php echo esc_url($concierge['email']['url']); ?>" class="ctc-channel-btn ctc-btn-email" title="<?php esc_attr_e('Email Concierge', 'caretochina-hospitals'); ?>">
+                            <a href="<?php echo esc_url($concierge['email']['url']); ?>" class="ctc-channel-btn ctc-btn-email" title="<?php esc_attr_e('Email Concierge', 'caretochina-medical'); ?>">
                                 <div class="ctc-ch-icon-wrap"><i class="fas fa-envelope-open-text"></i></div>
                                 <div class="ctc-ch-info">
                                     <span class="ctc-ch-sub"><?php echo esc_html($concierge['email']['label']); ?></span>
@@ -224,7 +306,7 @@ while (have_posts()) : the_post();
                                 <a href="<?php echo esc_url($cust['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-channel-btn ctc-btn-custom">
                                     <div class="ctc-ch-icon-wrap"><i class="<?php echo esc_attr($cust_icon); ?>"></i></div>
                                     <div class="ctc-ch-info">
-                                        <span class="ctc-ch-sub"><?php echo esc_html($cust['label'] ?: __('Direct Channel', 'caretochina-hospitals')); ?></span>
+                                        <span class="ctc-ch-sub"><?php echo esc_html($cust['label'] ?: __('Direct Channel', 'caretochina-medical')); ?></span>
                                         <span class="ctc-ch-main"><?php echo esc_html($cust['name']); ?></span>
                                     </div>
                                     <div class="ctc-ch-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div>
@@ -240,25 +322,25 @@ while (have_posts()) : the_post();
                     if ($has_social && $concierge['show_social_bar'] !== 'no') : 
                     ?>
                         <div class="ctc-concierge-social-bar">
-                            <span class="ctc-social-heading"><?php _e('Social Channels & Media:', 'caretochina-hospitals'); ?></span>
+                            <span class="ctc-social-heading"><?php esc_html_e('Social Channels & Media:', 'caretochina-medical'); ?></span>
                             <div class="ctc-social-icons">
                                 <?php if (!empty($concierge['facebook']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['facebook']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-fb" title="<?php echo esc_attr($concierge['facebook']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on Facebook', 'caretochina-hospitals'); ?>">
+                                    <a href="<?php echo esc_url($concierge['facebook']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-fb" title="<?php echo esc_attr($concierge['facebook']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on Facebook', 'caretochina-medical'); ?>">
                                         <i class="fab fa-facebook-f"></i>
                                     </a>
                                 <?php endif; ?>
                                 <?php if (!empty($concierge['instagram']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['instagram']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-ig" title="<?php echo esc_attr($concierge['instagram']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on Instagram', 'caretochina-hospitals'); ?>">
+                                    <a href="<?php echo esc_url($concierge['instagram']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-ig" title="<?php echo esc_attr($concierge['instagram']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on Instagram', 'caretochina-medical'); ?>">
                                         <i class="fab fa-instagram"></i>
                                     </a>
                                 <?php endif; ?>
                                 <?php if (!empty($concierge['youtube']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['youtube']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-yt" title="<?php echo esc_attr($concierge['youtube']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on YouTube', 'caretochina-hospitals'); ?>">
+                                    <a href="<?php echo esc_url($concierge['youtube']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-yt" title="<?php echo esc_attr($concierge['youtube']['label']); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on YouTube', 'caretochina-medical'); ?>">
                                         <i class="fab fa-youtube"></i>
                                     </a>
                                 <?php endif; ?>
                                 <?php if (!empty($concierge['x']['url'])) : ?>
-                                    <a href="<?php echo esc_url($concierge['x']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-x" title="<?php echo esc_attr($concierge['x']['label'] ?: 'X (Twitter)'); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on X (formerly Twitter)', 'caretochina-hospitals'); ?>">
+                                    <a href="<?php echo esc_url($concierge['x']['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-x" title="<?php echo esc_attr($concierge['x']['label'] ?: 'X (Twitter)'); ?>" aria-label="<?php esc_attr_e('Visit CareToChina on X (formerly Twitter)', 'caretochina-medical'); ?>">
                                         <i class="fab fa-x-twitter"></i>
                                     </a>
                                 <?php endif; ?>
@@ -266,9 +348,10 @@ while (have_posts()) : the_post();
                                     <?php foreach ($concierge['custom_socials'] as $csoc) : 
                                         if (empty($csoc['url'])) continue;
                                         $csoc_icon = !empty($csoc['icon']) ? $csoc['icon'] : 'fas fa-share-nodes';
-                                        $csoc_title = $csoc['name'] ?? __('Social Platform', 'caretochina-hospitals');
+                                        $csoc_title = $csoc['name'] ?? __('Social Platform', 'caretochina-medical');
                                     ?>
-                                        <a href="<?php echo esc_url($csoc['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-custom" title="<?php echo esc_attr($csoc_title); ?>" aria-label="<?php echo esc_attr(sprintf(__('Visit CareToChina on %s', 'caretochina-hospitals'), $csoc_title)); ?>">
+                                        <a href="<?php echo esc_url($csoc['url']); ?>" target="_blank" rel="noopener noreferrer nofollow" class="ctc-social-btn ctc-soc-custom" title="<?php echo esc_attr($csoc_title); ?>" aria-label="<?php echo esc_attr(/* translators: %s: dynamic value */
+sprintf(__('Visit CareToChina on %s', 'caretochina-medical'), $csoc_title)); ?>">
                                             <i class="<?php echo esc_attr($csoc_icon); ?>"></i>
                                         </a>
                                     <?php endforeach; ?>
@@ -283,12 +366,12 @@ while (have_posts()) : the_post();
                 <!-- Booking / Consultation Promo Card -->
                 <?php if ($concierge['show_booking_button'] !== 'no') : ?>
                 <div class="ctc-hosp-card-box ctc-sidebar-card ctc-quote-promo">
-                    <h3 class="cy-heading ctc-sidebar-title" style="color: #FFFFFF;"><i class="fas fa-calendar-check" style="color:#5eead4;"></i> <?php _e('Need Treatment Assistance?', 'caretochina-hospitals'); ?></h3>
+                    <h3 class="cy-heading ctc-sidebar-title" style="color: #FFFFFF;"><i class="fas fa-calendar-check" style="color:#5eead4;"></i> <?php esc_html_e('Need Treatment Assistance?', 'caretochina-medical'); ?></h3>
                     <p style="color: #CCFBF1; font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px;">
-                        <?php _e('Get matched with top doctors and receive a transparent treatment cost estimate in 24 hours.', 'caretochina-hospitals'); ?>
+                        <?php esc_html_e('Get matched with top doctors and receive a transparent treatment cost estimate in 24 hours.', 'caretochina-medical'); ?>
                     </p>
                     <a href="<?php echo esc_attr($concierge['booking']['url'] ?: $quote_url); ?>" class="ctc-sidebar-quote-btn">
-                        <i class="fas fa-paper-plane"></i> <?php echo esc_html($concierge['booking']['label'] ?: __('Get Free Quote', 'caretochina-hospitals')); ?>
+                        <i class="fas fa-paper-plane"></i> <?php echo esc_html($concierge['booking']['label'] ?: __('Get Free Quote', 'caretochina-medical')); ?>
                     </a>
                 </div>
                 <?php endif; ?>
@@ -815,24 +898,24 @@ while (have_posts()) : the_post();
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i class="fab fa-weixin" style="font-size:26px;"></i>
                     <div>
-                        <h3 id="ctc-wc-modal-title" style="margin:0; font-size:17px; font-weight:700; color:#FFFFFF;"><?php _e('WeChat Medical Concierge', 'caretochina-hospitals'); ?></h3>
-                        <span style="font-size:12px; opacity:0.9;"><?php _e('Direct Hospital Consultation', 'caretochina-hospitals'); ?></span>
+                        <h3 id="ctc-wc-modal-title" style="margin:0; font-size:17px; font-weight:700; color:#FFFFFF;"><?php esc_html_e('WeChat Medical Concierge', 'caretochina-medical'); ?></h3>
+                        <span style="font-size:12px; opacity:0.9;"><?php esc_html_e('Direct Hospital Consultation', 'caretochina-medical'); ?></span>
                     </div>
                 </div>
-                <button type="button" onclick="ctcCloseWeChatModal()" style="background:rgba(255,255,255,0.2); border:none; color:#FFFFFF; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" aria-label="<?php esc_attr_e('Close WeChat dialog', 'caretochina-hospitals'); ?>">&times;</button>
+                <button type="button" onclick="ctcCloseWeChatModal()" style="background:rgba(255,255,255,0.2); border:none; color:#FFFFFF; width:32px; height:32px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" aria-label="<?php esc_attr_e('Close WeChat dialog', 'caretochina-medical'); ?>">&times;</button>
             </div>
             <div style="padding:24px; text-align:center;">
                 <div id="ctc-wc-qr-container" style="display:none; margin-bottom:18px;">
                     <img id="ctc-wc-qr-img" src="" alt="WeChat QR Code" style="width:180px; height:180px; object-fit:contain; border-radius:12px; border:1px solid #E2E8F0; padding:8px; background:#F8FAFC; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
-                    <p style="font-size:12px; color:#64748B; margin:8px 0 0 0;"><i class="fas fa-camera"></i> <?php _e('Scan QR code using WeChat app', 'caretochina-hospitals'); ?></p>
+                    <p style="font-size:12px; color:#64748B; margin:8px 0 0 0;"><i class="fas fa-camera"></i> <?php esc_html_e('Scan QR code using WeChat app', 'caretochina-medical'); ?></p>
                 </div>
 
                 <div id="ctc-wc-id-container" style="display:none; background:#F0FDF4; border:1.5px dashed #86EFAC; border-radius:12px; padding:14px; margin-bottom:18px;">
-                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#15803D; letter-spacing:0.5px; display:block; margin-bottom:4px;"><?php _e('Official WeChat ID / Account', 'caretochina-hospitals'); ?></span>
+                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#15803D; letter-spacing:0.5px; display:block; margin-bottom:4px;"><?php esc_html_e('Official WeChat ID / Account', 'caretochina-medical'); ?></span>
                     <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:6px;">
                         <span id="ctc-wc-id-val" style="font-family:monospace; font-size:16px; font-weight:800; color:#0F172A; letter-spacing:0.5px;"></span>
-                        <button type="button" id="ctc-wc-copy-btn" onclick="ctcCopyWeChatId()" style="background:#07C160; color:#FFFFFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;" aria-label="<?php esc_attr_e('Copy WeChat ID', 'caretochina-hospitals'); ?>">
-                            <i class="fas fa-copy"></i> <span><?php _e('Copy ID', 'caretochina-hospitals'); ?></span>
+                        <button type="button" id="ctc-wc-copy-btn" onclick="ctcCopyWeChatId()" style="background:#07C160; color:#FFFFFF; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;" aria-label="<?php esc_attr_e('Copy WeChat ID', 'caretochina-medical'); ?>">
+                            <i class="fas fa-copy"></i> <span><?php esc_html_e('Copy ID', 'caretochina-medical'); ?></span>
                         </button>
                     </div>
                 </div>
@@ -841,10 +924,10 @@ while (have_posts()) : the_post();
 
                 <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                     <a id="ctc-wc-app-link" href="#" style="display:none; background:#07C160; color:#FFFFFF; text-decoration:none; padding:10px 18px; border-radius:999px; font-size:13px; font-weight:700; align-items:center; gap:8px;">
-                        <i class="fab fa-weixin"></i> <?php _e('Open WeChat App', 'caretochina-hospitals'); ?>
+                        <i class="fab fa-weixin"></i> <?php esc_html_e('Open WeChat App', 'caretochina-medical'); ?>
                     </a>
                     <button type="button" onclick="ctcCloseWeChatModal()" style="background:#F1F5F9; color:#475569; border:none; padding:10px 20px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;">
-                        <?php _e('Close', 'caretochina-hospitals'); ?>
+                        <?php esc_html_e('Close', 'caretochina-medical'); ?>
                     </button>
                 </div>
             </div>
@@ -878,7 +961,7 @@ while (have_posts()) : the_post();
             appLink.style.display = 'none';
         }
 
-        note.innerText = message || '<?php echo esc_js(__('Search the WeChat ID above or scan the QR code to connect with our China Medical Concierge.', 'caretochina-hospitals')); ?>';
+        note.innerText = message || '<?php echo esc_js(__('Search the WeChat ID above or scan the QR code to connect with our China Medical Concierge.', 'caretochina-medical')); ?>';
 
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -898,7 +981,7 @@ while (have_posts()) : the_post();
         navigator.clipboard.writeText(idVal).then(function() {
             var btn = document.getElementById('ctc-wc-copy-btn');
             var origHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> <span><?php echo esc_js(__('Copied! ✓', 'caretochina-hospitals')); ?></span>';
+            btn.innerHTML = '<i class="fas fa-check"></i> <span><?php echo esc_js(__('Copied! ✓', 'caretochina-medical')); ?></span>';
             btn.style.background = '#15803D';
             setTimeout(function() {
                 btn.innerHTML = origHtml;
@@ -918,6 +1001,7 @@ while (have_posts()) : the_post();
     </script>
 
     <?php
-endwhile;
+    endwhile;
+})();
 
 get_footer();

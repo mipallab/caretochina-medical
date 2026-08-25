@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 
 // 1. Require Payment Infrastructure Files
 require_once __DIR__ . '/class-payment-security.php';
-require_once __DIR__ . '/class-treatment-product-sync.php';
+require_once __DIR__ . '/class-package-product-sync.php';
 require_once __DIR__ . '/interface-payment-gateway.php';
 require_once __DIR__ . '/class-stripe-gateway.php';
 require_once __DIR__ . '/class-paypal-gateway.php';
@@ -25,7 +25,7 @@ if (file_exists(dirname(__DIR__) . '/auth/class-google-login.php')) {
 
 // 2. Initialize Module Singletons on plugins_loaded
 add_action('plugins_loaded', function() {
-    CareToChina_Treatment_Product_Sync::instance();
+    CareToChina_Package_Product_Sync::instance();
     CareToChina_Payment_Manager::instance();
     CareToChina_Payment_Reconciliation::instance();
     CareToChina_WooCommerce_Headless::instance();

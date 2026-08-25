@@ -54,7 +54,8 @@ class CareToChina_Email_Templates {
             'logo_url'      => $logo,
             'from_name'     => get_option('ctc_email_from_name', get_bloginfo('name') . ' Medical'),
             'from_email'    => get_option('ctc_email_from_email', get_option('admin_email')),
-            'footer_text'   => get_option('ctc_email_footer_text', sprintf(__('© %s CareToChina Medical Travel Services. All rights reserved. Confidential & HIPAA/GDPR compliant communication.', 'caretochina-medical'), date('Y'))),
+            'footer_text'   => get_option('ctc_email_footer_text', /* translators: %s: dynamic value */
+ sprintf(__('© %s CareToChina Medical Travel Services. All rights reserved. Confidential & HIPAA/GDPR compliant communication.', 'caretochina-medical'), gmdate('Y'))),
         ];
     }
 
@@ -239,7 +240,7 @@ class CareToChina_Email_Templates {
             </style>
         </head>
         <body style="margin:0; padding:0; background-color:<?php echo esc_attr($b['bg_color']); ?>; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-            <?php echo $preheader_html; ?>
+            <?php echo wp_kses_post($preheader_html); ?>
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:<?php echo esc_attr($b['bg_color']); ?>; padding:30px 10px;">
                 <tr>
                     <td align="center">
@@ -247,8 +248,8 @@ class CareToChina_Email_Templates {
                             <!-- BRAND HEADER -->
                             <tr>
                                 <td align="center" style="padding-bottom:24px;">
-                                    <a href="<?php echo $home_url; ?>" style="text-decoration:none;">
-                                        <?php echo $logo_html; ?>
+                                    <a href="<?php echo esc_url($home_url); ?>" style="text-decoration:none;">
+                                        <?php echo wp_kses_post($logo_html); ?>
                                     </a>
                                 </td>
                             </tr>
@@ -266,11 +267,11 @@ class CareToChina_Email_Templates {
 
                                     <!-- CONTENT -->
                                     <div style="font-size:15px; line-height:1.65; color:#334155; margin-bottom:24px;">
-                                        <?php echo $body_content; ?>
+                                        <?php echo wp_kses_post($body_content); ?>
                                     </div>
 
                                     <!-- CTA BUTTON -->
-                                    <?php echo $btn_html; ?>
+                                    <?php echo wp_kses_post($btn_html); ?>
 
                                     <!-- SECURITY BADGE -->
                                     <div style="border-top:1px solid #F1F5F9; margin-top:30px; padding-top:16px; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#94A3B8;">
@@ -287,9 +288,9 @@ class CareToChina_Email_Templates {
                                         <?php echo esc_html($b['footer_text']); ?>
                                     </p>
                                     <p style="margin:0; font-size:11px; color:#94A3B8;">
-                                        <a href="<?php echo $home_url; ?>" style="color:<?php echo esc_attr($b['brand_color']); ?>; text-decoration:none; font-weight:600;"><?php echo $site_name; ?></a> | 
-                                        <a href="<?php echo $home_url . 'contact/'; ?>" style="color:#64748B; text-decoration:none;">Support Desk</a> | 
-                                        <a href="<?php echo $home_url . 'privacy-policy/'; ?>" style="color:#64748B; text-decoration:none;">Privacy Policy</a>
+                                        <a href="<?php echo esc_url($home_url); ?>" style="color:<?php echo esc_attr($b['brand_color']); ?>; text-decoration:none; font-weight:600;"><?php echo esc_html($site_name); ?></a> | 
+                                        <a href="<?php echo esc_url($home_url . 'contact/'); ?>" style="color:#64748B; text-decoration:none;">Support Desk</a> | 
+                                        <a href="<?php echo esc_url($home_url . 'privacy-policy/'); ?>" style="color:#64748B; text-decoration:none;">Privacy Policy</a>
                                     </p>
                                 </td>
                             </tr>
@@ -312,31 +313,31 @@ class CareToChina_Email_Templates {
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; margin:16px 0; overflow:hidden; font-size:13.5px; border-collapse:collapse;">
             <?php if (!empty($data['booking_code'])) : ?>
                 <tr style="border-bottom:1px solid #E2E8F0;">
-                    <td style="padding:10px 14px; font-weight:700; color:#64748B; width:38%; background:#F1F5F9;"><?php _e('Case Reference:', 'caretochina-medical'); ?></td>
+                    <td style="padding:10px 14px; font-weight:700; color:#64748B; width:38%; background:#F1F5F9;"><?php esc_html_e('Case Reference:', 'caretochina-medical'); ?></td>
                     <td style="padding:10px 14px; font-weight:800; color:#0F766E;"><?php echo esc_html('#' . $data['booking_code']); ?></td>
                 </tr>
             <?php endif; ?>
             <?php if (!empty($data['specialty'])) : ?>
                 <tr style="border-bottom:1px solid #E2E8F0;">
-                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php _e('Medical Specialty:', 'caretochina-medical'); ?></td>
+                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php esc_html_e('Medical Specialty:', 'caretochina-medical'); ?></td>
                     <td style="padding:10px 14px; font-weight:600; color:#0F172A;"><?php echo esc_html($data['specialty']); ?></td>
                 </tr>
             <?php endif; ?>
             <?php if (!empty($data['hospital_name'])) : ?>
                 <tr style="border-bottom:1px solid #E2E8F0;">
-                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php _e('Assigned Hospital:', 'caretochina-medical'); ?></td>
+                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php esc_html_e('Assigned Hospital:', 'caretochina-medical'); ?></td>
                     <td style="padding:10px 14px; font-weight:600; color:#0F172A;"><?php echo esc_html($data['hospital_name']); ?></td>
                 </tr>
             <?php endif; ?>
             <?php if (!empty($data['status'])) : ?>
                 <tr style="border-bottom:1px solid #E2E8F0;">
-                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php _e('Current Status:', 'caretochina-medical'); ?></td>
+                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php esc_html_e('Current Status:', 'caretochina-medical'); ?></td>
                     <td style="padding:10px 14px; font-weight:700; color:#0F766E; text-transform:uppercase;"><?php echo esc_html($data['status']); ?></td>
                 </tr>
             <?php endif; ?>
             <?php if (!empty($data['patient_phone'])) : ?>
                 <tr>
-                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php _e('Contact Phone:', 'caretochina-medical'); ?></td>
+                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php esc_html_e('Contact Phone:', 'caretochina-medical'); ?></td>
                     <td style="padding:10px 14px; font-weight:600; color:#0F172A;"><?php echo esc_html($data['patient_phone']); ?></td>
                 </tr>
             <?php endif; ?>
@@ -385,7 +386,7 @@ class CareToChina_Email_Templates {
             '{staff_portal_url}'  => esc_url(admin_url('admin.php?page=caretochina-staff-desk')),
             '{site_name}'         => esc_html(get_bloginfo('name')),
             '{site_url}'          => esc_url(home_url('/')),
-            '{current_year}'      => date('Y'),
+            '{current_year}'      => gmdate('Y'),
             '{case_summary_table}'=> self::build_case_summary_table($data),
         ];
 
@@ -427,11 +428,11 @@ class CareToChina_Email_Templates {
 
         $nonce = isset($_POST['ctc_email_settings_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_email_settings_nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'ctc_save_email_settings')) {
-            wp_die(__('Security verification failed.', 'caretochina-medical'));
+            wp_die(esc_html__('Security verification failed.', 'caretochina-medical'));
         }
 
         if (!current_user_can('manage_options')) {
-            wp_die(__('Permission denied.', 'caretochina-medical'));
+            wp_die(esc_html__('Permission denied.', 'caretochina-medical'));
         }
 
         // 1. Save Branding Settings
@@ -463,6 +464,7 @@ class CareToChina_Email_Templates {
         // 2. Save Event Mapping
         if (isset($_POST['ctc_event_map']) && is_array($_POST['ctc_event_map'])) {
             $cleaned_map = [];
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $raw_map = wp_unslash($_POST['ctc_event_map']);
             foreach ($raw_map as $ev => $tid) {
                 $cleaned_map[sanitize_key($ev)] = sanitize_key($tid);
@@ -473,6 +475,7 @@ class CareToChina_Email_Templates {
         // 3. Save Templates
         if (isset($_POST['ctc_templates']) && is_array($_POST['ctc_templates'])) {
             $saved_templates = self::get_all_templates();
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $raw_templates = wp_unslash($_POST['ctc_templates']);
             foreach ($raw_templates as $tid => $tdata) {
                 $tid = sanitize_key($tid);
@@ -493,7 +496,7 @@ class CareToChina_Email_Templates {
         // Add custom new template if submitted
         if (!empty($_POST['new_template_name'])) {
             $new_name = sanitize_text_field(wp_unslash($_POST['new_template_name']));
-            $new_id = sanitize_key(str_replace(' ', '_', strtolower($new_name))) . '_' . rand(100, 999);
+            $new_id = sanitize_key(str_replace(' ', '_', strtolower($new_name))) . '_' . wp_rand(100, 999);
             $saved_templates = self::get_all_templates();
             $saved_templates[$new_id] = [
                 'id'        => $new_id,
@@ -508,7 +511,7 @@ class CareToChina_Email_Templates {
             update_option('ctc_email_templates', $saved_templates);
         }
 
-        wp_redirect(add_query_arg(['page' => 'caretochina-email-templates', 'saved' => '1'], admin_url('admin.php')));
+        wp_safe_redirect(add_query_arg(['page' => 'caretochina-email-templates', 'saved' => '1'], admin_url('admin.php')));
         exit;
     }
 
@@ -555,7 +558,8 @@ class CareToChina_Email_Templates {
         $sent = self::send_notification($template_id, $email, $sample_data);
 
         if ($sent) {
-            wp_send_json_success(['message' => sprintf(__('Test email successfully queued & sent to %s!', 'caretochina-medical'), $email)]);
+            wp_send_json_success(['message' => /* translators: %s: dynamic value */
+ sprintf(__('Test email successfully queued & sent to %s!', 'caretochina-medical'), $email)]);
         } else {
             wp_send_json_error(['message' => __('Failed to dispatch test email. Please verify WordPress mail settings.', 'caretochina-medical')]);
         }
@@ -567,10 +571,10 @@ class CareToChina_Email_Templates {
     public function handle_ajax_preview_template() {
         $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'ctc_email_ajax_nonce')) {
-            wp_die(__('Security verification failed.', 'caretochina-medical'));
+            wp_die(esc_html__('Security verification failed.', 'caretochina-medical'));
         }
         if (!current_user_can('manage_options')) {
-            wp_die(__('Permission denied.', 'caretochina-medical'));
+            wp_die(esc_html__('Permission denied.', 'caretochina-medical'));
         }
 
         $template_id = isset($_POST['template_id']) ? sanitize_key(wp_unslash($_POST['template_id'])) : 'guest_booking';
@@ -596,7 +600,7 @@ class CareToChina_Email_Templates {
             'message_snippet' => 'We have scheduled your pre-consultation review with the cardiology department.',
             'chat_url'        => home_url('/guest-chat/?token=demo'),
             'dashboard_url'   => home_url('/patient-dashboard/'),
-            'current_year'    => date('Y'),
+            'current_year'    => gmdate('Y'),
         ];
 
         $replacements = [
@@ -620,7 +624,7 @@ class CareToChina_Email_Templates {
             '{staff_portal_url}'  => admin_url('admin.php?page=caretochina-staff-desk'),
             '{site_name}'         => get_bloginfo('name'),
             '{site_url}'          => home_url('/'),
-            '{current_year}'      => date('Y'),
+            '{current_year}'      => gmdate('Y'),
             '{case_summary_table}'=> self::build_case_summary_table($sample_data),
         ];
 
@@ -634,6 +638,7 @@ class CareToChina_Email_Templates {
             $raw_body = nl2br($raw_body);
         }
 
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo self::render_master_html($heading, $raw_body, $btn_text, $btn_url, $preheader);
         exit;
     }
@@ -658,44 +663,48 @@ class CareToChina_Email_Templates {
             'chat_message'             => __('Live Chat Message Alert (Sent when Coordinator messages Patient)', 'caretochina-medical'),
         ];
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $active_subtab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'templates';
         ?>
         <div class="wrap" style="max-width:1120px; font-family:'Manrope', -apple-system, sans-serif;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid #CBD5E1; padding-bottom:14px;">
                 <div>
                     <h1 style="margin:0 0 4px 0; font-size:24px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:10px;">
-                        <i class="fa-solid fa-envelope-circle-check" style="color:#0F766E;"></i> <?php _e('CareToChina Email Templates & Brand Center', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-envelope-circle-check" style="color:#0F766E;"></i> <?php esc_html_e('CareToChina Email Templates & Brand Center', 'caretochina-medical'); ?>
                     </h1>
                     <p style="margin:0; font-size:13.5px; color:#64748B;">
-                        <?php _e('Customize brand colors, typography, email copywriting, dynamic placeholders, and notification routing for all outbound emails.', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Customize brand colors, typography, email copywriting, dynamic placeholders, and notification routing for all outbound emails.', 'caretochina-medical'); ?>
                     </p>
                 </div>
                 <div>
                     <button type="button" onclick="openTestEmailModal()" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; padding:6px 16px; height:auto; font-size:13.5px; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-paper-plane"></i> <?php _e('Send Test Email', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-paper-plane"></i> <?php esc_html_e('Send Test Email', 'caretochina-medical'); ?>
                     </button>
                 </div>
             </div>
 
-            <?php if (isset($_GET['saved'])) : ?>
+            <?php
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if (isset($_GET['saved'])) :
+            ?>
                 <div class="notice notice-success is-dismissible" style="border-left-color:#0F766E;">
-                    <p><strong><i class="fa-solid fa-circle-check" style="color:#0F766E;"></i> <?php _e('Email templates and branding settings saved successfully!', 'caretochina-medical'); ?></strong></p>
+                    <p><strong><i class="fa-solid fa-circle-check" style="color:#0F766E;"></i> <?php esc_html_e('Email templates and branding settings saved successfully!', 'caretochina-medical'); ?></strong></p>
                 </div>
             <?php endif; ?>
 
             <!-- NAVIGATION TABS -->
             <h2 class="nav-tab-wrapper" style="margin-bottom:24px;">
                 <a href="<?php echo esc_url(add_query_arg('tab', 'templates')); ?>" class="nav-tab <?php echo ($active_subtab === 'templates') ? 'nav-tab-active' : ''; ?>" style="<?php echo ($active_subtab === 'templates') ? 'background:#FFFFFF; color:#0F766E; font-weight:700;' : ''; ?>">
-                    <i class="fa-solid fa-file-signature"></i> <?php _e('Email Templates Editor', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-file-signature"></i> <?php esc_html_e('Email Templates Editor', 'caretochina-medical'); ?>
                 </a>
                 <a href="<?php echo esc_url(add_query_arg('tab', 'routing')); ?>" class="nav-tab <?php echo ($active_subtab === 'routing') ? 'nav-tab-active' : ''; ?>" style="<?php echo ($active_subtab === 'routing') ? 'background:#FFFFFF; color:#0F766E; font-weight:700;' : ''; ?>">
-                    <i class="fa-solid fa-arrows-split-up-and-left"></i> <?php _e('Notification Event Routing', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-arrows-split-up-and-left"></i> <?php esc_html_e('Notification Event Routing', 'caretochina-medical'); ?>
                 </a>
                 <a href="<?php echo esc_url(add_query_arg('tab', 'branding')); ?>" class="nav-tab <?php echo ($active_subtab === 'branding') ? 'nav-tab-active' : ''; ?>" style="<?php echo ($active_subtab === 'branding') ? 'background:#FFFFFF; color:#0F766E; font-weight:700;' : ''; ?>">
-                    <i class="fa-solid fa-palette"></i> <?php _e('Brand Theme & Styling', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-palette"></i> <?php esc_html_e('Brand Theme & Styling', 'caretochina-medical'); ?>
                 </a>
                 <a href="<?php echo esc_url(add_query_arg('tab', 'add_new')); ?>" class="nav-tab <?php echo ($active_subtab === 'add_new') ? 'nav-tab-active' : ''; ?>" style="<?php echo ($active_subtab === 'add_new') ? 'background:#FFFFFF; color:#0F766E; font-weight:700;' : ''; ?>">
-                    <i class="fa-solid fa-plus-circle"></i> <?php _e('Add New Template', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-plus-circle"></i> <?php esc_html_e('Add New Template', 'caretochina-medical'); ?>
                 </a>
             </h2>
 
@@ -707,7 +716,7 @@ class CareToChina_Email_Templates {
                     <div style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:14px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:24px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
                             <div>
-                                <label for="active_template_selector" style="font-weight:700; font-size:14px; margin-right:8px; color:#0F172A;"><?php _e('Select Template to Edit:', 'caretochina-medical'); ?></label>
+                                <label for="active_template_selector" style="font-weight:700; font-size:14px; margin-right:8px; color:#0F172A;"><?php esc_html_e('Select Template to Edit:', 'caretochina-medical'); ?></label>
                                 <select id="active_template_selector" onchange="switchTemplateEditor(this.value)" style="padding:6px 12px; border-radius:8px; font-weight:700; font-size:14px; border-color:#CBD5E1;">
                                     <?php foreach ($templates as $tid => $t) : ?>
                                         <option value="<?php echo esc_attr($tid); ?>"><?php echo esc_html($t['name']); ?></option>
@@ -716,10 +725,10 @@ class CareToChina_Email_Templates {
                             </div>
                             <div style="display:flex; gap:10px;">
                                 <button type="button" onclick="previewCurrentTemplate()" class="button" style="font-weight:600; color:#0F766E; border-color:#0F766E; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-eye"></i> <?php _e('Live Preview', 'caretochina-medical'); ?>
+                                    <i class="fa-solid fa-eye"></i> <?php esc_html_e('Live Preview', 'caretochina-medical'); ?>
                                 </button>
                                 <button type="submit" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; display:flex; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-floppy-disk"></i> <?php _e('Save Changes', 'caretochina-medical'); ?>
+                                    <i class="fa-solid fa-floppy-disk"></i> <?php esc_html_e('Save Changes', 'caretochina-medical'); ?>
                                 </button>
                             </div>
                         </div>
@@ -727,7 +736,7 @@ class CareToChina_Email_Templates {
                         <!-- PLACEHOLDERS GUIDE -->
                         <div style="background:#F0FDFA; border:1px solid #99F6E4; border-radius:10px; padding:14px 18px; margin-bottom:24px;">
                             <div style="font-size:13px; font-weight:700; color:#0F766E; margin-bottom:6px;">
-                                <i class="fa-solid fa-tags"></i> <?php _e('Available Merge Tags (Click to Copy):', 'caretochina-medical'); ?>
+                                <i class="fa-solid fa-tags"></i> <?php esc_html_e('Available Merge Tags (Click to Copy):', 'caretochina-medical'); ?>
                             </div>
                             <div style="display:flex; flex-wrap:wrap; gap:6px; font-size:12px;">
                                 <?php
@@ -752,33 +761,33 @@ class CareToChina_Email_Templates {
                                 
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:16px;">
                                     <div>
-                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Email Subject Line:', 'caretochina-medical'); ?></label>
+                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Email Subject Line:', 'caretochina-medical'); ?></label>
                                         <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][subject]" value="<?php echo esc_attr($t['subject']); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" required>
                                     </div>
                                     <div>
-                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Email Heading (H1 inside Card):', 'caretochina-medical'); ?></label>
+                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Email Heading (H1 inside Card):', 'caretochina-medical'); ?></label>
                                         <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][heading]" value="<?php echo esc_attr($t['heading']); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" required>
                                     </div>
                                 </div>
 
                                 <div style="margin-bottom:16px;">
-                                    <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Preheader Text (Snippet shown in Inbox):', 'caretochina-medical'); ?></label>
-                                    <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][preheader]" value="<?php echo esc_attr($t['preheader'] ?? ''); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('Optional short teaser shown next to the subject line in email clients', 'caretochina-medical'); ?>">
+                                    <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Preheader Text (Snippet shown in Inbox):', 'caretochina-medical'); ?></label>
+                                    <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][preheader]" value="<?php echo esc_attr($t['preheader'] ?? ''); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('Optional short teaser shown next to the subject line in email clients', 'caretochina-medical'); ?>">
                                 </div>
 
                                 <div style="margin-bottom:18px;">
-                                    <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Email Body Content (HTML allowed):', 'caretochina-medical'); ?></label>
+                                    <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Email Body Content (HTML allowed):', 'caretochina-medical'); ?></label>
                                     <textarea name="ctc_templates[<?php echo esc_attr($tid); ?>][content]" rows="10" style="width:100%; border-radius:8px; padding:12px; font-size:13.5px; font-family:monospace; line-height:1.6; border:1px solid #CBD5E1;"><?php echo esc_textarea($t['content']); ?></textarea>
                                 </div>
 
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:16px; background:#F8FAFC; padding:16px; border-radius:10px; border:1px solid #E2E8F0;">
                                     <div>
-                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Primary Action Button Text:', 'caretochina-medical'); ?></label>
-                                        <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][btn_text]" value="<?php echo esc_attr($t['btn_text'] ?? ''); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('e.g. Access Live Chat Consultation →', 'caretochina-medical'); ?>">
+                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Primary Action Button Text:', 'caretochina-medical'); ?></label>
+                                        <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][btn_text]" value="<?php echo esc_attr($t['btn_text'] ?? ''); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('e.g. Access Live Chat Consultation →', 'caretochina-medical'); ?>">
                                     </div>
                                     <div>
-                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Button Destination URL / Placeholder:', 'caretochina-medical'); ?></label>
-                                        <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][btn_url]" value="<?php echo esc_attr($t['btn_url'] ?? ''); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('e.g. {chat_url} or {dashboard_url}', 'caretochina-medical'); ?>">
+                                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Button Destination URL / Placeholder:', 'caretochina-medical'); ?></label>
+                                        <input type="text" name="ctc_templates[<?php echo esc_attr($tid); ?>][btn_url]" value="<?php echo esc_attr($t['btn_url'] ?? ''); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('e.g. {chat_url} or {dashboard_url}', 'caretochina-medical'); ?>">
                                     </div>
                                 </div>
                             </div>
@@ -789,15 +798,15 @@ class CareToChina_Email_Templates {
                 <!-- TAB 2: NOTIFICATION ROUTING -->
                 <?php if ($active_subtab === 'routing') : ?>
                     <div style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:14px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:24px;">
-                        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0F172A;"><?php _e('Notification Event to Template Assignment', 'caretochina-medical'); ?></h3>
-                        <p style="margin:0 0 20px 0; font-size:13.5px; color:#64748B;"><?php _e('Assign which email template is triggered for each medical and payment event across the plugin.', 'caretochina-medical'); ?></p>
+                        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0F172A;"><?php esc_html_e('Notification Event to Template Assignment', 'caretochina-medical'); ?></h3>
+                        <p style="margin:0 0 20px 0; font-size:13.5px; color:#64748B;"><?php esc_html_e('Assign which email template is triggered for each medical and payment event across the plugin.', 'caretochina-medical'); ?></p>
 
                         <table class="widefat striped" style="border:1px solid #E2E8F0; border-radius:10px; overflow:hidden;">
                             <thead>
                                 <tr>
-                                    <th style="font-weight:700; padding:12px 16px;"><?php _e('System Event Trigger', 'caretochina-medical'); ?></th>
-                                    <th style="font-weight:700; padding:12px 16px;"><?php _e('Assigned Email Template', 'caretochina-medical'); ?></th>
-                                    <th style="font-weight:700; padding:12px 16px; text-align:right;"><?php _e('Quick Action', 'caretochina-medical'); ?></th>
+                                    <th style="font-weight:700; padding:12px 16px;"><?php esc_html_e('System Event Trigger', 'caretochina-medical'); ?></th>
+                                    <th style="font-weight:700; padding:12px 16px;"><?php esc_html_e('Assigned Email Template', 'caretochina-medical'); ?></th>
+                                    <th style="font-weight:700; padding:12px 16px; text-align:right;"><?php esc_html_e('Quick Action', 'caretochina-medical'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -820,7 +829,7 @@ class CareToChina_Email_Templates {
                                         </td>
                                         <td style="padding:14px 16px; vertical-align:middle; text-align:right;">
                                             <button type="button" onclick="previewSpecificTemplate('<?php echo esc_attr($assigned); ?>')" class="button" style="font-size:12px; font-weight:600; color:#0F766E;">
-                                                <i class="fa-solid fa-eye"></i> <?php _e('Preview', 'caretochina-medical'); ?>
+                                                <i class="fa-solid fa-eye"></i> <?php esc_html_e('Preview', 'caretochina-medical'); ?>
                                             </button>
                                         </td>
                                     </tr>
@@ -833,19 +842,19 @@ class CareToChina_Email_Templates {
                 <!-- TAB 3: BRAND THEME & STYLING -->
                 <?php if ($active_subtab === 'branding') : ?>
                     <div style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:14px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:24px;">
-                        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0F172A;"><?php _e('Brand Theme, Logo & Sender Information', 'caretochina-medical'); ?></h3>
-                        <p style="margin:0 0 20px 0; font-size:13.5px; color:#64748B;"><?php _e('These color tokens and credentials apply to every outbound email sent by CareToChina Medical.', 'caretochina-medical'); ?></p>
+                        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0F172A;"><?php esc_html_e('Brand Theme, Logo & Sender Information', 'caretochina-medical'); ?></h3>
+                        <p style="margin:0 0 20px 0; font-size:13.5px; color:#64748B;"><?php esc_html_e('These color tokens and credentials apply to every outbound email sent by CareToChina Medical.', 'caretochina-medical'); ?></p>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Primary Brand Color (Buttons, Accents, Links):', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Primary Brand Color (Buttons, Accents, Links):', 'caretochina-medical'); ?></label>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <input type="color" name="ctc_email_brand_color" value="<?php echo esc_attr($branding['brand_color']); ?>" style="width:48px; height:38px; padding:2px; border-radius:8px; border:1px solid #CBD5E1; cursor:pointer;">
                                     <input type="text" value="<?php echo esc_attr($branding['brand_color']); ?>" style="width:120px; border-radius:8px; padding:8px 10px; font-family:monospace; font-weight:700;" readonly>
                                 </div>
                             </div>
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Accent Glow / Gradient Color:', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Accent Glow / Gradient Color:', 'caretochina-medical'); ?></label>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <input type="color" name="ctc_email_accent_color" value="<?php echo esc_attr($branding['accent_color']); ?>" style="width:48px; height:38px; padding:2px; border-radius:8px; border:1px solid #CBD5E1; cursor:pointer;">
                                     <input type="text" value="<?php echo esc_attr($branding['accent_color']); ?>" style="width:120px; border-radius:8px; padding:8px 10px; font-family:monospace; font-weight:700;" readonly>
@@ -855,14 +864,14 @@ class CareToChina_Email_Templates {
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Email Background Color:', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Email Background Color:', 'caretochina-medical'); ?></label>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <input type="color" name="ctc_email_bg_color" value="<?php echo esc_attr($branding['bg_color']); ?>" style="width:48px; height:38px; padding:2px; border-radius:8px; border:1px solid #CBD5E1; cursor:pointer;">
                                     <input type="text" value="<?php echo esc_attr($branding['bg_color']); ?>" style="width:120px; border-radius:8px; padding:8px 10px; font-family:monospace; font-weight:700;" readonly>
                                 </div>
                             </div>
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Card Container Background:', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Card Container Background:', 'caretochina-medical'); ?></label>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <input type="color" name="ctc_email_card_bg" value="<?php echo esc_attr($branding['card_bg']); ?>" style="width:48px; height:38px; padding:2px; border-radius:8px; border:1px solid #CBD5E1; cursor:pointer;">
                                     <input type="text" value="<?php echo esc_attr($branding['card_bg']); ?>" style="width:120px; border-radius:8px; padding:8px 10px; font-family:monospace; font-weight:700;" readonly>
@@ -871,24 +880,24 @@ class CareToChina_Email_Templates {
                         </div>
 
                         <div style="margin-bottom:20px;">
-                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Custom Email Header Logo Image URL:', 'caretochina-medical'); ?></label>
+                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Custom Email Header Logo Image URL:', 'caretochina-medical'); ?></label>
                             <input type="url" name="ctc_email_logo_url" value="<?php echo esc_attr($branding['logo_url']); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="https://caretochina.com/wp-content/uploads/logo.png">
-                            <span class="description" style="color:#64748B; font-size:12px;"><?php _e('Leave blank to use the modern CareToChina SVG/text brand header.', 'caretochina-medical'); ?></span>
+                            <span class="description" style="color:#64748B; font-size:12px;"><?php esc_html_e('Leave blank to use the modern CareToChina SVG/text brand header.', 'caretochina-medical'); ?></span>
                         </div>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Sender Name (From Name):', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Sender Name (From Name):', 'caretochina-medical'); ?></label>
                                 <input type="text" name="ctc_email_from_name" value="<?php echo esc_attr($branding['from_name']); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" required>
                             </div>
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Sender Email (From Address):', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Sender Email (From Address):', 'caretochina-medical'); ?></label>
                                 <input type="email" name="ctc_email_from_email" value="<?php echo esc_attr($branding['from_email']); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" required>
                             </div>
                         </div>
 
                         <div style="margin-bottom:20px;">
-                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Footer Copyright & Legal Disclaimer:', 'caretochina-medical'); ?></label>
+                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Footer Copyright & Legal Disclaimer:', 'caretochina-medical'); ?></label>
                             <textarea name="ctc_email_footer_text" rows="3" style="width:100%; border-radius:8px; padding:10px; font-size:13.5px; border:1px solid #CBD5E1;"><?php echo esc_textarea($branding['footer_text']); ?></textarea>
                         </div>
                     </div>
@@ -897,27 +906,27 @@ class CareToChina_Email_Templates {
                 <!-- TAB 4: ADD NEW TEMPLATE -->
                 <?php if ($active_subtab === 'add_new') : ?>
                     <div style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:14px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:24px;">
-                        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0F766E;"><?php _e('Create a Custom Email Template', 'caretochina-medical'); ?></h3>
-                        <p style="margin:0 0 20px 0; font-size:13.5px; color:#64748B;"><?php _e('Create a new custom template that can be mapped to any notification hook or sent via API.', 'caretochina-medical'); ?></p>
+                        <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:800; color:#0F766E;"><?php esc_html_e('Create a Custom Email Template', 'caretochina-medical'); ?></h3>
+                        <p style="margin:0 0 20px 0; font-size:13.5px; color:#64748B;"><?php esc_html_e('Create a new custom template that can be mapped to any notification hook or sent via API.', 'caretochina-medical'); ?></p>
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:16px;">
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Template Name *', 'caretochina-medical'); ?></label>
-                                <input type="text" name="new_template_name" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('e.g. VIP Concierge Travel Package Ready', 'caretochina-medical'); ?>">
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Template Name *', 'caretochina-medical'); ?></label>
+                                <input type="text" name="new_template_name" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('e.g. VIP Concierge Travel Package Ready', 'caretochina-medical'); ?>">
                             </div>
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Subject Line *', 'caretochina-medical'); ?></label>
-                                <input type="text" name="new_template_subject" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('[CareToChina] Your VIP Package is Ready: #{booking_code}', 'caretochina-medical'); ?>">
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Subject Line *', 'caretochina-medical'); ?></label>
+                                <input type="text" name="new_template_subject" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('[CareToChina] Your VIP Package is Ready: #{booking_code}', 'caretochina-medical'); ?>">
                             </div>
                         </div>
 
                         <div style="margin-bottom:16px;">
-                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Email Card Heading *', 'caretochina-medical'); ?></label>
-                            <input type="text" name="new_template_heading" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('Your Medical Itinerary is Ready for Departure', 'caretochina-medical'); ?>">
+                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Email Card Heading *', 'caretochina-medical'); ?></label>
+                            <input type="text" name="new_template_heading" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('Your Medical Itinerary is Ready for Departure', 'caretochina-medical'); ?>">
                         </div>
 
                         <div style="margin-bottom:18px;">
-                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Body Content (HTML & Placeholders allowed) *', 'caretochina-medical'); ?></label>
+                            <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Body Content (HTML & Placeholders allowed) *', 'caretochina-medical'); ?></label>
                             <textarea name="new_template_content" rows="8" style="width:100%; border-radius:8px; padding:12px; font-size:13.5px; font-family:monospace; line-height:1.6; border:1px solid #CBD5E1;"><p>Dear {patient_name},</p>
 <p>We are pleased to inform you that your customized medical consultation schedule for <strong>{specialty}</strong> at <strong>{hospital_name}</strong> is ready.</p>
 {case_summary_table}</textarea>
@@ -925,11 +934,11 @@ class CareToChina_Email_Templates {
 
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:16px;">
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Button Text:', 'caretochina-medical'); ?></label>
-                                <input type="text" name="new_template_btn_text" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php _e('View My Itinerary →', 'caretochina-medical'); ?>">
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Button Text:', 'caretochina-medical'); ?></label>
+                                <input type="text" name="new_template_btn_text" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="<?php esc_html_e('View My Itinerary →', 'caretochina-medical'); ?>">
                             </div>
                             <div>
-                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Button Destination URL:', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Button Destination URL:', 'caretochina-medical'); ?></label>
                                 <input type="text" name="new_template_btn_url" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;" placeholder="{dashboard_url}">
                             </div>
                         </div>
@@ -938,7 +947,7 @@ class CareToChina_Email_Templates {
 
                 <div style="margin-top:20px;">
                     <button type="submit" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:800; font-size:15px; padding:8px 24px; height:auto; border-radius:8px; box-shadow:0 4px 12px rgba(15,118,110,0.25);">
-                        <i class="fa-solid fa-floppy-disk"></i> <?php _e('Save All Email Settings', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-floppy-disk"></i> <?php esc_html_e('Save All Email Settings', 'caretochina-medical'); ?>
                     </button>
                 </div>
             </form>
@@ -948,7 +957,7 @@ class CareToChina_Email_Templates {
                 <div style="background:#FFFFFF; border-radius:18px; width:92%; max-width:740px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.35);">
                     <div style="padding:16px 24px; border-bottom:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; background:#F8FAFC;">
                         <h3 style="margin:0; font-size:16px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-eye" style="color:#0F766E;"></i> <?php _e('Live Responsive Email Preview', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-eye" style="color:#0F766E;"></i> <?php esc_html_e('Live Responsive Email Preview', 'caretochina-medical'); ?>
                         </h3>
                         <div style="display:flex; align-items:center; gap:12px;">
                             <button type="button" onclick="setPreviewDevice('desktop')" class="button" id="btn-prev-desktop" style="font-weight:700;"><i class="fa-solid fa-desktop"></i></button>
@@ -967,19 +976,19 @@ class CareToChina_Email_Templates {
                 <div style="background:#FFFFFF; border-radius:18px; width:92%; max-width:480px; padding:26px; box-shadow:0 25px 50px rgba(0,0,0,0.35); position:relative;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h3 style="margin:0; font-size:18px; font-weight:800; color:#0F172A; display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-paper-plane" style="color:#0F766E;"></i> <?php _e('Send Test Email', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-paper-plane" style="color:#0F766E;"></i> <?php esc_html_e('Send Test Email', 'caretochina-medical'); ?>
                         </h3>
                         <button type="button" onclick="closeTestEmailModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748B;">&times;</button>
                     </div>
-                    <p style="margin:0 0 16px 0; font-size:13px; color:#64748B;"><?php _e('Send a live rendered test email to your inbox to test SMTP delivery and email client layout.', 'caretochina-medical'); ?></p>
+                    <p style="margin:0 0 16px 0; font-size:13px; color:#64748B;"><?php esc_html_e('Send a live rendered test email to your inbox to test SMTP delivery and email client layout.', 'caretochina-medical'); ?></p>
                     
                     <div style="margin-bottom:14px;">
-                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Recipient Email Address:', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Recipient Email Address:', 'caretochina-medical'); ?></label>
                         <input type="email" id="test_email_recipient" value="<?php echo esc_attr(wp_get_current_user()->user_email); ?>" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1;">
                     </div>
 
                     <div style="margin-bottom:20px;">
-                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php _e('Select Template to Test:', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-weight:700; margin-bottom:6px; color:#334155;"><?php esc_html_e('Select Template to Test:', 'caretochina-medical'); ?></label>
                         <select id="test_email_template_id" style="width:100%; border-radius:8px; padding:8px 12px; font-size:14px; border:1px solid #CBD5E1; font-weight:600;">
                             <?php foreach ($templates as $tid => $t) : ?>
                                 <option value="<?php echo esc_attr($tid); ?>"><?php echo esc_html($t['name']); ?></option>
@@ -990,9 +999,9 @@ class CareToChina_Email_Templates {
                     <div id="test-email-status" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:700;"></div>
 
                     <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        <button type="button" onclick="closeTestEmailModal()" class="button"><?php _e('Cancel', 'caretochina-medical'); ?></button>
+                        <button type="button" onclick="closeTestEmailModal()" class="button"><?php esc_html_e('Cancel', 'caretochina-medical'); ?></button>
                         <button type="button" id="btn_send_test_now" onclick="sendTestEmailNow()" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700;">
-                            <i class="fa-solid fa-paper-plane"></i> <?php _e('Send Test Now', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-paper-plane"></i> <?php esc_html_e('Send Test Now', 'caretochina-medical'); ?>
                         </button>
                     </div>
                 </div>

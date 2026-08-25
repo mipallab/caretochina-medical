@@ -86,33 +86,28 @@ class CareToChina_Payment_Request_Manager {
         $created_by = $current_user->ID;
 
         $pricing_type   = isset($_POST['pricing_type']) ? sanitize_text_field(wp_unslash($_POST['pricing_type'])) : '';
-        $treatment_id   = isset($_POST['treatment_id']) ? absint(wp_unslash($_POST['treatment_id'])) : 0;
-        $pricing_plan_id= isset($_POST['pricing_plan_id']) ? absint(wp_unslash($_POST['pricing_plan_id'])) : 0;
+        $package_id     = isset($_POST['package_id']) ? absint(wp_unslash($_POST['package_id'])) : 0;
         $plan_name      = isset($_POST['plan_name']) ? sanitize_text_field(wp_unslash($_POST['plan_name'])) : '';
         $custom_title   = isset($_POST['custom_title']) ? sanitize_text_field(wp_unslash($_POST['custom_title'])) : '';
         $custom_content = isset($_POST['custom_content']) ? wp_kses_post(wp_unslash($_POST['custom_content'])) : '';
         $custom_amount  = isset($_POST['custom_amount']) ? floatval(wp_unslash($_POST['custom_amount'])) : 0;
-        $currency       = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_store_currency() : get_option('ctc_payment_currency', 'USD');
+        $currency       = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_store_currency() : get_option('ctc_payment_currency', 'USD');
 
         $final_amount = 0.00;
         $final_title = '';
 
         // Validation: Enforce EXACTLY ONE pricing source
-        if ($pricing_type === 'treatment_plan') {
-            if ($treatment_id <= 0) {
-                wp_send_json_error(['message' => __('Please select a valid medical treatment specialty.', 'caretochina-medical')]);
+        if ($pricing_type === 'package' || $pricing_type === 'treatment_plan') {
+            if ($package_id <= 0) {
+                wp_send_json_error(['message' => __('Please select a valid Concierge Package.', 'caretochina-medical')]);
             }
 
-            $specialty_term = get_term($treatment_id, 'hospital_specialty');
-            $treatment_label = ($specialty_term && !is_wp_error($specialty_term)) ? $specialty_term->name : __('Medical Specialty', 'caretochina-medical');
-
-            // Look up price from Pricing Plans
-            if ($pricing_plan_id > 0 && class_exists('CareToChina_Pricing_Plans')) {
-                $plan = CareToChina_Pricing_Plans::instance()->get_plan($pricing_plan_id);
-                if ($plan && $plan->is_active) {
-                    $final_amount = floatval($plan->price);
-                    $plan_name = $plan->name;
-                    $currency = $plan->currency ?: $currency;
+            if ($package_id > 0 && class_exists('CareToChina_Packages')) {
+                $pkg = CareToChina_Packages::instance()->get_package($package_id);
+                if ($pkg) {
+                    $final_amount = floatval($pkg->price);
+                    $final_title  = !empty($plan_name) ? $plan_name : $pkg->name;
+                    $currency     = $pkg->currency ?: $currency;
                 }
             }
 
@@ -120,11 +115,9 @@ class CareToChina_Payment_Request_Manager {
                 $final_amount = $custom_amount;
             }
 
-            if ($final_amount <= 0) {
-                $final_amount = floatval($thread_booking->amount) > 0 ? floatval($thread_booking->amount) : 500.00;
+            if (empty($final_title)) {
+                $final_title = !empty($plan_name) ? $plan_name : __('Concierge Package', 'caretochina-medical');
             }
-
-            $final_title = $treatment_label . (!empty($plan_name) ? ' (' . $plan_name . ')' : '');
 
         } elseif ($pricing_type === 'custom_amount') {
             if ($custom_amount <= 0) {
@@ -157,16 +150,16 @@ class CareToChina_Payment_Request_Manager {
         $request_code = 'PRQ-' . strtoupper(wp_generate_password(8, false, false));
 
         // Insert payment request
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $inserted = $wpdb->insert($table_requests, [
             'request_code'           => $request_code,
             'chat_thread_booking_id' => $chat_thread_booking_id,
             'converted_booking_id'   => 0,
             'patient_id'             => $patient_id,
             'created_by'             => $created_by,
-            'pricing_type'           => $pricing_type,
-            'treatment_id'           => $treatment_id,
-            'pricing_plan_id'        => $pricing_plan_id,
-            'plan_name'              => $plan_name,
+            'pricing_type'           => $pricing_type === 'treatment_plan' ? 'package' : $pricing_type,
+            'package_id'             => $package_id,
+            'plan_name'              => $final_title,
             'custom_title'           => $final_title,
             'custom_content'         => $custom_content,
             'amount'                 => $final_amount,
@@ -184,7 +177,9 @@ class CareToChina_Payment_Request_Manager {
         $staff_name = $current_user->exists() ? 'Staff (' . $current_user->display_name . ')' : 'Staff (Coordinator)';
 
         // Insert chat message of type 'payment_request'
-        $msg_text = sprintf(__('Payment Request: %s — %s %s', 'caretochina-medical'), $final_title, number_format($final_amount, 2), $currency);
+        /* translators: 1: Request title, 2: Formatted amount, 3: Currency */
+        $msg_text = sprintf(__('Payment Request: %1$s — %2$s %3$s', 'caretochina-medical'), $final_title, number_format($final_amount, 2), $currency);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->insert($table_messages, [
             'booking_id'         => $chat_thread_booking_id,
             'sender_type'        => 'coordinator',
@@ -374,7 +369,7 @@ class CareToChina_Payment_Request_Manager {
                 'hospital_id'      => $thread_booking ? intval($thread_booking->hospital_id) : 0,
                 'hospital_name'    => $thread_booking ? $thread_booking->hospital_name : 'CareToChina Medical Services',
                 'specialty'        => sanitize_text_field($request->custom_title),
-                'pricing_plan_id'  => intval($request->pricing_plan_id),
+                'package_id'       => intval($request->package_id),
                 'treatment_timing' => $thread_booking ? $thread_booking->treatment_timing : 'Flexible',
                 'quote_details'    => wp_kses_post($request->custom_content),
                 'country'          => $thread_booking ? $thread_booking->country : '',
@@ -414,7 +409,7 @@ class CareToChina_Payment_Request_Manager {
             return '';
         }
 
-        $currency_symbol = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($req->currency) : '$';
+        $currency_symbol = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_currency_symbol($req->currency) : '$';
 
         $status = $req->status;
         $status_label = __('Pending Payment', 'caretochina-medical');
@@ -453,12 +448,12 @@ class CareToChina_Payment_Request_Manager {
 
             <?php if (!empty($content_clean)) : ?>
                 <div class="ctc-pay-card-content" style="font-size:12px; color:#64748B; margin-bottom:12px; line-height:1.5;">
-                    <?php echo $content_clean; ?>
+                    <?php echo wp_kses_post($content_clean); ?>
                 </div>
             <?php endif; ?>
 
             <div class="ctc-pay-card-total-box" style="border:1px solid #E2E8F0; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-                <span class="ctc-pay-card-total-lbl" style="font-size:12px; color:#64748B; font-weight:600;"><?php _e('Authoritative Total:', 'caretochina-medical'); ?></span>
+                <span class="ctc-pay-card-total-lbl" style="font-size:12px; color:#64748B; font-weight:600;"><?php esc_html_e('Authoritative Total:', 'caretochina-medical'); ?></span>
                 <span class="ctc-pay-card-total-val" style="font-size:18px; font-weight:800; color:#0F766E;"><?php echo esc_html($currency_symbol . number_format((float)$req->amount, 2) . ' ' . $req->currency); ?></span>
             </div>
 
@@ -467,21 +462,21 @@ class CareToChina_Payment_Request_Manager {
                 <?php if ($status === 'pending' || $status === 'processing') : ?>
                     <?php if (!is_user_logged_in()) : ?>
                         <a href="<?php echo esc_url(home_url('/patient-login/')); ?>" class="ctc-btn-accept-pay" style="width:100%; box-sizing:border-box; background:#0F766E; color:#FFFFFF; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); text-align:center; transition:all 0.2s;">
-                            <i class="fa-solid fa-user-lock"></i> <?php _e('Sign In or Register to Pay', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-user-lock"></i> <?php esc_html_e('Sign In or Register to Pay', 'caretochina-medical'); ?>
                         </a>
-                        <p style="margin:6px 0 0 0; font-size:11px; color:#64748B; text-align:center;"><?php _e('Payment requires an authenticated patient account.', 'caretochina-medical'); ?></p>
+                        <p style="margin:6px 0 0 0; font-size:11px; color:#64748B; text-align:center;"><?php esc_html_e('Payment requires an authenticated patient account.', 'caretochina-medical'); ?></p>
                     <?php else : ?>
                         <button type="button" class="ctc-btn-accept-pay" onclick="ctcAcceptPaymentRequest(<?php echo esc_attr(intval($req->id)); ?>)" style="width:100%; background:#0F766E; color:#FFFFFF; border:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(15,118,110,0.25); transition:all 0.2s;">
-                            <i class="fa-solid fa-lock"></i> <?php _e('Accept & Pay Online', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-lock"></i> <?php esc_html_e('Accept & Pay Online', 'caretochina-medical'); ?>
                         </button>
                     <?php endif; ?>
                 <?php elseif ($status === 'accepted_paid') : ?>
                     <div style="text-align:center; font-size:13px; font-weight:700; color:#059669; padding:8px 0;">
-                        <i class="fa-solid fa-circle-check"></i> <?php _e('Payment completed successfully.', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-circle-check"></i> <?php esc_html_e('Payment completed successfully.', 'caretochina-medical'); ?>
                     </div>
                 <?php else : ?>
                     <div style="text-align:center; font-size:13px; color:#94A3B8; padding:8px 0;">
-                        <i class="fa-solid fa-ban"></i> <?php _e('This request has been cancelled by medical staff.', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-ban"></i> <?php esc_html_e('This request has been cancelled by medical staff.', 'caretochina-medical'); ?>
                     </div>
                 <?php endif; ?>
 
@@ -489,7 +484,7 @@ class CareToChina_Payment_Request_Manager {
                 <!-- STAFF ACTIONS -->
                 <?php if ($status === 'pending' || $status === 'processing') : ?>
                     <button type="button" class="ctc-btn-staff-cancel-req" onclick="ctcStaffCancelPaymentRequest(<?php echo esc_attr(intval($req->id)); ?>)" style="width:100%; background:#FFF; color:#DC2626; border:1px solid #FCA5A5; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">
-                        <i class="fa-solid fa-xmark"></i> <?php _e('Cancel / Withdraw Request', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-xmark"></i> <?php esc_html_e('Cancel / Withdraw Request', 'caretochina-medical'); ?>
                     </button>
                 <?php endif; ?>
             <?php endif; ?>

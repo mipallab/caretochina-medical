@@ -11,7 +11,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __('CareToChina Hospitals Grid & Search', 'caretochina-hospitals');
+        return __('CareToChina Hospitals Grid & Search', 'caretochina-medical');
     }
 
     public function get_icon() {
@@ -23,7 +23,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
     }
 
     public function get_keywords() {
-        return ['hospital', 'grid', 'search', 'ajax', 'jci', 'caretochina', 'card', 'pagination'];
+        return ['hospital', 'grid', 'search', 'ajax', 'jci', 'caretochina-medical', 'card', 'pagination'];
     }
 
     protected function register_controls() {
@@ -32,7 +32,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->start_controls_section(
             'section_layout',
             [
-                'label' => __('Grid & Search Controls', 'caretochina-hospitals'),
+                'label' => __('Grid & Search Controls', 'caretochina-medical'),
                 'tab'   => Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -40,7 +40,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_control(
             'show_search',
             [
-                'label'        => __('Show Live AJAX Search Bar', 'caretochina-hospitals'),
+                'label'        => __('Show Live AJAX Search Bar', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
             ]
@@ -49,9 +49,9 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_control(
             'search_placeholder',
             [
-                'label'       => __('Search Bar Placeholder', 'caretochina-hospitals'),
+                'label'       => __('Search Bar Placeholder', 'caretochina-medical'),
                 'type'        => Controls_Manager::TEXT,
-                'default'     => __('Search hospital by name or specialty...', 'caretochina-hospitals'),
+                'default'     => __('Search hospital by name or specialty...', 'caretochina-medical'),
                 'condition'   => ['show_search' => 'yes'],
             ]
         );
@@ -59,7 +59,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_control(
             'show_city_tabs',
             [
-                'label'        => __('Show City / Location Filter Tabs', 'caretochina-hospitals'),
+                'label'        => __('Show City / Location Filter Tabs', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
             ]
@@ -68,7 +68,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_responsive_control(
             'posts_per_page',
             [
-                'label'          => __('Hospitals Per Page', 'caretochina-hospitals'),
+                'label'          => __('Hospitals Per Page', 'caretochina-medical'),
                 'type'           => Controls_Manager::NUMBER,
                 'default'        => 6,
                 'tablet_default' => 4,
@@ -81,7 +81,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_control(
             'show_pagination',
             [
-                'label'        => __('Enable Pagination', 'caretochina-hospitals'),
+                'label'        => __('Enable Pagination', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
             ]
@@ -90,7 +90,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_responsive_control(
             'columns',
             [
-                'label'   => __('Columns', 'caretochina-hospitals'),
+                'label'   => __('Columns', 'caretochina-medical'),
                 'type'    => Controls_Manager::SELECT,
                 'default' => '3',
                 'tablet_default' => '2',
@@ -110,7 +110,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_responsive_control(
             'grid_gap',
             [
-                'label'      => __('Grid Gap Between Cards (px)', 'caretochina-hospitals'),
+                'label'      => __('Grid Gap Between Cards (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => ['px', 'rem'],
                 'range'      => [
@@ -127,7 +127,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         $this->add_responsive_control(
             'filter_bar_gap',
             [
-                'label'      => __('Spacing Between Search & Grid (px)', 'caretochina-hospitals'),
+                'label'      => __('Spacing Between Search & Grid (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => ['px', 'rem'],
                 'range'      => [
@@ -189,7 +189,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
                     <?php if ($settings['show_city_tabs'] === 'yes' && !empty($cities) && !is_wp_error($cities)) : ?>
                         <div class="ctc-city-tabs">
                             <button type="button" class="ctc-city-tab active" data-city="all">
-                                <i class="fas fa-globe"></i> <?php _e('All Locations', 'caretochina-hospitals'); ?>
+                                <i class="fas fa-globe"></i> <?php esc_html_e('All Locations', 'caretochina-medical'); ?>
                             </button>
                             <?php foreach ($cities as $city) : ?>
                                 <button type="button" class="ctc-city-tab" data-city="<?php echo esc_attr($city->slug); ?>">
@@ -210,7 +210,7 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
                     endwhile;
                 else : ?>
                     <div class="ctc-no-hospitals" style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: #64748b;">
-                        <?php _e('No hospitals published yet.', 'caretochina-hospitals'); ?>
+                        <?php esc_html_e('No hospitals published yet.', 'caretochina-medical'); ?>
                     </div>
                 <?php endif; ?>
             </div>

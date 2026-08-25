@@ -59,6 +59,7 @@ class CareToChina_Async_Mailer {
 
         // Extend timeout for SMTP socket connections
         if (function_exists('set_time_limit')) {
+            // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
             @set_time_limit(60);
         }
 
@@ -73,6 +74,7 @@ class CareToChina_Async_Mailer {
                 );
             } catch (\Throwable $e) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
+                    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                     error_log('CareToChina Async Mailer Error: ' . $e->getMessage());
                 }
             }

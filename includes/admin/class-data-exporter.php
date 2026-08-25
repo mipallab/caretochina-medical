@@ -19,7 +19,6 @@ class CareToChina_Data_Exporter {
         global $wpdb;
         return [
             $wpdb->prefix . 'caretochina_bookings',
-            $wpdb->prefix . 'caretochina_pricing_plans',
             $wpdb->prefix . 'caretochina_payment_requests',
             $wpdb->prefix . 'caretochina_messages',
             $wpdb->prefix . 'caretochina_processed_webhook_events',
@@ -91,6 +90,7 @@ class CareToChina_Data_Exporter {
             }
 
             // Check if table exists in database
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table)));
             if ($exists !== $table) {
                 continue;
@@ -100,14 +100,16 @@ class CareToChina_Data_Exporter {
             $sql .= "-- Table structure & data for `$table`\n";
             $sql .= "-- -------------------------------------------------------------------------\n";
 
-            $create_row = $wpdb->get_row($wpdb->prepare("SHOW CREATE TABLE %i", $table), ARRAY_N);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $create_row = $wpdb->get_row("SHOW CREATE TABLE `" . esc_sql($table) . "`", ARRAY_N);
             if ($create_row && isset($create_row[1])) {
                 $sql .= "DROP TABLE IF EXISTS `$table`;\n";
                 $sql .= $create_row[1] . ";\n\n";
             }
 
             // Dump Table Data in Chunks
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM %i", $table), ARRAY_A);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $rows = $wpdb->get_results("SELECT * FROM `" . esc_sql($table) . "`", ARRAY_A);
             if (!empty($rows)) {
                 $columns = array_keys($rows[0]);
                 $col_names = '`' . implode('`, `', $columns) . '`';
@@ -131,13 +133,9 @@ class CareToChina_Data_Exporter {
 
         // Dump Plugin Options (Values remain encrypted as ciphertext, never decrypted)
         $option_names = self::get_plugin_option_names();
-        $placeholders = implode(', ', array_fill(0, count($option_names), '%s'));
-
-        $query = $wpdb->prepare(
-            "SELECT option_name, option_value, autoload FROM {$wpdb->options} WHERE option_name IN ($placeholders)",
-            ...$option_names
-        );
-        $options_rows = $wpdb->get_results($query, ARRAY_A);
+        $escaped_options = "'" . implode("', '", array_map('esc_sql', $option_names)) . "'";
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $options_rows = $wpdb->get_results("SELECT option_name, option_value, autoload FROM {$wpdb->options} WHERE option_name IN ($escaped_options)", ARRAY_A);
 
         if (!empty($options_rows)) {
             $sql .= "-- -------------------------------------------------------------------------\n";
@@ -163,7 +161,7 @@ class CareToChina_Data_Exporter {
      */
     public static function stream_download() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('Permission denied.', 'caretochina-medical'));
+            wp_die(esc_html__('Permission denied.', 'caretochina-medical'));
         }
 
         $dump = self::generate_sql_dump();
@@ -180,6 +178,7 @@ class CareToChina_Data_Exporter {
         header('Expires: 0');
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo $dump;
         exit;
     }
@@ -223,7 +222,7 @@ class CareToChina_Data_Exporter {
      */
     public static function write_backup_file() {
         $backup_dir = self::get_and_secure_backup_dir();
-        if (!is_dir($backup_dir) || !is_writable($backup_dir)) {
+        if (!is_dir($backup_dir) || !wp_is_writable($backup_dir)) {
             return false;
         }
 

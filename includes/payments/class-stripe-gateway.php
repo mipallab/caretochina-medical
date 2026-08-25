@@ -93,12 +93,14 @@ class CareToChina_Stripe_Gateway implements CareToChina_Payment_Gateway_Interfac
                 'metadata'             => [
                     'caretochina_booking_id' => $booking_id,
                 ],
+                /* translators: %d: Booking ID */
                 'description'          => sprintf(__('CareToChina Medical Booking #%d', 'caretochina-medical'), $booking_id),
             ]),
             'timeout' => 30,
         ]);
 
         if (is_wp_error($response)) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
             error_log('Stripe PaymentIntent Creation Failed: ' . $response->get_error_message());
             return [
                 'success' => false,
@@ -111,6 +113,7 @@ class CareToChina_Stripe_Gateway implements CareToChina_Payment_Gateway_Interfac
 
         if ($status_code !== 200 || empty($body['client_secret'])) {
             $err_msg = isset($body['error']['message']) ? $body['error']['message'] : 'Stripe API error';
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log, WordPress.PHP.DevelopmentFunctions.error_log_print_r
             error_log('Stripe Error Body: ' . print_r($body, true));
             return [
                 'success' => false,
@@ -208,6 +211,7 @@ class CareToChina_Stripe_Gateway implements CareToChina_Payment_Gateway_Interfac
         if (!empty($this->webhook_secret)) {
             $sig_verified = $this->verify_stripe_signature($payload, $signature_header, $this->webhook_secret);
             if (!$sig_verified) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 error_log('Stripe Webhook Signature Verification Failed.');
                 return new WP_REST_Response(['error' => 'Invalid signature or timestamp expired'], 400);
             }

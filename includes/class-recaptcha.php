@@ -92,7 +92,7 @@ class CareToChina_Recaptcha {
                 'google-recaptcha-v3',
                 'https://www.google.com/recaptcha/api.js?render=' . esc_attr($site_key),
                 [],
-                null,
+                CARETOCHINA_MEDICAL_VERSION,
                 true
             );
         } elseif ($ver === 'v2') {
@@ -100,13 +100,13 @@ class CareToChina_Recaptcha {
                 'google-recaptcha-v2',
                 'https://www.google.com/recaptcha/api.js',
                 [],
-                null,
+                CARETOCHINA_MEDICAL_VERSION,
                 true
             );
         }
 
         if (self::is_badge_hidden()) {
-            wp_register_style('ctc-recaptcha-badge-hide', false);
+            wp_register_style('ctc-recaptcha-badge-hide', false, [], CARETOCHINA_MEDICAL_VERSION);
             wp_enqueue_style('ctc-recaptcha-badge-hide');
             wp_add_inline_style('ctc-recaptcha-badge-hide', '.grecaptcha-badge { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }');
         }
@@ -210,7 +210,7 @@ class CareToChina_Recaptcha {
             'body'    => [
                 'secret'   => $secret_key,
                 'response' => sanitize_text_field($token),
-                'remoteip' => sanitize_text_field($_SERVER['REMOTE_ADDR'] ?? ''),
+                'remoteip' => sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? '')),
             ],
         ]);
 
@@ -233,7 +233,8 @@ class CareToChina_Recaptcha {
             if ($score < $threshold) {
                 return new WP_Error(
                     'recaptcha_low_score',
-                    sprintf(__('Security check failed (trust score %0.2f below threshold %0.2f). Please try again.', 'caretochina-medical'), $score, $threshold)
+                    /* translators: 1: Trust score, 2: Threshold */
+                    sprintf(__('Security check failed (trust score %1$0.2f below threshold %2$0.2f). Please try again.', 'caretochina-medical'), $score, $threshold)
                 );
             }
         }

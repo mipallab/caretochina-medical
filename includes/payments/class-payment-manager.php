@@ -73,10 +73,21 @@ class CareToChina_Payment_Manager {
         }
 
         // Get backing virtual non-taxable WC_Product for line item
-        $product = CareToChina_Treatment_Product_Sync::instance()->get_or_create_product(
-            $booking->specialty ?: __('Medical Consultation & Treatment', 'caretochina-medical'),
-            $booking->hospital_id
-        );
+        $package_name = '';
+        if (!empty($booking->package_id) && class_exists('CareToChina_Packages')) {
+            $pkg_obj = CareToChina_Packages::instance()->get_package($booking->package_id);
+            if ($pkg_obj) {
+                $package_name = $pkg_obj->name;
+            }
+        }
+        if (empty($package_name)) {
+            $package_name = !empty($booking->specialty) ? $booking->specialty : __('CareToChina Medical Concierge', 'caretochina-medical');
+        }
+
+        $product = class_exists('CareToChina_Package_Product_Sync') ? CareToChina_Package_Product_Sync::instance()->get_or_create_product(
+            $package_name,
+            !empty($booking->package_id) ? $booking->package_id : $booking->hospital_id
+        ) : null;
 
         if ($product) {
             $order->add_product($product, 1, [
@@ -159,6 +170,7 @@ class CareToChina_Payment_Manager {
 
         if (!$booking_id && !empty($transaction_id)) {
             // Attempt to resolve booking ID from WooCommerce order meta
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
             $orders = wc_get_orders([
                 'meta_key'   => '_caretochina_booking_id',
                 'limit'      => 1,
@@ -265,7 +277,8 @@ class CareToChina_Payment_Manager {
         if ($wc_order_id) {
             $order = wc_get_order($wc_order_id);
             if ($order) {
-                $order->update_status('failed', sprintf(__('Payment failed via webhook: %s', 'caretochina-medical'), $reason));
+                $order->update_status('failed', /* translators: %s: dynamic value */
+ sprintf(__('Payment failed via webhook: %s', 'caretochina-medical'), $reason));
             }
         }
 
@@ -311,7 +324,8 @@ class CareToChina_Payment_Manager {
                 CareToChina_Payment_Security::release_refund_lock($booking_id);
                 return new WP_Error(
                     'invalid_refund_amount',
-                    sprintf(__('Refund amount ($%.2f) exceeds remaining refundable balance ($%.2f).', 'caretochina-medical'), $refund_amount, $remaining_refundable)
+                    /* translators: 1: Refund amount, 2: Remaining refundable balance */
+                    sprintf(__('Refund amount ($%1$.2f) exceeds remaining refundable balance ($%2$.2f).', 'caretochina-medical'), $refund_amount, $remaining_refundable)
                 );
             }
 

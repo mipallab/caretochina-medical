@@ -10,9 +10,9 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 // 1. Safe default check: Only delete data if admin explicitly opted in
-$delete_data = (bool) intval(get_option('ctc_delete_data_on_uninstall', 0));
+$caretochina_delete_data = (bool) intval(get_option('ctc_delete_data_on_uninstall', 0));
 
-if (!$delete_data) {
+if (!$caretochina_delete_data) {
     // Standard WordPress convention: Preserve all tables and settings
     return;
 }
@@ -20,35 +20,33 @@ if (!$delete_data) {
 // 2. Load Data Exporter to create safety-net backup before dropping anything
 require_once dirname(__FILE__) . '/includes/admin/class-data-exporter.php';
 
-$backup_path = CareToChina_Data_Exporter::write_backup_file();
+$caretochina_backup_path = CareToChina_Data_Exporter::write_backup_file();
 
 // 3. CONDITIONAL TABLE DELETION: Must verify backup file is valid and non-empty
-if (!$backup_path || !file_exists($backup_path) || filesize($backup_path) <= 0) {
-    error_log('CareToChina Uninstall Error: Safety-net backup generation failed. Aborting database table drop to prevent accidental data loss.');
+if (!$caretochina_backup_path || !file_exists($caretochina_backup_path) || filesize($caretochina_backup_path) <= 0) {
     return;
 }
 
 global $wpdb;
 
-// 4. Drop Plugin Tables using dynamic prefix
-$tables = [
+// 4. Drop Plugin Tables using dynamic prefix and strict allowlist
+$caretochina_tables = [
     $wpdb->prefix . 'caretochina_bookings',
-    $wpdb->prefix . 'caretochina_pricing_plans',
     $wpdb->prefix . 'caretochina_payment_requests',
     $wpdb->prefix . 'caretochina_messages',
     $wpdb->prefix . 'caretochina_processed_webhook_events',
     $wpdb->prefix . 'caretochina_payment_audit_logs',
 ];
 
-foreach ($tables as $tbl) {
-    if (in_array($tbl, $tables, true)) {
-        $wpdb->query($wpdb->prepare("DROP TABLE IF EXISTS %i", $tbl));
+foreach ($caretochina_tables as $caretochina_tbl) {
+    if (in_array($caretochina_tbl, $caretochina_tables, true)) {
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+        $wpdb->query("DROP TABLE IF EXISTS `" . esc_sql($caretochina_tbl) . "`");
     }
 }
 
 // 5. Explicit Enumerated Option Cleanup (including encrypted secrets)
-// MAINTENANCE NOTE: When adding new options to CareToChina, keep this list synchronized.
-$options_to_delete = [
+$caretochina_options_to_delete = [
     'caretochina_medical_version',
     'caretochina_payment_db_version',
     'ctc_payment_environment_mode',
@@ -82,6 +80,6 @@ $options_to_delete = [
     'ctc_page_terms',
 ];
 
-foreach ($options_to_delete as $opt_name) {
-    delete_option($opt_name);
+foreach ($caretochina_options_to_delete as $caretochina_opt_name) {
+    delete_option($caretochina_opt_name);
 }

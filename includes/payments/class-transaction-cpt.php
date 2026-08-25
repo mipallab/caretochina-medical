@@ -183,6 +183,7 @@ class CareToChina_Transaction_CPT {
         }
 
         // Check if transaction post already exists for this booking/order
+        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
         $existing_posts = get_posts([
             'post_type'      => 'ctc_transaction',
             'post_status'    => 'any',

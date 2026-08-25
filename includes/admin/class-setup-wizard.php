@@ -36,6 +36,7 @@ class CareToChina_Setup_Wizard {
     }
 
     public function get_current_step() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $step = isset($_GET['step']) ? absint(wp_unslash($_GET['step'])) : 1;
         if ($step < 1 || $step > 6) {
             $step = 1;
@@ -54,11 +55,11 @@ class CareToChina_Setup_Wizard {
 
         $nonce = isset($_POST['ctc_wizard_nonce']) ? sanitize_text_field(wp_unslash($_POST['ctc_wizard_nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'ctc_setup_wizard_action')) {
-            wp_die(__('Security verification failed.', 'caretochina-medical'));
+            wp_die(esc_html__('Security verification failed.', 'caretochina-medical'));
         }
 
         if (!current_user_can('manage_options')) {
-            wp_die(__('Permission denied.', 'caretochina-medical'));
+            wp_die(esc_html__('Permission denied.', 'caretochina-medical'));
         }
 
         $step = isset($_POST['ctc_wizard_step']) ? absint(wp_unslash($_POST['ctc_wizard_step'])) : 1;
@@ -88,16 +89,16 @@ class CareToChina_Setup_Wizard {
             if (isset($_POST['ctc_recaptcha_v2_site_key'])) {
                 update_option('ctc_recaptcha_v2_site_key', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_site_key'])));
             }
-            if (!empty($_POST['ctc_recaptcha_v2_secret_key']) && strpos($_POST['ctc_recaptcha_v2_secret_key'], '••••') === false) {
-                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_secret_key'])));
+            if (!empty(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_secret_key']))) && strpos(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_secret_key'])), '••••') === false) {
+                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v2_secret_key'])))));
                 update_option('ctc_recaptcha_v2_secret_key', $enc);
             }
 
             if (isset($_POST['ctc_recaptcha_v3_site_key'])) {
                 update_option('ctc_recaptcha_v3_site_key', sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_site_key'])));
             }
-            if (!empty($_POST['ctc_recaptcha_v3_secret_key']) && strpos($_POST['ctc_recaptcha_v3_secret_key'], '••••') === false) {
-                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_secret_key'])));
+            if (!empty(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_secret_key']))) && strpos(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_secret_key'])), '••••') === false) {
+                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash(sanitize_text_field(wp_unslash($_POST['ctc_recaptcha_v3_secret_key'])))));
                 update_option('ctc_recaptcha_v3_secret_key', $enc);
             }
 
@@ -118,8 +119,8 @@ class CareToChina_Setup_Wizard {
             if (isset($_POST['ctc_google_client_id'])) {
                 update_option('ctc_google_client_id', sanitize_text_field(wp_unslash($_POST['ctc_google_client_id'])));
             }
-            if (!empty($_POST['ctc_google_client_secret']) && strpos($_POST['ctc_google_client_secret'], '••••') === false) {
-                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash($_POST['ctc_google_client_secret'])));
+            if (!empty(sanitize_text_field(wp_unslash($_POST['ctc_google_client_secret']))) && strpos(sanitize_text_field(wp_unslash($_POST['ctc_google_client_secret'])), '••••') === false) {
+                $enc = CareToChina_Payment_Security::encrypt_secret(sanitize_text_field(wp_unslash(sanitize_text_field(wp_unslash($_POST['ctc_google_client_secret'])))));
                 update_option('ctc_google_client_secret', $enc);
             }
 
@@ -223,12 +224,12 @@ class CareToChina_Setup_Wizard {
      */
     public function handle_ajax_export_data() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('Permission denied.', 'caretochina-medical'));
+            wp_die(esc_html__('Permission denied.', 'caretochina-medical'));
         }
 
         $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : (isset($_REQUEST['nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['nonce'])) : '');
         if (!wp_verify_nonce($nonce, 'ctc_export_data_nonce') && !wp_verify_nonce($nonce, 'ctc_setup_wizard_action')) {
-            wp_die(__('Security verification failed.', 'caretochina-medical'));
+            wp_die(esc_html__('Security verification failed.', 'caretochina-medical'));
         }
 
         require_once dirname(__FILE__) . '/class-data-exporter.php';
@@ -253,10 +254,10 @@ class CareToChina_Setup_Wizard {
             <!-- WIZARD HEADER -->
             <div style="text-align:center; margin-bottom:28px;">
                 <div style="display:inline-flex; align-items:center; gap:10px; background:#F0FDFA; border:1px solid #CCFBF1; padding:8px 18px; border-radius:999px; color:#0F766E; font-weight:700; font-size:13px; margin-bottom:12px;">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> <?php _e('CareToChina Medical Suite Setup', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <?php esc_html_e('CareToChina Medical Suite Setup', 'caretochina-medical'); ?>
                 </div>
-                <h1 style="margin:0 0 8px 0; font-size:26px; font-weight:800; color:#0F172A;"><?php _e('Platform Onboarding Wizard', 'caretochina-medical'); ?></h1>
-                <p style="margin:0; color:#64748B; font-size:14px;"><?php _e('Complete these quick configuration steps to get your medical booking platform ready.', 'caretochina-medical'); ?></p>
+                <h1 style="margin:0 0 8px 0; font-size:26px; font-weight:800; color:#0F172A;"><?php esc_html_e('Platform Onboarding Wizard', 'caretochina-medical'); ?></h1>
+                <p style="margin:0; color:#64748B; font-size:14px;"><?php esc_html_e('Complete these quick configuration steps to get your medical booking platform ready.', 'caretochina-medical'); ?></p>
             </div>
 
             <!-- STEP INDICATOR PILLS -->
@@ -304,7 +305,7 @@ class CareToChina_Setup_Wizard {
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#64748B;">
                 <?php if ($step > 1 && $step < 6) : ?>
                     <a href="<?php echo esc_url($this->get_step_url($step - 1)); ?>" style="color:#64748B; text-decoration:none; font-weight:600;">
-                        &larr; <?php _e('Previous Step', 'caretochina-medical'); ?>
+                        &larr; <?php esc_html_e('Previous Step', 'caretochina-medical'); ?>
                     </a>
                 <?php else : ?>
                     <div></div>
@@ -312,7 +313,7 @@ class CareToChina_Setup_Wizard {
 
                 <?php if ($step < 6) : ?>
                     <a href="<?php echo esc_url(admin_url('admin.php?page=caretochina-staff-desk')); ?>" style="color:#94A3B8; text-decoration:underline;">
-                        <?php _e('Skip setup entirely & go to Staff Desk &rarr;', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Skip setup entirely & go to Staff Desk &rarr;', 'caretochina-medical'); ?>
                     </a>
                 <?php endif; ?>
             </div>
@@ -329,17 +330,17 @@ class CareToChina_Setup_Wizard {
             <div style="width:72px; height:72px; background:#CCFBF1; color:#0F766E; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:32px; margin-bottom:20px;">
                 <i class="fa-solid fa-hospital-user"></i>
             </div>
-            <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 12px 0;"><?php _e('Welcome to CareToChina Medical Suite', 'caretochina-medical'); ?></h2>
+            <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 12px 0;"><?php esc_html_e('Welcome to CareToChina Medical Suite', 'caretochina-medical'); ?></h2>
             <p style="color:#475569; font-size:15px; line-height:1.6; max-width:600px; margin:0 auto 28px auto;">
-                <?php _e('Thank you for choosing CareToChina. This onboarding wizard will configure your WooCommerce payment engine, create your patient and staff portals, protect forms with Google reCAPTCHA, and set up Google Sign-In in just a few minutes.', 'caretochina-medical'); ?>
+                <?php esc_html_e('Thank you for choosing CareToChina. This onboarding wizard will configure your WooCommerce payment engine, create your patient and staff portals, protect forms with Google reCAPTCHA, and set up Google Sign-In in just a few minutes.', 'caretochina-medical'); ?>
             </p>
 
             <div style="display:flex; justify-content:center; gap:16px;">
                 <a href="<?php echo esc_url($this->get_step_url(2)); ?>" class="button button-primary button-hero" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:10px; padding:8px 28px;">
-                    <?php _e('Get Started &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Get Started &rarr;', 'caretochina-medical'); ?>
                 </a>
                 <a href="<?php echo esc_url(admin_url('admin.php?page=caretochina-staff-desk')); ?>" class="button button-hero" style="border-radius:10px; font-weight:600; padding:8px 20px;">
-                    <?php _e('Skip for Now', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Skip for Now', 'caretochina-medical'); ?>
                 </a>
             </div>
         </div>
@@ -357,10 +358,10 @@ class CareToChina_Setup_Wizard {
         ?>
         <div>
             <h2 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px 0; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-cart-shopping" style="color:#0F766E;"></i> <?php _e('WooCommerce Payment Engine Check', 'caretochina-medical'); ?>
+                <i class="fa-solid fa-cart-shopping" style="color:#0F766E;"></i> <?php esc_html_e('WooCommerce Payment Engine Check', 'caretochina-medical'); ?>
             </h2>
             <p style="color:#64748B; font-size:14px; margin-bottom:24px;">
-                <?php _e('CareToChina utilizes a headless WooCommerce payment engine for order creation, price snapshotting, and transaction reporting.', 'caretochina-medical'); ?>
+                <?php esc_html_e('CareToChina utilizes a headless WooCommerce payment engine for order creation, price snapshotting, and transaction reporting.', 'caretochina-medical'); ?>
             </p>
 
             <div id="wc-status-box" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:20px; margin-bottom:24px;">
@@ -368,8 +369,8 @@ class CareToChina_Setup_Wizard {
                     <div style="display:flex; align-items:center; gap:12px; color:#065F46;">
                         <i class="fa-solid fa-circle-check" style="font-size:28px; color:#10B981;"></i>
                         <div>
-                            <strong style="font-size:15px; display:block;"><?php _e('WooCommerce is Installed & Active', 'caretochina-medical'); ?></strong>
-                            <span style="font-size:13px; color:#047857;"><?php _e('Your payment engine backend is fully operational.', 'caretochina-medical'); ?></span>
+                            <strong style="font-size:15px; display:block;"><?php esc_html_e('WooCommerce is Installed & Active', 'caretochina-medical'); ?></strong>
+                            <span style="font-size:13px; color:#047857;"><?php esc_html_e('Your payment engine backend is fully operational.', 'caretochina-medical'); ?></span>
                         </div>
                     </div>
                 <?php elseif ($is_installed) : ?>
@@ -377,12 +378,12 @@ class CareToChina_Setup_Wizard {
                         <div style="display:flex; align-items:center; gap:12px; color:#B45309;">
                             <i class="fa-solid fa-triangle-exclamation" style="font-size:28px; color:#F59E0B;"></i>
                             <div>
-                                <strong style="font-size:15px; display:block;"><?php _e('WooCommerce is Installed but Inactive', 'caretochina-medical'); ?></strong>
-                                <span style="font-size:13px; color:#78350F;"><?php _e('Activate WooCommerce to enable payment processing.', 'caretochina-medical'); ?></span>
+                                <strong style="font-size:15px; display:block;"><?php esc_html_e('WooCommerce is Installed but Inactive', 'caretochina-medical'); ?></strong>
+                                <span style="font-size:13px; color:#78350F;"><?php esc_html_e('Activate WooCommerce to enable payment processing.', 'caretochina-medical'); ?></span>
                             </div>
                         </div>
                         <button type="button" onclick="installOrActivateWC()" id="btn-wc-action" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:8px;">
-                            <i class="fa-solid fa-bolt"></i> <?php _e('Activate WooCommerce', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-bolt"></i> <?php esc_html_e('Activate WooCommerce', 'caretochina-medical'); ?>
                         </button>
                     </div>
                 <?php else : ?>
@@ -390,12 +391,12 @@ class CareToChina_Setup_Wizard {
                         <div style="display:flex; align-items:center; gap:12px; color:#475569;">
                             <i class="fa-solid fa-download" style="font-size:28px; color:#0F766E;"></i>
                             <div>
-                                <strong style="font-size:15px; display:block;"><?php _e('WooCommerce Not Found', 'caretochina-medical'); ?></strong>
-                                <span style="font-size:13px; color:#64748B;"><?php _e('Click below for automatic 1-click installation from WordPress.org.', 'caretochina-medical'); ?></span>
+                                <strong style="font-size:15px; display:block;"><?php esc_html_e('WooCommerce Not Found', 'caretochina-medical'); ?></strong>
+                                <span style="font-size:13px; color:#64748B;"><?php esc_html_e('Click below for automatic 1-click installation from WordPress.org.', 'caretochina-medical'); ?></span>
                             </div>
                         </div>
                         <button type="button" onclick="installOrActivateWC()" id="btn-wc-action" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:8px;">
-                            <i class="fa-solid fa-cloud-arrow-down"></i> <?php _e('Install & Activate WooCommerce', 'caretochina-medical'); ?>
+                            <i class="fa-solid fa-cloud-arrow-down"></i> <?php esc_html_e('Install & Activate WooCommerce', 'caretochina-medical'); ?>
                         </button>
                     </div>
                 <?php endif; ?>
@@ -405,10 +406,10 @@ class CareToChina_Setup_Wizard {
 
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:20px;">
                 <a href="<?php echo esc_url($this->get_step_url(3)); ?>" style="color:#64748B; font-weight:600; text-decoration:none;">
-                    <?php _e('Skip this step &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Skip this step &rarr;', 'caretochina-medical'); ?>
                 </a>
                 <a href="<?php echo esc_url($this->get_step_url(3)); ?>" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:8px; padding:6px 20px;">
-                    <?php _e('Continue to Pages Setup &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Continue to Pages Setup &rarr;', 'caretochina-medical'); ?>
                 </a>
             </div>
         </div>
@@ -417,7 +418,7 @@ class CareToChina_Setup_Wizard {
         function installOrActivateWC() {
             var $btn = jQuery('#btn-wc-action');
             var $msg = jQuery('#wc-ajax-message');
-            $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> <?php _e("Processing...", "caretochina-medical"); ?>');
+            $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> <?php esc_html_e("Processing...", "caretochina-medical"); ?>');
             $msg.hide().empty();
 
             jQuery.post(ajaxurl, {
@@ -428,15 +429,15 @@ class CareToChina_Setup_Wizard {
                     $msg.css({ background: '#D1FAE5', color: '#065F46', border: '1px solid #A7F3D0' }).html('<i class="fa-solid fa-circle-check"></i> ' + res.data.message).show();
                     setTimeout(function() { window.location.reload(); }, 1200);
                 } else {
-                    $btn.prop('disabled', false).html('<i class="fa-solid fa-rotate-right"></i> <?php _e("Retry", "caretochina-medical"); ?>');
-                    var errMsg = (res.data && res.data.message) || '<?php _e("Installation failed.", "caretochina-medical"); ?>';
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-rotate-right"></i> <?php esc_html_e("Retry", "caretochina-medical"); ?>');
+                    var errMsg = (res.data && res.data.message) || '<?php esc_html_e("Installation failed.", "caretochina-medical"); ?>';
                     if (res.data && res.data.fallback) {
                         errMsg += '<br><a href="<?php echo esc_url(admin_url("plugin-install.php?s=woocommerce&tab=search&type=term")); ?>" target="_blank" class="button button-small" style="margin-top:8px;">Open Plugins Search &rarr;</a>';
                     }
                     $msg.css({ background: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA' }).html('<i class="fa-solid fa-triangle-exclamation"></i> ' + errMsg).show();
                 }
             }).fail(function() {
-                $btn.prop('disabled', false).html('<i class="fa-solid fa-rotate-right"></i> <?php _e("Retry", "caretochina-medical"); ?>');
+                $btn.prop('disabled', false).html('<i class="fa-solid fa-rotate-right"></i> <?php esc_html_e("Retry", "caretochina-medical"); ?>');
                 $msg.css({ background: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA' }).html('Server error communicating with WordPress.org.').show();
             });
         }
@@ -456,10 +457,10 @@ class CareToChina_Setup_Wizard {
             <input type="hidden" name="ctc_wizard_step" value="3">
 
             <h2 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px 0; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-file-lines" style="color:#0F766E;"></i> <?php _e('Dedicated Pages Setup', 'caretochina-medical'); ?>
+                <i class="fa-solid fa-file-lines" style="color:#0F766E;"></i> <?php esc_html_e('Dedicated Pages Setup', 'caretochina-medical'); ?>
             </h2>
             <p style="color:#64748B; font-size:14px; margin-bottom:20px;">
-                <?php _e('CareToChina requires dedicated pages for patient/staff portals and legal compliance. You can automatically create them or link existing pages.', 'caretochina-medical'); ?>
+                <?php esc_html_e('CareToChina requires dedicated pages for patient/staff portals and legal compliance. You can automatically create them or link existing pages.', 'caretochina-medical'); ?>
             </p>
 
             <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:24px;">
@@ -472,11 +473,14 @@ class CareToChina_Setup_Wizard {
                             </div>
                             <?php if ($info['is_configured']) : ?>
                                 <span style="background:#D1FAE5; color:#065F46; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px;">
-                                    <i class="fa-solid fa-check"></i> <?php printf(__('Configured: %s', 'caretochina-medical'), esc_html($info['post']->post_title)); ?>
+                                    <?php
+                                    /* translators: %s: Page title */
+                                    printf(esc_html__('Configured: %s', 'caretochina-medical'), esc_html($info['post']->post_title));
+                                    ?>
                                 </span>
                             <?php else : ?>
                                 <span style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px;">
-                                    <?php _e('Not Configured', 'caretochina-medical'); ?>
+                                    <?php esc_html_e('Not Configured', 'caretochina-medical'); ?>
                                 </span>
                             <?php endif; ?>
                         </div>
@@ -484,18 +488,18 @@ class CareToChina_Setup_Wizard {
                         <div style="display:flex; gap:16px; align-items:center; font-size:13px;">
                             <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
                                 <input type="radio" name="page_action_<?php echo esc_attr($type); ?>" value="create" <?php checked(!$info['is_configured']); ?> onchange="jQuery('#select-box-<?php echo esc_attr($type); ?>').hide();">
-                                <?php echo $info['is_configured'] ? __('Keep / Re-create New Page', 'caretochina-medical') : __('Create New Page Automatically', 'caretochina-medical'); ?>
+                                <?php echo esc_html($info['is_configured'] ? __('Keep / Re-create New Page', 'caretochina-medical') : __('Create New Page Automatically', 'caretochina-medical')); ?>
                             </label>
 
                             <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
                                 <input type="radio" name="page_action_<?php echo esc_attr($type); ?>" value="assign" <?php checked($info['is_configured']); ?> onchange="jQuery('#select-box-<?php echo esc_attr($type); ?>').show();">
-                                <?php _e('Select Existing Page', 'caretochina-medical'); ?>
+                                <?php esc_html_e('Select Existing Page', 'caretochina-medical'); ?>
                             </label>
                         </div>
 
                         <div id="select-box-<?php echo esc_attr($type); ?>" style="margin-top:10px; <?php echo $info['is_configured'] ? '' : 'display:none;'; ?>">
                             <select name="page_select_<?php echo esc_attr($type); ?>" style="width:100%; max-width:400px; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:13px;">
-                                <option value="0"><?php _e('-- Choose Existing Page --', 'caretochina-medical'); ?></option>
+                                <option value="0"><?php esc_html_e('-- Choose Existing Page --', 'caretochina-medical'); ?></option>
                                 <?php foreach ($all_pages as $p) : ?>
                                     <option value="<?php echo esc_attr($p->ID); ?>" <?php selected($info['page_id'], $p->ID); ?>>
                                         <?php echo esc_html($p->post_title); ?> (#<?php echo esc_html($p->ID); ?>)
@@ -509,10 +513,10 @@ class CareToChina_Setup_Wizard {
 
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:20px;">
                 <a href="<?php echo esc_url($this->get_step_url(4)); ?>" style="color:#64748B; font-weight:600; text-decoration:none;">
-                    <?php _e('Skip this step &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Skip this step &rarr;', 'caretochina-medical'); ?>
                 </a>
                 <button type="submit" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:8px; padding:6px 20px;">
-                    <?php _e('Save & Continue to Security &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Save & Continue to Security &rarr;', 'caretochina-medical'); ?>
                 </button>
             </div>
         </form>
@@ -540,23 +544,23 @@ class CareToChina_Setup_Wizard {
             <input type="hidden" name="ctc_wizard_step" value="4">
 
             <h2 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px 0; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-shield-halved" style="color:#0F766E;"></i> <?php _e('Google reCAPTCHA Security', 'caretochina-medical'); ?>
+                <i class="fa-solid fa-shield-halved" style="color:#0F766E;"></i> <?php esc_html_e('Google reCAPTCHA Security', 'caretochina-medical'); ?>
             </h2>
             <p style="color:#64748B; font-size:14px; margin-bottom:20px;">
-                <?php _e('Protect patient authentication and booking requests from bots and automated spam. Secrets are automatically encrypted at rest.', 'caretochina-medical'); ?>
+                <?php esc_html_e('Protect patient authentication and booking requests from bots and automated spam. Secrets are automatically encrypted at rest.', 'caretochina-medical'); ?>
             </p>
 
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:20px;">
                 <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;"><?php _e('Select reCAPTCHA Version', 'caretochina-medical'); ?></label>
+                    <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;"><?php esc_html_e('Select reCAPTCHA Version', 'caretochina-medical'); ?></label>
                     <div style="display:flex; gap:20px;">
                         <label style="font-weight:600; cursor:pointer;">
                             <input type="radio" name="ctc_recaptcha_version" value="v2" <?php checked($version, 'v2'); ?> onchange="jQuery('#recaptcha-v2-fields').show(); jQuery('#recaptcha-v3-fields').hide();">
-                            <?php _e('reCAPTCHA v2 (Checkbox "I am not a robot")', 'caretochina-medical'); ?>
+                            <?php esc_html_e('reCAPTCHA v2 (Checkbox "I am not a robot")', 'caretochina-medical'); ?>
                         </label>
                         <label style="font-weight:600; cursor:pointer;">
                             <input type="radio" name="ctc_recaptcha_version" value="v3" <?php checked($version, 'v3'); ?> onchange="jQuery('#recaptcha-v3-fields').show(); jQuery('#recaptcha-v2-fields').hide();">
-                            <?php _e('reCAPTCHA v3 (Invisible / Score-based)', 'caretochina-medical'); ?>
+                            <?php esc_html_e('reCAPTCHA v3 (Invisible / Score-based)', 'caretochina-medical'); ?>
                         </label>
                     </div>
                 </div>
@@ -564,11 +568,11 @@ class CareToChina_Setup_Wizard {
                 <!-- V2 FIELDS -->
                 <div id="recaptcha-v2-fields" style="<?php echo $version === 'v2' ? '' : 'display:none;'; ?>">
                     <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('reCAPTCHA v2 Site Key', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('reCAPTCHA v2 Site Key', 'caretochina-medical'); ?></label>
                         <input type="text" name="ctc_recaptcha_v2_site_key" value="<?php echo esc_attr($v2_site); ?>" class="regular-text" style="width:100%; max-width:500px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('reCAPTCHA v2 Secret Key', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('reCAPTCHA v2 Secret Key', 'caretochina-medical'); ?></label>
                         <input type="password" name="ctc_recaptcha_v2_secret_key" value="<?php echo esc_attr($v2_sec_masked); ?>" class="regular-text" style="width:100%; max-width:500px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;">
                     </div>
                 </div>
@@ -576,15 +580,15 @@ class CareToChina_Setup_Wizard {
                 <!-- V3 FIELDS -->
                 <div id="recaptcha-v3-fields" style="<?php echo $version === 'v3' ? '' : 'display:none;'; ?>">
                     <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('reCAPTCHA v3 Site Key', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('reCAPTCHA v3 Site Key', 'caretochina-medical'); ?></label>
                         <input type="text" name="ctc_recaptcha_v3_site_key" value="<?php echo esc_attr($v3_site); ?>" class="regular-text" style="width:100%; max-width:500px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;">
                     </div>
                     <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('reCAPTCHA v3 Secret Key', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('reCAPTCHA v3 Secret Key', 'caretochina-medical'); ?></label>
                         <input type="password" name="ctc_recaptcha_v3_secret_key" value="<?php echo esc_attr($v3_sec_masked); ?>" class="regular-text" style="width:100%; max-width:500px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('v3 Score Pass Threshold (0.1 - 1.0, Default: 0.5)', 'caretochina-medical'); ?></label>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('v3 Score Pass Threshold (0.1 - 1.0, Default: 0.5)', 'caretochina-medical'); ?></label>
                         <input type="number" step="0.05" min="0.1" max="1.0" name="ctc_recaptcha_v3_threshold" value="<?php echo esc_attr($threshold); ?>" style="width:120px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;">
                     </div>
                 </div>
@@ -592,35 +596,35 @@ class CareToChina_Setup_Wizard {
 
             <!-- LOCATION TOGGLES -->
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:20px;">
-                <strong style="display:block; font-size:13px; color:#334155; margin-bottom:10px;"><?php _e('Enable reCAPTCHA on Forms:', 'caretochina-medical'); ?></strong>
+                <strong style="display:block; font-size:13px; color:#334155; margin-bottom:10px;"><?php esc_html_e('Enable reCAPTCHA on Forms:', 'caretochina-medical'); ?></strong>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
                     <label style="cursor:pointer; font-weight:600;">
                         <input type="checkbox" name="ctc_recaptcha_enable_login" value="1" <?php checked($en_login, 1); ?>>
-                        <?php _e('Patient Login Form', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Patient Login Form', 'caretochina-medical'); ?>
                     </label>
                     <label style="cursor:pointer; font-weight:600;">
                         <input type="checkbox" name="ctc_recaptcha_enable_register" value="1" <?php checked($en_reg, 1); ?>>
-                        <?php _e('Patient Registration Form', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Patient Registration Form', 'caretochina-medical'); ?>
                     </label>
                     <label style="cursor:pointer; font-weight:600;">
                         <input type="checkbox" name="ctc_recaptcha_enable_booking" value="1" <?php checked($en_book, 1); ?>>
-                        <?php _e('Booking Wizard Final Submission', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Booking Wizard Final Submission', 'caretochina-medical'); ?>
                     </label>
                 </div>
                 <p style="margin:10px 0 0 0; font-size:11px; color:#64748B;">
-                    <i class="fa-solid fa-circle-info"></i> <?php _e('Note: "Continue with Google" OAuth is authenticated directly through Google and is automatically excluded from reCAPTCHA challenges.', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-circle-info"></i> <?php esc_html_e('Note: "Continue with Google" OAuth is authenticated directly through Google and is automatically excluded from reCAPTCHA challenges.', 'caretochina-medical'); ?>
                 </p>
             </div>
 
             <!-- BADGE HIDE / TERMS COMPLIANCE -->
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:24px;">
-                <strong style="display:block; font-size:13px; color:#334155; margin-bottom:10px;"><?php _e('Badge Display & Google Attribution:', 'caretochina-medical'); ?></strong>
+                <strong style="display:block; font-size:13px; color:#334155; margin-bottom:10px;"><?php esc_html_e('Badge Display & Google Attribution:', 'caretochina-medical'); ?></strong>
                 <label style="cursor:pointer; font-weight:600; display:flex; align-items:flex-start; gap:8px;">
                     <input type="checkbox" name="ctc_recaptcha_hide_badge" value="1" <?php checked($hide_badge, true); ?> style="margin-top:2px;">
                     <span>
-                        <?php _e('Hide floating reCAPTCHA badge', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Hide floating reCAPTCHA badge', 'caretochina-medical'); ?>
                         <span style="display:block; margin-top:4px; font-weight:normal; font-size:12px; color:#64748B; line-height:1.4;">
-                            <?php _e('Hides the floating bottom-right badge via CSS and automatically displays Google\'s required attribution text ("This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply") below active protected forms to comply with Google Terms of Service.', 'caretochina-medical'); ?>
+                            <?php esc_html_e('Hides the floating bottom-right badge via CSS and automatically displays Google\'s required attribution text ("This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply") below active protected forms to comply with Google Terms of Service.', 'caretochina-medical'); ?>
                         </span>
                     </span>
                 </label>
@@ -628,10 +632,10 @@ class CareToChina_Setup_Wizard {
 
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:20px;">
                 <a href="<?php echo esc_url($this->get_step_url(5)); ?>" style="color:#64748B; font-weight:600; text-decoration:none;">
-                    <?php _e('Skip this step &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Skip this step &rarr;', 'caretochina-medical'); ?>
                 </a>
                 <button type="submit" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:8px; padding:6px 20px;">
-                    <?php _e('Save & Continue to Google Login &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Save & Continue to Google Login &rarr;', 'caretochina-medical'); ?>
                 </button>
             </div>
         </form>
@@ -652,35 +656,35 @@ class CareToChina_Setup_Wizard {
             <input type="hidden" name="ctc_wizard_step" value="5">
 
             <h2 style="font-size:20px; font-weight:800; color:#0F172A; margin:0 0 8px 0; display:flex; align-items:center; gap:8px;">
-                <i class="fa-brands fa-google" style="color:#EA4335;"></i> <?php _e('Google OAuth 2.0 Patient Sign-In', 'caretochina-medical'); ?>
+                <i class="fa-brands fa-google" style="color:#EA4335;"></i> <?php esc_html_e('Google OAuth 2.0 Patient Sign-In', 'caretochina-medical'); ?>
             </h2>
             <p style="color:#64748B; font-size:14px; margin-bottom:20px;">
-                <?php _e('Allow patients to sign in with 1-click using their verified Google account. Secrets are encrypted at rest.', 'caretochina-medical'); ?>
+                <?php esc_html_e('Allow patients to sign in with 1-click using their verified Google account. Secrets are encrypted at rest.', 'caretochina-medical'); ?>
             </p>
 
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:20px; margin-bottom:24px;">
                 <div style="margin-bottom:14px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Google OAuth Client ID', 'caretochina-medical'); ?></label>
-                    <input type="text" name="ctc_google_client_id" value="<?php echo esc_attr($client_id); ?>" class="regular-text" style="width:100%; max-width:550px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;" placeholder="xxxx-xxxx.apps.googleusercontent.com">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('Google OAuth Client ID', 'caretochina-medical'); ?></label>
+                    <input type="text" name="ctc_google_client_id" value="<?php echo esc_attr($client_id); ?>" class="regular-text" style="width:100%; max-width:550px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;" placeholder="1234567890-example.clientid">
                 </div>
 
                 <div style="margin-bottom:16px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php _e('Google OAuth Client Secret', 'caretochina-medical'); ?></label>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('Google OAuth Client Secret', 'caretochina-medical'); ?></label>
                     <input type="password" name="ctc_google_client_secret" value="<?php echo esc_attr($client_sec_masked); ?>" class="regular-text" style="width:100%; max-width:550px; padding:8px; border-radius:6px; border:1px solid #CBD5E1;" placeholder="GOCSPX-xxxx">
                 </div>
 
                 <div style="background:#FFF; border:1px dashed #CBD5E1; border-radius:8px; padding:12px;">
-                    <strong style="display:block; font-size:12px; color:#334155; margin-bottom:4px;"><?php _e('Authorized Redirect URI (Paste into Google Cloud Console):', 'caretochina-medical'); ?></strong>
+                    <strong style="display:block; font-size:12px; color:#334155; margin-bottom:4px;"><?php esc_html_e('Authorized Redirect URI (Paste into Google Cloud Console):', 'caretochina-medical'); ?></strong>
                     <code style="font-size:13px; color:#0F766E; font-weight:700;"><?php echo esc_html($redirect_uri); ?></code>
                 </div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:20px;">
                 <a href="<?php echo esc_url($this->get_step_url(6)); ?>" style="color:#64748B; font-weight:600; text-decoration:none;">
-                    <?php _e('Skip this step &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Skip this step &rarr;', 'caretochina-medical'); ?>
                 </a>
                 <button type="submit" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:8px; padding:6px 20px;">
-                    <?php _e('Save & Finish Setup &rarr;', 'caretochina-medical'); ?>
+                    <?php esc_html_e('Save & Finish Setup &rarr;', 'caretochina-medical'); ?>
                 </button>
             </div>
         </form>
@@ -702,20 +706,20 @@ class CareToChina_Setup_Wizard {
                 <div style="width:64px; height:64px; background:#D1FAE5; color:#065F46; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:28px; margin-bottom:14px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
-                <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 6px 0;"><?php _e('Setup Complete!', 'caretochina-medical'); ?></h2>
-                <p style="color:#64748B; font-size:14px; margin:0;"><?php _e('Your CareToChina medical platform is configured and ready.', 'caretochina-medical'); ?></p>
+                <h2 style="font-size:22px; font-weight:800; color:#0F172A; margin:0 0 6px 0;"><?php esc_html_e('Setup Complete!', 'caretochina-medical'); ?></h2>
+                <p style="color:#64748B; font-size:14px; margin:0;"><?php esc_html_e('Your CareToChina medical platform is configured and ready.', 'caretochina-medical'); ?></p>
             </div>
 
             <!-- UNINSTALL & EXPORT SECTION -->
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:20px; margin-bottom:24px;">
                 <h4 style="margin:0 0 10px 0; font-size:14px; color:#0F172A; font-weight:800; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-database" style="color:#0F766E;"></i> <?php _e('Data Safety & Backup Management', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-database" style="color:#0F766E;"></i> <?php esc_html_e('Data Safety & Backup Management', 'caretochina-medical'); ?>
                 </h4>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
                     <div>
-                        <strong style="font-size:13px; color:#334155; display:block;"><?php _e('Delete all plugin data on uninstall', 'caretochina-medical'); ?></strong>
-                        <span style="font-size:12px; color:#64748B;"><?php _e('Default is OFF (data preserved). If enabled, a safety-net backup is created before table cleanup.', 'caretochina-medical'); ?></span>
+                        <strong style="font-size:13px; color:#334155; display:block;"><?php esc_html_e('Delete all plugin data on uninstall', 'caretochina-medical'); ?></strong>
+                        <span style="font-size:12px; color:#64748B;"><?php esc_html_e('Default is OFF (data preserved). If enabled, a safety-net backup is created before table cleanup.', 'caretochina-medical'); ?></span>
                     </div>
                     <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
                         <input type="checkbox" name="ctc_delete_data_on_uninstall" value="1" <?php checked($delete_on_uninstall, 1); ?>>
@@ -725,18 +729,18 @@ class CareToChina_Setup_Wizard {
 
                 <div style="border-top:1px dashed #E2E8F0; padding-top:14px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="font-size:13px; color:#334155; display:block;"><?php _e('Export Database Dump On-Demand', 'caretochina-medical'); ?></strong>
-                        <span style="font-size:12px; color:#64748B;"><?php _e('Download full SQL export of all patient bookings, plans, and audit logs anytime.', 'caretochina-medical'); ?></span>
+                        <strong style="font-size:13px; color:#334155; display:block;"><?php esc_html_e('Export Database Dump On-Demand', 'caretochina-medical'); ?></strong>
+                        <span style="font-size:12px; color:#64748B;"><?php esc_html_e('Download full SQL export of all patient bookings, plans, and audit logs anytime.', 'caretochina-medical'); ?></span>
                     </div>
                     <a href="<?php echo esc_url(admin_url('admin-post.php?action=ctc_export_plugin_data&_wpnonce=' . $export_nonce)); ?>" class="button" style="font-weight:700; border-radius:8px;">
-                        <i class="fa-solid fa-download"></i> <?php _e('Export Data Now', 'caretochina-medical'); ?>
+                        <i class="fa-solid fa-download"></i> <?php esc_html_e('Export Data Now', 'caretochina-medical'); ?>
                     </a>
                 </div>
             </div>
 
             <div style="display:flex; justify-content:center; gap:16px; border-top:1px solid #E2E8F0; padding-top:20px;">
                 <button type="submit" class="button button-primary button-hero" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:10px; padding:8px 32px;">
-                    <i class="fa-solid fa-check"></i> <?php _e('Go to Staff Desk &rarr;', 'caretochina-medical'); ?>
+                    <i class="fa-solid fa-check"></i> <?php esc_html_e('Go to Staff Desk &rarr;', 'caretochina-medical'); ?>
                 </button>
             </div>
         </form>

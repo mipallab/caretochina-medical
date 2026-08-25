@@ -32,7 +32,7 @@ class CareToChina_Payment_Reconciliation {
         }
 
         // Query pending orders older than 30 minutes
-        $cutoff_time = date('Y-m-d H:i:s', time() - 1800);
+        $cutoff_time = gmdate('Y-m-d H:i:s', time() - 1800);
 
         $orders = wc_get_orders([
             'status'        => 'pending',

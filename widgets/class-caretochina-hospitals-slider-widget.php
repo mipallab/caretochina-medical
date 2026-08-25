@@ -15,7 +15,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
     }
 
     public function get_title() {
-        return __('CareToChina Hospitals Slider', 'caretochina-hospitals');
+        return __('CareToChina Hospitals Slider', 'caretochina-medical');
     }
 
     public function get_icon() {
@@ -27,7 +27,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
     }
 
     public function get_keywords() {
-        return ['hospital', 'slider', 'carousel', 'swiper', 'caretochina', 'jci', 'drag'];
+        return ['hospital', 'slider', 'carousel', 'swiper', 'caretochina-medical', 'jci', 'drag'];
     }
 
     protected function register_controls() {
@@ -36,7 +36,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->start_controls_section(
             'section_slider_content',
             [
-                'label' => __('Slider Query & Layout', 'caretochina-hospitals'),
+                'label' => __('Slider Query & Layout', 'caretochina-medical'),
                 'tab'   => Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -44,7 +44,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'posts_count',
             [
-                'label'   => __('Hospitals Count', 'caretochina-hospitals'),
+                'label'   => __('Hospitals Count', 'caretochina-medical'),
                 'type'    => Controls_Manager::NUMBER,
                 'default' => 8,
                 'min'     => 2,
@@ -53,7 +53,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         );
 
         $cities = get_terms(['taxonomy' => 'hospital_city', 'hide_empty' => false]);
-        $city_options = ['all' => __('All Locations', 'caretochina-hospitals')];
+        $city_options = ['all' => __('All Locations', 'caretochina-medical')];
         if (!empty($cities) && !is_wp_error($cities)) {
             foreach ($cities as $c) {
                 $city_options[$c->slug] = $c->name;
@@ -63,7 +63,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'city_filter',
             [
-                'label'   => __('Filter by City', 'caretochina-hospitals'),
+                'label'   => __('Filter by City', 'caretochina-medical'),
                 'type'    => Controls_Manager::SELECT,
                 'default' => 'all',
                 'options' => $city_options,
@@ -73,7 +73,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'slides_to_show',
             [
-                'label'   => __('Slides to Show', 'caretochina-hospitals'),
+                'label'   => __('Slides to Show', 'caretochina-medical'),
                 'type'    => Controls_Manager::SELECT,
                 'default' => '3',
                 'tablet_default' => '2',
@@ -90,7 +90,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'slides_gap',
             [
-                'label'      => __('Gap Between Cards (px)', 'caretochina-hospitals'),
+                'label'      => __('Gap Between Cards (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => ['px', 'rem'],
                 'range'      => [
@@ -103,11 +103,11 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'enable_drag',
             [
-                'label'        => __('Enable Mouse Drag & Touch Swipe', 'caretochina-hospitals'),
+                'label'        => __('Enable Mouse Drag & Touch Swipe', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
-                'label_on'     => __('Yes', 'caretochina-hospitals'),
-                'label_off'    => __('No', 'caretochina-hospitals'),
+                'label_on'     => __('Yes', 'caretochina-medical'),
+                'label_off'    => __('No', 'caretochina-medical'),
                 'return_value' => 'yes',
             ]
         );
@@ -115,11 +115,11 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'autoplay',
             [
-                'label'        => __('Autoplay', 'caretochina-hospitals'),
+                'label'        => __('Autoplay', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
-                'label_on'     => __('Yes', 'caretochina-hospitals'),
-                'label_off'    => __('No', 'caretochina-hospitals'),
+                'label_on'     => __('Yes', 'caretochina-medical'),
+                'label_off'    => __('No', 'caretochina-medical'),
                 'return_value' => 'yes',
             ]
         );
@@ -127,11 +127,11 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'show_arrows',
             [
-                'label'        => __('Show Navigation Arrows', 'caretochina-hospitals'),
+                'label'        => __('Show Navigation Arrows', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
-                'label_on'     => __('Yes', 'caretochina-hospitals'),
-                'label_off'    => __('No', 'caretochina-hospitals'),
+                'label_on'     => __('Yes', 'caretochina-medical'),
+                'label_off'    => __('No', 'caretochina-medical'),
                 'return_value' => 'yes',
             ]
         );
@@ -139,14 +139,14 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'arrow_icon_style',
             [
-                'label'     => __('Arrow Icon Style', 'caretochina-hospitals'),
+                'label'     => __('Arrow Icon Style', 'caretochina-medical'),
                 'type'      => Controls_Manager::SELECT,
                 'default'   => 'chevron',
                 'options'   => [
-                    'chevron' => __('Chevron (< >)', 'caretochina-hospitals'),
-                    'arrow'   => __('Long Arrow (← →)', 'caretochina-hospitals'),
-                    'caret'   => __('Caret (◀ ▶)', 'caretochina-hospitals'),
-                    'angle'   => __('Angle Thin (‹ ›)', 'caretochina-hospitals'),
+                    'chevron' => __('Chevron (< >)', 'caretochina-medical'),
+                    'arrow'   => __('Long Arrow (← →)', 'caretochina-medical'),
+                    'caret'   => __('Caret (◀ ▶)', 'caretochina-medical'),
+                    'angle'   => __('Angle Thin (‹ ›)', 'caretochina-medical'),
                 ],
                 'condition' => ['show_arrows' => 'yes'],
             ]
@@ -155,11 +155,11 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'show_dots',
             [
-                'label'        => __('Show Dots Pagination', 'caretochina-hospitals'),
+                'label'        => __('Show Dots Pagination', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
-                'label_on'     => __('Yes', 'caretochina-hospitals'),
-                'label_off'    => __('No', 'caretochina-hospitals'),
+                'label_on'     => __('Yes', 'caretochina-medical'),
+                'label_off'    => __('No', 'caretochina-medical'),
                 'return_value' => 'yes',
             ]
         );
@@ -170,7 +170,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->start_controls_section(
             'section_style_wrapper',
             [
-                'label' => __('Slider Container & Padding', 'caretochina-hospitals'),
+                'label' => __('Slider Container & Padding', 'caretochina-medical'),
                 'tab'   => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -179,7 +179,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'slider_wrapper_padding',
             [
-                'label'      => __('Wrapper Padding', 'caretochina-hospitals'),
+                'label'      => __('Wrapper Padding', 'caretochina-medical'),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'default'    => [
@@ -197,7 +197,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->start_controls_section(
             'section_style_cards',
             [
-                'label' => __('Hospital Card Styling', 'caretochina-hospitals'),
+                'label' => __('Hospital Card Styling', 'caretochina-medical'),
                 'tab'   => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -205,7 +205,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'card_max_width',
             [
-                'label'      => __('Card Max Width (px)', 'caretochina-hospitals'),
+                'label'      => __('Card Max Width (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => ['px', '%'],
                 'range'      => [
@@ -221,7 +221,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
             Group_Control_Background::get_type(),
             [
                 'name'     => 'card_bg',
-                'label'    => __('Card Background', 'caretochina-hospitals'),
+                'label'    => __('Card Background', 'caretochina-medical'),
                 'types'    => ['classic', 'gradient'],
                 'selector' => '{{WRAPPER}} .ctc-hospital-card',
             ]
@@ -231,7 +231,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
             Group_Control_Border::get_type(),
             [
                 'name'     => 'card_border',
-                'label'    => __('Border', 'caretochina-hospitals'),
+                'label'    => __('Border', 'caretochina-medical'),
                 'selector' => '{{WRAPPER}} .ctc-hospital-card',
             ]
         );
@@ -239,7 +239,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'card_border_radius',
             [
-                'label'      => __('Border Radius (px)', 'caretochina-hospitals'),
+                'label'      => __('Border Radius (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%'],
                 'selectors'  => [
@@ -253,7 +253,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
             Group_Control_Box_Shadow::get_type(),
             [
                 'name'     => 'card_box_shadow',
-                'label'    => __('Box Shadow', 'caretochina-hospitals'),
+                'label'    => __('Box Shadow', 'caretochina-medical'),
                 'selector' => '{{WRAPPER}} .ctc-hospital-card',
             ]
         );
@@ -264,7 +264,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->start_controls_section(
             'section_style_typography',
             [
-                'label' => __('Typography & Colors', 'caretochina-hospitals'),
+                'label' => __('Typography & Colors', 'caretochina-medical'),
                 'tab'   => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -273,7 +273,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
             Group_Control_Typography::get_type(),
             [
                 'name'     => 'title_typography',
-                'label'    => __('Title Typography', 'caretochina-hospitals'),
+                'label'    => __('Title Typography', 'caretochina-medical'),
                 'selector' => '{{WRAPPER}} .ctc-hosp-title a',
             ]
         );
@@ -281,7 +281,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'title_color',
             [
-                'label'     => __('Title Color', 'caretochina-hospitals'),
+                'label'     => __('Title Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-hosp-title a' => 'color: {{VALUE}};',
@@ -292,7 +292,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'title_hover_color',
             [
-                'label'     => __('Title Hover Color', 'caretochina-hospitals'),
+                'label'     => __('Title Hover Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-hosp-title a:hover' => 'color: {{VALUE}};',
@@ -303,7 +303,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'specs_color',
             [
-                'label'     => __('Specialities Text Color', 'caretochina-hospitals'),
+                'label'     => __('Specialities Text Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-hosp-specs' => 'color: {{VALUE}};',
@@ -314,7 +314,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'rating_color',
             [
-                'label'     => __('Rating Stars Color', 'caretochina-hospitals'),
+                'label'     => __('Rating Stars Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-hosp-rating' => 'color: {{VALUE}};',
@@ -328,7 +328,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->start_controls_section(
             'section_style_navigation',
             [
-                'label' => __('Slider Arrows & Dots', 'caretochina-hospitals'),
+                'label' => __('Slider Arrows & Dots', 'caretochina-medical'),
                 'tab'   => Controls_Manager::TAB_STYLE,
             ]
         );
@@ -336,7 +336,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'arrow_box_size',
             [
-                'label'      => __('Arrow Button Size (px)', 'caretochina-hospitals'),
+                'label'      => __('Arrow Button Size (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => ['px'],
                 'range'      => [
@@ -352,7 +352,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_responsive_control(
             'arrow_icon_size',
             [
-                'label'      => __('Arrow Icon Size (px)', 'caretochina-hospitals'),
+                'label'      => __('Arrow Icon Size (px)', 'caretochina-medical'),
                 'type'       => Controls_Manager::SLIDER,
                 'size_units' => ['px'],
                 'range'      => [
@@ -368,7 +368,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'arrow_bg',
             [
-                'label'     => __('Arrow Background', 'caretochina-hospitals'),
+                'label'     => __('Arrow Background', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-slider-arrow' => 'background-color: {{VALUE}} !important;',
@@ -379,7 +379,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'arrow_color',
             [
-                'label'     => __('Arrow Icon Color', 'caretochina-hospitals'),
+                'label'     => __('Arrow Icon Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-slider-arrow' => 'color: {{VALUE}} !important; border-color: {{VALUE}} !important;',
@@ -391,7 +391,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'arrow_hover_bg',
             [
-                'label'     => __('Arrow Hover Background', 'caretochina-hospitals'),
+                'label'     => __('Arrow Hover Background', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-slider-arrow:hover' => 'background-color: {{VALUE}} !important;',
@@ -402,7 +402,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'dot_color',
             [
-                'label'     => __('Dot Color', 'caretochina-hospitals'),
+                'label'     => __('Dot Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-swiper-dots .swiper-pagination-bullet' => 'background-color: {{VALUE}} !important;',
@@ -413,7 +413,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         $this->add_control(
             'dot_active_color',
             [
-                'label'     => __('Active Dot Color', 'caretochina-hospitals'),
+                'label'     => __('Active Dot Color', 'caretochina-medical'),
                 'type'      => Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .ctc-swiper-dots .swiper-pagination-bullet-active' => 'background-color: {{VALUE}} !important;',
@@ -456,6 +456,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         ];
 
         if (!empty($settings['city_filter']) && $settings['city_filter'] !== 'all') {
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
             $args['tax_query'] = [
                 [
                     'taxonomy' => 'hospital_city',
@@ -487,7 +488,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                 </div>
 
                 <?php if ($settings['show_arrows'] === 'yes') : ?>
-                    <button type="button" class="ctc-slider-arrow ctc-prev-arrow" aria-label="<?php esc_attr_e('Previous Slide', 'caretochina-hospitals'); ?>">
+                    <button type="button" class="ctc-slider-arrow ctc-prev-arrow" aria-label="<?php esc_attr_e('Previous Slide', 'caretochina-medical'); ?>">
                         <?php if ($arrow_style === 'arrow') : ?>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                         <?php elseif ($arrow_style === 'caret') : ?>
@@ -499,7 +500,7 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                         <?php endif; ?>
                     </button>
 
-                    <button type="button" class="ctc-slider-arrow ctc-next-arrow" aria-label="<?php esc_attr_e('Next Slide', 'caretochina-hospitals'); ?>">
+                    <button type="button" class="ctc-slider-arrow ctc-next-arrow" aria-label="<?php esc_attr_e('Next Slide', 'caretochina-medical'); ?>">
                         <?php if ($arrow_style === 'arrow') : ?>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                         <?php elseif ($arrow_style === 'caret') : ?>

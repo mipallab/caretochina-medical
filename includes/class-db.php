@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('CARETOCHINA_PAYMENT_DB_VERSION')) {
-    define('CARETOCHINA_PAYMENT_DB_VERSION', '1.3.0');
+    define('CARETOCHINA_PAYMENT_DB_VERSION', '2.0.0');
 }
 
 class CareToChina_Booking_DB {
@@ -12,16 +12,13 @@ class CareToChina_Booking_DB {
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();
 
-        // 1. NEW BOOKINGS TABLE (WITH PAYMENT CACHE, PRICING PLAN & GUEST AUTH FIELDS)
+        // 1. DROP LEGACY PRICING PLANS TABLE
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+        $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}caretochina_pricing_plans");
+
+        // 2. BOOKINGS TABLE (WITH PACKAGE_ID & PAYMENT CACHE)
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
-        // Force table update if old schema is active
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_bookings LIKE %s", $wpdb->esc_like('patient_name')))) {
-                $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}caretochina_bookings");
-            }
-        }
-
         $sql_bookings = "CREATE TABLE $table_bookings (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             booking_code varchar(30) NOT NULL,
@@ -30,8 +27,8 @@ class CareToChina_Booking_DB {
             guest_token_hash varchar(255) DEFAULT '',
             hospital_id bigint(20) DEFAULT 0,
             hospital_name varchar(255) DEFAULT '',
-            specialty text NOT NULL,
-            pricing_plan_id bigint(20) DEFAULT 0,
+            specialty varchar(255) DEFAULT '',
+            package_id bigint(20) DEFAULT 0,
             treatment_timing varchar(100) DEFAULT '',
             quote_details text,
             country varchar(100) DEFAULT '',
@@ -58,11 +55,12 @@ class CareToChina_Booking_DB {
             KEY guest_token_hash (guest_token_hash),
             KEY patient_id (patient_id),
             KEY is_guest (is_guest),
+            KEY package_id (package_id),
             KEY status (status),
             KEY created_at (created_at)
         ) $charset_collate;";
 
-        // 2. NEW MESSAGES TABLE (WITH MESSAGE TYPE, PAYMENT REQUEST & ATTACHMENT FIELDS)
+        // 3. MESSAGES TABLE (WITH MESSAGE TYPE, PAYMENT REQUEST & ATTACHMENT FIELDS)
         $table_messages = $wpdb->prefix . 'caretochina_messages';
         $sql_messages = "CREATE TABLE $table_messages (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -84,7 +82,7 @@ class CareToChina_Booking_DB {
             KEY created_at (created_at)
         ) $charset_collate;";
 
-        // 3. PROCESSED WEBHOOK EVENTS TABLE (EVENT-ID IDEMPOTENCY)
+        // 4. PROCESSED WEBHOOK EVENTS TABLE (EVENT-ID IDEMPOTENCY)
         $table_webhook_events = $wpdb->prefix . 'caretochina_processed_webhook_events';
         $sql_webhook_events = "CREATE TABLE $table_webhook_events (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -96,7 +94,7 @@ class CareToChina_Booking_DB {
             UNIQUE KEY event_id (event_id)
         ) $charset_collate;";
 
-        // 4. PAYMENT AUDIT LOGS TABLE
+        // 5. PAYMENT AUDIT LOGS TABLE
         $table_audit_logs = $wpdb->prefix . 'caretochina_payment_audit_logs';
         $sql_audit_logs = "CREATE TABLE $table_audit_logs (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -111,7 +109,7 @@ class CareToChina_Booking_DB {
             KEY booking_id (booking_id)
         ) $charset_collate;";
 
-        // 5. PAYMENT REQUESTS TABLE (STAFF CHAT REQUESTS)
+        // 6. PAYMENT REQUESTS TABLE (STAFF CHAT REQUESTS)
         $table_payment_requests = $wpdb->prefix . 'caretochina_payment_requests';
         $sql_payment_requests = "CREATE TABLE $table_payment_requests (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -121,8 +119,7 @@ class CareToChina_Booking_DB {
             patient_id bigint(20) NOT NULL,
             created_by bigint(20) NOT NULL,
             pricing_type varchar(30) NOT NULL,
-            treatment_id bigint(20) DEFAULT 0,
-            pricing_plan_id bigint(20) DEFAULT 0,
+            package_id bigint(20) DEFAULT 0,
             plan_name varchar(150) DEFAULT '',
             custom_title varchar(255) DEFAULT '',
             custom_content text,
@@ -135,25 +132,8 @@ class CareToChina_Booking_DB {
             UNIQUE KEY request_code (request_code),
             KEY chat_thread_booking_id (chat_thread_booking_id),
             KEY patient_id (patient_id),
+            KEY package_id (package_id),
             KEY status (status)
-        ) $charset_collate;";
-
-        // 6. PRICING PLANS TABLE (TREATMENT PACKAGES & TIERS)
-        $table_pricing_plans = $wpdb->prefix . 'caretochina_pricing_plans';
-        $sql_pricing_plans = "CREATE TABLE $table_pricing_plans (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            treatment_id bigint(20) NOT NULL DEFAULT 0,
-            name varchar(255) NOT NULL,
-            price decimal(10,2) NOT NULL DEFAULT 0.00,
-            currency varchar(10) DEFAULT 'USD',
-            description text,
-            display_order int(11) NOT NULL DEFAULT 0,
-            is_active tinyint(1) NOT NULL DEFAULT 1,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id),
-            KEY treatment_id (treatment_id),
-            KEY is_active (is_active)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
@@ -162,7 +142,47 @@ class CareToChina_Booking_DB {
         dbDelta($sql_webhook_events);
         dbDelta($sql_audit_logs);
         dbDelta($sql_payment_requests);
-        dbDelta($sql_pricing_plans);
+
+        // Column migration for existing tables if package_id is missing or old columns remain
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            // Check if package_id column exists
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $has_pkg = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_bookings LIKE %s", $wpdb->esc_like('package_id')));
+            if (!$has_pkg) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_bookings ADD COLUMN package_id bigint(20) DEFAULT 0 AFTER specialty, ADD KEY package_id (package_id)");
+            }
+            // Drop old pricing_plan_id column if present
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $has_old_plan = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_bookings LIKE %s", $wpdb->esc_like('pricing_plan_id')));
+            if ($has_old_plan) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_bookings DROP COLUMN pricing_plan_id");
+            }
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_payment_requests))) === $table_payment_requests) {
+            // Check if package_id column exists
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $has_pkg_req = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_payment_requests LIKE %s", $wpdb->esc_like('package_id')));
+            if (!$has_pkg_req) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_payment_requests ADD COLUMN package_id bigint(20) DEFAULT 0 AFTER pricing_type, ADD KEY package_id (package_id)");
+            }
+            // Drop old treatment_id / pricing_plan_id columns if present
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_payment_requests LIKE %s", $wpdb->esc_like('pricing_plan_id')))) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_payment_requests DROP COLUMN pricing_plan_id");
+            }
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_payment_requests LIKE %s", $wpdb->esc_like('treatment_id')))) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_payment_requests DROP COLUMN treatment_id");
+            }
+        }
 
         // Update DB version option
         update_option('caretochina_payment_db_version', CARETOCHINA_PAYMENT_DB_VERSION);
@@ -171,12 +191,17 @@ class CareToChina_Booking_DB {
         $legacy_bookings = $wpdb->prefix . 'careyou_bookings';
         $legacy_messages = $wpdb->prefix . 'careyou_messages';
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($legacy_bookings))) === $legacy_bookings) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
             $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}careyou_bookings");
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($legacy_messages))) === $legacy_messages) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->query("INSERT IGNORE INTO {$wpdb->prefix}caretochina_messages (id, booking_id, sender_type, sender_name, message, is_read, created_at) SELECT id, booking_id, sender_type, sender_name, message, is_read, created_at FROM {$wpdb->prefix}careyou_messages");
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
             $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}careyou_messages");
         }
     }

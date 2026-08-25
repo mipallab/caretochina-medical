@@ -822,6 +822,9 @@ body.ctc-modal-open {
   overscroll-behavior: contain !important;
 }
 
+/* ==========================================================================
+   CARETOCHINA CONSULTATION & BOOKING WIZARD MODAL SYSTEM
+   ========================================================================== */
 .ctc-booking-modal-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -830,17 +833,17 @@ body.ctc-modal-open {
   height: 100vh !important;
   max-width: none !important;
   margin: 0 !important;
-  padding: 16px !important;
-  background: rgba(15, 23, 42, 0.75) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  z-index: 99999 !important;
+  padding: 24px 16px !important;
+  background: rgba(15, 23, 42, 0.78) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  z-index: 999999 !important;
   display: none !important;
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
-  overflow: hidden !important;
-  overscroll-behavior: contain !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
 .ctc-booking-modal-overlay.show {
@@ -848,33 +851,36 @@ body.ctc-modal-open {
 }
 
 .ctc-booking-modal-container {
-  background-color: #FFFFFF !important;
-  background: var(--cymb-bg-card) !important;
-  border: 1px solid var(--cymb-border-color) !important;
-  border-radius: 24px !important;
-  width: 720px !important;
-  max-width: 92% !important;
-  padding: 32px !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 20px !important;
+  width: 740px !important;
+  max-width: 100% !important;
+  padding: 32px 36px !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35) !important;
   position: relative !important;
-  animation: cymbFade 0.3s ease !important;
+  animation: cymbModalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   max-height: 90vh !important;
+  max-height: 90dvh !important;
   overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-y !important;
-  overscroll-behavior: contain !important;
+  overflow-x: hidden !important;
   box-sizing: border-box !important;
+}
+
+@keyframes cymbModalFadeIn {
+  from { opacity: 0; transform: scale(0.97) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .ctc-booking-modal-close {
   position: absolute !important;
   top: 18px !important;
-  right: 20px !important;
-  background: rgba(148, 163, 184, 0.12) !important;
-  border: none !important;
-  font-size: 24px !important;
+  right: 18px !important;
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  font-size: 20px !important;
   font-weight: 700 !important;
-  color: var(--cymb-text-dark) !important;
+  color: #64748B !important;
   cursor: pointer !important;
   width: 36px !important;
   height: 36px !important;
@@ -883,85 +889,352 @@ body.ctc-modal-open {
   align-items: center !important;
   justify-content: center !important;
   line-height: 1 !important;
-  transition: var(--cymb-transition) !important;
+  transition: all 0.2s ease !important;
+  z-index: 10 !important;
 }
 
 .ctc-booking-modal-close:hover {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: var(--cymb-danger) !important;
+  background: #FEE2E2 !important;
+  color: #EF4444 !important;
+  border-color: #FECACA !important;
 }
 
-/* HOSPITAL SELECT CARD STYLING */
-.hospital-select-card {
-  transition: all 0.2s ease !important;
-  user-select: none !important;
+/* WIZARD HEADER */
+.wiz-header {
+  text-align: center !important;
+  margin-bottom: 22px !important;
+  padding: 0 20px !important;
 }
 
-.hospital-select-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: var(--cymb-shadow-sm) !important;
-  border-color: var(--cymb-primary) !important;
+.wiz-brand-logo-wrap {
+  margin-bottom: 12px !important;
+  display: flex !important;
+  justify-content: center !important;
 }
 
-.hospital-select-card.selected {
-  border-color: var(--cymb-primary) !important;
-  background: var(--cymb-secondary-light) !important;
-  box-shadow: 0 0 0 2px var(--cymb-primary) !important;
+.wiz-brand-logo {
+  max-height: 40px !important;
+  max-width: 180px !important;
+  object-fit: contain !important;
 }
 
-/* TIMING BUTTONS STYLING */
-.timing-tag-btn {
-  background: var(--cymb-bg-light) !important;
-  border: 1px solid var(--cymb-border-color) !important;
-  color: var(--cymb-text-dark) !important;
-  padding: 12px 8px !important;
-  border-radius: 10px !important;
-  font-family: var(--cymb-font-body) !important;
-  font-weight: 600 !important;
+.ctc-badge-pill {
+  background: #CCFBF1 !important;
+  color: #0F766E !important;
+  padding: 5px 14px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.wiz-modal-title {
+  color: #0F172A !important;
+  margin: 14px 0 6px 0 !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  line-height: 1.3 !important;
+}
+
+.wiz-modal-subtitle {
+  margin: 0 auto !important;
+  font-size: 13.5px !important;
+  color: #64748B !important;
+  max-width: 580px !important;
+  line-height: 1.5 !important;
+}
+
+/* STEP INDICATORS (3 STEPS) */
+.wizard-steps-indicator {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 24px !important;
+  padding: 10px 16px !important;
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  gap: 8px !important;
+}
+
+.wiz-step {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
   font-size: 13px !important;
-  cursor: pointer !important;
-  transition: all 0.25s ease !important;
+  font-weight: 600 !important;
+  color: #94A3B8 !important;
+  padding: 4px 8px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.wiz-step-num {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background: #E2E8F0 !important;
+  color: #64748B !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  text-align: center !important;
+  flex-shrink: 0 !important;
 }
 
-.timing-tag-btn:hover {
-  border-color: var(--cymb-primary) !important;
-  color: var(--cymb-primary) !important;
-}
-
-.timing-tag-btn.active {
-  background: #0F766E !important;
-  color: #FFFFFF !important;
-  border-color: #0F766E !important;
-  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25) !important;
-}
-
-/* SPECIALTY CHECKBOX CONTAINER */
-.specialty-check-item {
-  transition: all 0.2s ease !important;
-  user-select: none !important;
-}
-
-.specialty-check-item:hover {
-  border-color: var(--cymb-primary) !important;
-}
-
-.specialty-check-item input:checked+span {
-  color: var(--cymb-primary) !important;
+.wiz-step.active {
+  color: #0F766E !important;
   font-weight: 700 !important;
 }
 
-/* WIZARD ACTION FOOTER SYSTEM */
+.wiz-step.active .wiz-step-num {
+  background: #0F766E !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.3) !important;
+}
+
+.wiz-step-divider {
+  flex: 1 !important;
+  height: 2px !important;
+  background: #E2E8F0 !important;
+  min-width: 16px !important;
+  border-radius: 2px !important;
+}
+
+/* STEP 1: HOSPITAL SELECTION */
+.wiz-step-filters {
+  display: flex !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+.wiz-step-filters input.form-input {
+  flex: 2 !important;
+}
+
+.wiz-step-filters select.form-select {
+  flex: 1 !important;
+}
+
+.wiz-hospital-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  padding-right: 6px !important;
+  margin-bottom: 20px !important;
+}
+
+.hospital-select-card {
+  border: 1.5px solid #E2E8F0 !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  background: #FFFFFF !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+
+.hospital-select-card:hover {
+  border-color: #0F766E !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.08) !important;
+}
+
+.hospital-select-card.selected {
+  border-color: #0F766E !important;
+  background: #F0FDFA !important;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2) !important;
+}
+
+/* STEP 2: CONCIERGE PACKAGES */
+.wiz-packages-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  max-height: 320px !important;
+  overflow-y: auto !important;
+  padding-right: 6px !important;
+  margin-bottom: 14px !important;
+}
+
+.wiz-package-card {
+  border: 1.5px solid #E2E8F0 !important;
+  background: #FFFFFF !important;
+  border-radius: 14px !important;
+  padding: 16px 18px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+.wiz-package-card:hover {
+  border-color: #0F766E !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.08) !important;
+}
+
+.wiz-package-card.selected {
+  border-color: #0F766E !important;
+  background: #F0FDFA !important;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2) !important;
+}
+
+.wiz-service-notes-box {
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  margin-top: 10px !important;
+}
+
+.wiz-service-notes-box details summary {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  color: #0F766E !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+
+.wiz-service-notes-content {
+  font-size: 12.5px !important;
+  color: #475569 !important;
+  margin-top: 10px !important;
+  line-height: 1.65 !important;
+  white-space: pre-line !important;
+  border-top: 1px solid #E2E8F0 !important;
+  padding-top: 8px !important;
+}
+
+/* STEP 3: FORMS & INPUT CONTROLS */
+.ctc-form-grid-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 14px 16px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-group {
+  margin-bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #1E293B !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+.form-input,
+.form-select,
+textarea.form-input {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 10px 14px !important;
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  color: #0F172A !important;
+  font-family: inherit !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+}
+
+textarea.form-input {
+  height: auto !important;
+  min-height: 76px !important;
+  resize: vertical !important;
+}
+
+.form-input:focus,
+.form-select:focus,
+textarea.form-input:focus {
+  border-color: #0F766E !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+}
+
+/* PHONE INPUT GROUP WRAPPER */
+.ctc-phone-group-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 44px !important;
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.ctc-phone-group-wrapper:focus-within {
+  border-color: #0F766E !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+}
+
+.ctc-phone-group-wrapper select.ctc-country-select {
+  height: 100% !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 8px 0 10px !important;
+  font-size: 13px !important;
+  color: #0F172A !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  border-right: 1px solid #CBD5E1 !important;
+  border-radius: 0 !important;
+  min-width: 90px !important;
+  max-width: 115px !important;
+  flex-shrink: 0 !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+}
+
+.ctc-phone-group-wrapper input.ctc-phone-input {
+  height: 100% !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 12px !important;
+  font-size: 14px !important;
+  color: #0F172A !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+
+/* WIZARD ACTION FOOTER */
 .wiz-action-footer {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
   gap: 12px !important;
-  margin-top: 20px !important;
-  border-top: 1px solid var(--cymb-border-color) !important;
+  margin-top: 22px !important;
+  border-top: 1px solid #E2E8F0 !important;
   padding-top: 16px !important;
 }
 
@@ -970,94 +1243,41 @@ body.ctc-modal-open {
   color: #FFFFFF !important;
   border: none !important;
   font-weight: 700 !important;
+  padding: 12px 24px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.2s ease !important;
 }
 
 .btn-wiz-primary:hover {
   background: #0D6962 !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
 }
 
 .btn-wiz-secondary {
-  background: #CCFBF1 !important;
-  color: #0F766E !important;
-  border: none !important;
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+  border: 1px solid #E2E8F0 !important;
   box-shadow: none !important;
   font-weight: 600 !important;
+  padding: 12px 20px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.2s ease !important;
 }
 
 .btn-wiz-secondary:hover {
-  background: #99F6E4 !important;
-}
-
-/* WIZARD STEP 3 PRICING PLANS STYLING */
-.wiz-pricing-plans-empty-box {
-  text-align: center !important;
-  padding: 24px 20px !important;
-  background: #F8FAFC !important;
-  border: 1.5px dashed #CBD5E1 !important;
-  border-radius: 14px !important;
-  color: #64748B !important;
-  font-size: 14px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-}
-
-.wiz-pricing-plans-empty-icon {
-  font-size: 24px !important;
-  color: #0F766E !important;
-  margin-bottom: 2px !important;
-}
-
-.wiz-pricing-plans-empty-text {
-  font-weight: 500 !important;
-  color: #64748B !important;
-}
-
-.pricing-plan-card {
-  border: 1.5px solid #E2E8F0 !important;
-  background: #FFFFFF !important;
-  padding: 16px !important;
-  border-radius: 12px !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  gap: 12px !important;
-}
-
-.pricing-plan-card:hover {
-  border-color: #0F766E !important;
-  background: #F0FDFA !important;
-}
-
-.pricing-plan-card.selected {
-  border-color: #0F766E !important;
-  background: #F0FDFA !important;
-  box-shadow: 0 0 0 1px #0F766E !important;
-}
-
-.pricing-plan-card .plan-card-left {
-  flex: 1 !important;
-}
-
-.pricing-plan-card .plan-card-header {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.pricing-plan-card .plan-card-title {
-  margin: 0 !important;
-  font-size: 15px !important;
-  font-weight: 800 !important;
+  background: #E2E8F0 !important;
   color: #0F172A !important;
 }
-
-.pricing-plan-card .plan-card-desc {
-  margin: 4px 0 0 24px !important;
   font-size: 12px !important;
   color: #64748B !important;
   line-height: 1.4 !important;
@@ -1091,8 +1311,92 @@ body.dark .ctc-booking-modal-container,
 body[data-theme="dark"] .ctc-booking-modal-container,
 body.dark-mode .ctc-booking-modal-container,
 body[data-bs-theme="dark"] .ctc-booking-modal-container {
-  background-color: #1C2541 !important;
-  border-color: #2D3748 !important;
+  background-color: #0F172A !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .wiz-modal-title,
+body.dark-theme .wiz-modal-title,
+html.dark .wiz-modal-title,
+body.dark .wiz-modal-title,
+body[data-theme="dark"] .wiz-modal-title,
+body.dark-mode .wiz-modal-title,
+body[data-bs-theme="dark"] .wiz-modal-title {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .wiz-modal-subtitle,
+body.dark-theme .wiz-modal-subtitle,
+html.dark .wiz-modal-subtitle,
+body.dark .wiz-modal-subtitle,
+body[data-theme="dark"] .wiz-modal-subtitle,
+body.dark-mode .wiz-modal-subtitle,
+body[data-bs-theme="dark"] .wiz-modal-subtitle {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme .wizard-steps-indicator,
+body.dark-theme .wizard-steps-indicator,
+html.dark .wizard-steps-indicator,
+body.dark .wizard-steps-indicator,
+body[data-theme="dark"] .wizard-steps-indicator,
+body.dark-mode .wizard-steps-indicator,
+body[data-bs-theme="dark"] .wizard-steps-indicator {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.dark-theme .wiz-step,
+body.dark-theme .wiz-step,
+html.dark .wiz-step,
+body.dark .wiz-step,
+body[data-theme="dark"] .wiz-step,
+body.dark-mode .wiz-step,
+body[data-bs-theme="dark"] .wiz-step {
+  color: #64748B !important;
+}
+
+html.dark-theme .wiz-step.active,
+body.dark-theme .wiz-step.active,
+html.dark .wiz-step.active,
+body.dark .wiz-step.active,
+body[data-theme="dark"] .wiz-step.active,
+body.dark-mode .wiz-step.active,
+body[data-bs-theme="dark"] .wiz-step.active {
+  color: #2DD4BF !important;
+}
+
+html.dark-theme .wiz-step-num,
+body.dark-theme .wiz-step-num,
+html.dark .wiz-step-num,
+body.dark .wiz-step-num,
+body[data-theme="dark"] .wiz-step-num,
+body.dark-mode .wiz-step-num,
+body[data-bs-theme="dark"] .wiz-step-num {
+  background: #334155 !important;
+  color: #94A3B8 !important;
+}
+
+html.dark-theme .wiz-step.active .wiz-step-num,
+body.dark-theme .wiz-step.active .wiz-step-num,
+html.dark .wiz-step.active .wiz-step-num,
+body.dark .wiz-step.active .wiz-step-num,
+body[data-theme="dark"] .wiz-step.active .wiz-step-num,
+body.dark-mode .wiz-step.active .wiz-step-num,
+body[data-bs-theme="dark"] .wiz-step.active .wiz-step-num {
+  background: #14B8A6 !important;
+  color: #0F172A !important;
+}
+
+html.dark-theme .wiz-step-divider,
+body.dark-theme .wiz-step-divider,
+html.dark .wiz-step-divider,
+body.dark .wiz-step-divider,
+body[data-theme="dark"] .wiz-step-divider,
+body.dark-mode .wiz-step-divider,
+body[data-bs-theme="dark"] .wiz-step-divider {
+  background: #334155 !important;
 }
 
 html.dark-theme .hospital-select-card,
@@ -1102,8 +1406,8 @@ body.dark .hospital-select-card,
 body[data-theme="dark"] .hospital-select-card,
 body.dark-mode .hospital-select-card,
 body[data-bs-theme="dark"] .hospital-select-card {
-  background-color: #0F172A !important;
-  border-color: #2D3748 !important;
+  background: #1E293B !important;
+  border-color: #334155 !important;
 }
 
 html.dark-theme .hospital-select-card h4,
@@ -1128,60 +1432,167 @@ body[data-bs-theme="dark"] .hospital-select-card.selected {
   box-shadow: 0 0 0 2px #14B8A6 !important;
 }
 
-html.dark-theme .timing-tag-btn,
-body.dark-theme .timing-tag-btn,
-html.dark .timing-tag-btn,
-body.dark .timing-tag-btn,
-body[data-theme="dark"] .timing-tag-btn,
-body.dark-mode .timing-tag-btn,
-body[data-bs-theme="dark"] .timing-tag-btn {
-  background-color: #0F172A !important;
-  border-color: #2D3748 !important;
+html.dark-theme .wiz-package-card,
+body.dark-theme .wiz-package-card,
+html.dark .wiz-package-card,
+body.dark .wiz-package-card,
+body[data-theme="dark"] .wiz-package-card,
+body.dark-mode .wiz-package-card,
+body[data-bs-theme="dark"] .wiz-package-card {
+  background: #1E293B !important;
+  border-color: #334155 !important;
   color: #F8FAFC !important;
 }
 
-html.dark-theme .timing-tag-btn.active,
-body.dark-theme .timing-tag-btn.active,
-html.dark .timing-tag-btn.active,
-body.dark .timing-tag-btn.active,
-body[data-theme="dark"] .timing-tag-btn.active,
-body.dark-mode .timing-tag-btn.active,
-body[data-bs-theme="dark"] .timing-tag-btn.active {
-  background: #14B8A6 !important;
-  color: #0F172A !important;
+html.dark-theme .wiz-package-card strong,
+body.dark-theme .wiz-package-card strong,
+html.dark .wiz-package-card strong,
+body.dark .wiz-package-card strong,
+body[data-theme="dark"] .wiz-package-card strong,
+body.dark-mode .wiz-package-card strong,
+body[data-bs-theme="dark"] .wiz-package-card strong {
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .wiz-package-card.selected,
+body.dark-theme .wiz-package-card.selected,
+html.dark .wiz-package-card.selected,
+body.dark .wiz-package-card.selected,
+body[data-theme="dark"] .wiz-package-card.selected,
+body.dark-mode .wiz-package-card.selected,
+body[data-bs-theme="dark"] .wiz-package-card.selected {
+  background: rgba(20, 184, 166, 0.15) !important;
   border-color: #14B8A6 !important;
-  box-shadow: 0 4px 10px rgba(20, 184, 166, 0.3) !important;
+  box-shadow: 0 0 0 2px #14B8A6 !important;
 }
 
-html.dark-theme .specialty-check-item,
-body.dark-theme .specialty-check-item,
-html.dark .specialty-check-item,
-body.dark .specialty-check-item,
-body[data-theme="dark"] .specialty-check-item,
-body.dark-mode .specialty-check-item,
-body[data-bs-theme="dark"] .specialty-check-item {
-  background-color: #0F172A !important;
-  border-color: #2D3748 !important;
+html.dark-theme .wiz-service-notes-box,
+body.dark-theme .wiz-service-notes-box,
+html.dark .wiz-service-notes-box,
+body.dark .wiz-service-notes-box,
+body[data-theme="dark"] .wiz-service-notes-box,
+body.dark-mode .wiz-service-notes-box,
+body[data-bs-theme="dark"] .wiz-service-notes-box {
+  background: #1E293B !important;
+  border-color: #334155 !important;
 }
 
-html.dark-theme .specialty-check-item span,
-body.dark-theme .specialty-check-item span,
-html.dark .specialty-check-item span,
-body.dark .specialty-check-item span,
-body[data-theme="dark"] .specialty-check-item span,
-body.dark-mode .specialty-check-item span,
-body[data-bs-theme="dark"] .specialty-check-item span {
+html.dark-theme .wiz-service-notes-content,
+body.dark-theme .wiz-service-notes-content,
+html.dark .wiz-service-notes-content,
+body.dark .wiz-service-notes-content,
+body[data-theme="dark"] .wiz-service-notes-content,
+body.dark-mode .wiz-service-notes-content,
+body[data-bs-theme="dark"] .wiz-service-notes-content {
+  color: #CBD5E1 !important;
+  border-top-color: #334155 !important;
+}
+
+html.dark-theme .form-label,
+body.dark-theme .form-label,
+html.dark .form-label,
+body.dark .form-label,
+body[data-theme="dark"] .form-label,
+body.dark-mode .form-label,
+body[data-bs-theme="dark"] .form-label {
   color: #F8FAFC !important;
 }
 
-html.dark-theme .specialty-check-item input:checked+span,
-body.dark-theme .specialty-check-item input:checked+span,
-html.dark .specialty-check-item input:checked+span,
-body.dark .specialty-check-item input:checked+span,
-body[data-theme="dark"] .specialty-check-item input:checked+span,
-body.dark-mode .specialty-check-item input:checked+span,
-body[data-bs-theme="dark"] .specialty-check-item input:checked+span {
-  color: #14B8A6 !important;
+html.dark-theme .form-input,
+body.dark-theme .form-input,
+html.dark .form-input,
+body.dark .form-input,
+body[data-theme="dark"] .form-input,
+body.dark-mode .form-input,
+body[data-bs-theme="dark"] .form-input,
+html.dark-theme .form-select,
+body.dark-theme .form-select,
+html.dark .form-select,
+body.dark .form-select,
+body[data-theme="dark"] .form-select,
+body.dark-mode .form-select,
+body[data-bs-theme="dark"] .form-select,
+html.dark-theme textarea.form-input,
+body.dark-theme textarea.form-input,
+html.dark textarea.form-input,
+body.dark textarea.form-input,
+body[data-theme="dark"] textarea.form-input,
+body.dark-mode textarea.form-input,
+body[data-bs-theme="dark"] textarea.form-input {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .form-input:focus,
+body.dark-theme .form-input:focus,
+html.dark .form-input:focus,
+body.dark .form-input:focus,
+body[data-theme="dark"] .form-input:focus,
+body.dark-mode .form-input:focus,
+body[data-bs-theme="dark"] .form-input:focus,
+html.dark-theme .form-select:focus,
+body.dark-theme .form-select:focus,
+html.dark .form-select:focus,
+body.dark .form-select:focus,
+body[data-theme="dark"] .form-select:focus,
+body.dark-mode .form-select:focus,
+body[data-bs-theme="dark"] .form-select:focus {
+  border-color: #14B8A6 !important;
+  background: #0F172A !important;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2) !important;
+}
+
+html.dark-theme .ctc-phone-group-wrapper,
+body.dark-theme .ctc-phone-group-wrapper,
+html.dark .ctc-phone-group-wrapper,
+body.dark .ctc-phone-group-wrapper,
+body[data-theme="dark"] .ctc-phone-group-wrapper,
+body.dark-mode .ctc-phone-group-wrapper,
+body[data-bs-theme="dark"] .ctc-phone-group-wrapper {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.dark-theme .ctc-phone-group-wrapper select.ctc-country-select,
+body.dark-theme .ctc-phone-group-wrapper select.ctc-country-select,
+html.dark .ctc-phone-group-wrapper select.ctc-country-select,
+body.dark .ctc-phone-group-wrapper select.ctc-country-select,
+body[data-theme="dark"] .ctc-phone-group-wrapper select.ctc-country-select,
+body.dark-mode .ctc-phone-group-wrapper select.ctc-country-select,
+body[data-bs-theme="dark"] .ctc-phone-group-wrapper select.ctc-country-select {
+  color: #F8FAFC !important;
+  background: #1E293B !important;
+  border-right-color: #334155 !important;
+}
+
+html.dark-theme .ctc-phone-group-wrapper select.ctc-country-select option,
+body.dark-theme .ctc-phone-group-wrapper select.ctc-country-select option,
+html.dark .ctc-phone-group-wrapper select.ctc-country-select option,
+body.dark .ctc-phone-group-wrapper select.ctc-country-select option {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+}
+
+html.dark-theme .ctc-phone-group-wrapper input.ctc-phone-input,
+body.dark-theme .ctc-phone-group-wrapper input.ctc-phone-input,
+html.dark .ctc-phone-group-wrapper input.ctc-phone-input,
+body.dark .ctc-phone-group-wrapper input.ctc-phone-input,
+body[data-theme="dark"] .ctc-phone-group-wrapper input.ctc-phone-input,
+body.dark-mode .ctc-phone-group-wrapper input.ctc-phone-input,
+body[data-bs-theme="dark"] .ctc-phone-group-wrapper input.ctc-phone-input {
+  color: #F8FAFC !important;
+  background: transparent !important;
+}
+
+html.dark-theme .wiz-action-footer,
+body.dark-theme .wiz-action-footer,
+html.dark .wiz-action-footer,
+body.dark .wiz-action-footer,
+body[data-theme="dark"] .wiz-action-footer,
+body.dark-mode .wiz-action-footer,
+body[data-bs-theme="dark"] .wiz-action-footer {
+  border-top-color: #334155 !important;
 }
 
 html.dark-theme .btn-wiz-secondary,
@@ -1191,167 +1602,29 @@ body.dark .btn-wiz-secondary,
 body[data-theme="dark"] .btn-wiz-secondary,
 body.dark-mode .btn-wiz-secondary,
 body[data-bs-theme="dark"] .btn-wiz-secondary {
-  background: #001639 !important;
-  color: #14B8A6 !important;
-}
-
-/* DARK MODE STEP 3 PRICING PLANS */
-html.dark-theme .wiz-pricing-plans-empty-box,
-body.dark-theme .wiz-pricing-plans-empty-box,
-html.dark .wiz-pricing-plans-empty-box,
-body.dark .wiz-pricing-plans-empty-box,
-body[data-theme="dark"] .wiz-pricing-plans-empty-box,
-body.dark-mode .wiz-pricing-plans-empty-box,
-body[data-bs-theme="dark"] .wiz-pricing-plans-empty-box {
-  background-color: #0F172A !important;
-  border-color: #334155 !important;
+  background: #1E293B !important;
   color: #94A3B8 !important;
-}
-
-html.dark-theme .wiz-pricing-plans-empty-icon,
-body.dark-theme .wiz-pricing-plans-empty-icon,
-html.dark .wiz-pricing-plans-empty-icon,
-body.dark .wiz-pricing-plans-empty-icon,
-body[data-theme="dark"] .wiz-pricing-plans-empty-icon,
-body.dark-mode .wiz-pricing-plans-empty-icon,
-body[data-bs-theme="dark"] .wiz-pricing-plans-empty-icon {
-  color: #14B8A6 !important;
-}
-
-html.dark-theme .wiz-pricing-plans-empty-text,
-body.dark-theme .wiz-pricing-plans-empty-text,
-html.dark .wiz-pricing-plans-empty-text,
-body.dark .wiz-pricing-plans-empty-text,
-body[data-theme="dark"] .wiz-pricing-plans-empty-text,
-body.dark-mode .wiz-pricing-plans-empty-text,
-body[data-bs-theme="dark"] .wiz-pricing-plans-empty-text {
-  color: #CBD5E1 !important;
-}
-
-html.dark-theme .wiz-plan-title,
-body.dark-theme .wiz-plan-title,
-html.dark .wiz-plan-title,
-body.dark .wiz-plan-title,
-body[data-theme="dark"] .wiz-plan-title,
-body.dark-mode .wiz-plan-title,
-body[data-bs-theme="dark"] .wiz-plan-title {
-  color: #F8FAFC !important;
-}
-
-html.dark-theme .wiz-plan-subtext,
-body.dark-theme .wiz-plan-subtext,
-html.dark .wiz-plan-subtext,
-body.dark .wiz-plan-subtext,
-body[data-theme="dark"] .wiz-plan-subtext,
-body.dark-mode .wiz-plan-subtext,
-body[data-bs-theme="dark"] .wiz-plan-subtext {
-  color: #94A3B8 !important;
-}
-
-html.dark-theme .pricing-plan-card,
-body.dark-theme .pricing-plan-card,
-html.dark .pricing-plan-card,
-body.dark .pricing-plan-card,
-body[data-theme="dark"] .pricing-plan-card,
-body.dark-mode .pricing-plan-card,
-body[data-bs-theme="dark"] .pricing-plan-card {
-  background-color: #0F172A !important;
   border-color: #334155 !important;
 }
 
-html.dark-theme .pricing-plan-card:hover,
-body.dark-theme .pricing-plan-card:hover,
-html.dark .pricing-plan-card:hover,
-body.dark .pricing-plan-card:hover,
-body[data-theme="dark"] .pricing-plan-card:hover,
-body.dark-mode .pricing-plan-card:hover,
-body[data-bs-theme="dark"] .pricing-plan-card:hover {
-  border-color: #14B8A6 !important;
-  background-color: rgba(20, 184, 166, 0.1) !important;
-}
-
-html.dark-theme .pricing-plan-card.selected,
-body.dark-theme .pricing-plan-card.selected,
-html.dark .pricing-plan-card.selected,
-body.dark .pricing-plan-card.selected,
-body[data-theme="dark"] .pricing-plan-card.selected,
-body.dark-mode .pricing-plan-card.selected,
-body[data-bs-theme="dark"] .pricing-plan-card.selected {
-  background: rgba(20, 184, 166, 0.15) !important;
-  border-color: #14B8A6 !important;
-  box-shadow: 0 0 0 1px #14B8A6 !important;
-}
-
-html.dark-theme .pricing-plan-card .plan-card-title,
-body.dark-theme .pricing-plan-card .plan-card-title,
-html.dark .pricing-plan-card .plan-card-title,
-body.dark .pricing-plan-card .plan-card-title,
-body[data-theme="dark"] .pricing-plan-card .plan-card-title,
-body.dark-mode .pricing-plan-card .plan-card-title,
-body[data-bs-theme="dark"] .pricing-plan-card .plan-card-title {
+html.dark-theme .btn-wiz-secondary:hover,
+body.dark-theme .btn-wiz-secondary:hover,
+html.dark .btn-wiz-secondary:hover,
+body.dark .btn-wiz-secondary:hover {
+  background: #334155 !important;
   color: #F8FAFC !important;
 }
 
-html.dark-theme .pricing-plan-card .plan-card-desc,
-body.dark-theme .pricing-plan-card .plan-card-desc,
-html.dark .pricing-plan-card .plan-card-desc,
-body.dark .pricing-plan-card .plan-card-desc,
-body[data-theme="dark"] .pricing-plan-card .plan-card-desc,
-body.dark-mode .pricing-plan-card .plan-card-desc,
-body[data-bs-theme="dark"] .pricing-plan-card .plan-card-desc {
+html.dark-theme .ctc-booking-modal-close,
+body.dark-theme .ctc-booking-modal-close,
+html.dark .ctc-booking-modal-close,
+body.dark .ctc-booking-modal-close,
+body[data-theme="dark"] .ctc-booking-modal-close,
+body.dark-mode .ctc-booking-modal-close,
+body[data-bs-theme="dark"] .ctc-booking-modal-close {
+  background: #1E293B !important;
   color: #94A3B8 !important;
-}
-
-html.dark-theme .pricing-plan-card .plan-price,
-body.dark-theme .pricing-plan-card .plan-price,
-html.dark .pricing-plan-card .plan-price,
-body.dark .pricing-plan-card .plan-price,
-body[data-theme="dark"] .pricing-plan-card .plan-price,
-body.dark-mode .pricing-plan-card .plan-price,
-body[data-bs-theme="dark"] .pricing-plan-card .plan-price {
-  color: #14B8A6 !important;
-}
-
-html.dark-theme .pricing-plan-card .plan-currency,
-body.dark-theme .pricing-plan-card .plan-currency,
-html.dark .pricing-plan-card .plan-currency,
-body.dark .pricing-plan-card .plan-currency,
-body[data-theme="dark"] .pricing-plan-card .plan-currency,
-body.dark-mode .pricing-plan-card .plan-currency,
-body[data-bs-theme="dark"] .pricing-plan-card .plan-currency {
-  color: #64748B !important;
-}
-
-html.dark-theme .wiz-pricing-loading,
-body.dark-theme .wiz-pricing-loading,
-html.dark .wiz-pricing-loading,
-body.dark .wiz-pricing-loading,
-body[data-theme="dark"] .wiz-pricing-loading,
-body.dark-mode .wiz-pricing-loading,
-body[data-bs-theme="dark"] .wiz-pricing-loading {
-  color: #14B8A6 !important;
-}
-
-/* WIZARD PROGRESS STEPS STYLING */
-.wiz-step {
-  color: var(--cymb-text-light) !important;
-  font-weight: 500 !important;
-  transition: all 0.2s ease !important;
-}
-
-.wiz-step.active {
-  color: var(--cymb-primary) !important;
-  font-weight: 700 !important;
-}
-
-html.dark-theme .wiz-step,
-body.dark-theme .wiz-step {
-  color: #94A3B8 !important;
-}
-
-html.dark-theme .wiz-step.active,
-body.dark-theme .wiz-step.active {
-  color: #14B8A6 !important;
+  border-color: #334155 !important;
 }
 
 /* WIZARD RESPONSIVENESS (MOBILE & TABLET) */
@@ -1360,92 +1633,75 @@ body.dark-theme .wiz-step.active {
   .ctc-booking-modal-overlay,
   .caretochina-booking-wizard-container {
     padding: 0 !important;
+    align-items: flex-end !important;
   }
 
   .ctc-booking-modal-container {
-    padding: 45px 16px 14px !important;
+    padding: 32px 16px 20px !important;
     width: 100% !important;
     max-width: 100% !important;
-    border-radius: 0px !important;
-    max-height: 96vh !important;
-    max-height: 96dvh !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 94vh !important;
+    max-height: 94dvh !important;
+    box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.4) !important;
     display: flex !important;
     flex-direction: column !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 
   .ctc-booking-modal-close {
-    top: 12px !important;
-    right: 12px !important;
-    font-size: 20px !important;
-    width: 32px !important;
-    height: 32px !important;
+    top: 10px !important;
+    right: 10px !important;
+    font-size: 18px !important;
+    width: 30px !important;
+    height: 30px !important;
   }
 
   .wiz-header {
-    margin-bottom: 10px !important;
-    padding-right: 28px !important;
+    margin-bottom: 12px !important;
+    padding: 0 10px !important;
   }
 
-  .wiz-header h2 {
-    font-size: 20px !important;
+  .wiz-modal-title {
+    font-size: 17px !important;
     line-height: 1.25 !important;
-    margin: 6px 0 4px 0 !important;
+    margin: 8px 0 4px 0 !important;
   }
 
-  .wiz-header p {
-    font-size: 13px !important;
+  .wiz-modal-subtitle {
+    font-size: 12px !important;
     line-height: 1.35 !important;
-    margin: 0 !important;
   }
 
-  /* Mobile Step Indicators: scrollable pill layout */
+  /* Mobile Step Indicators */
   .wizard-steps-indicator {
     display: flex !important;
+    padding: 8px 10px !important;
+    margin-bottom: 14px !important;
+    gap: 4px !important;
     overflow-x: auto !important;
-    scroll-snap-type: x mandatory !important;
-    gap: 6px !important;
-    margin-bottom: 12px !important;
-    padding-bottom: 6px !important;
-    border-bottom: 1px solid var(--cymb-border-color) !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important;
-  }
-
-  .wizard-steps-indicator::-webkit-scrollbar {
-    display: none !important;
   }
 
   .wiz-step {
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    padding: 5px 10px !important;
-    border-radius: 20px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    background: var(--cymb-bg-light) !important;
-    border: 1px solid var(--cymb-border-color) !important;
-    color: var(--cymb-text-light) !important;
+    font-size: 11px !important;
+    padding: 2px 4px !important;
+    gap: 4px !important;
   }
 
-  .wiz-step.active {
-    background: #0F766E !important;
-    color: #FFFFFF !important;
-    border-color: #0F766E !important;
-    font-weight: 700 !important;
+  .wiz-step-num {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 10px !important;
   }
 
-  html.dark-theme .wiz-step.active,
-  body.dark-theme .wiz-step.active {
-    background: #14B8A6 !important;
-    color: #0F172A !important;
-    border-color: #14B8A6 !important;
+  .wiz-step-divider {
+    min-width: 6px !important;
   }
 
   /* Form Labels & Inputs for Mobile */
   .form-label {
-    font-size: 13px !important;
+    font-size: 12.5px !important;
     font-weight: 700 !important;
     margin-bottom: 4px !important;
   }
@@ -1453,9 +1709,15 @@ body.dark-theme .wiz-step.active {
   .form-input,
   .form-select,
   textarea.form-input {
-    font-size: 15px !important;
-    padding: 10px 12px !important;
-    border-radius: 10px !important;
+    font-size: 14px !important;
+    padding: 8px 10px !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+  }
+
+  textarea.form-input {
+    height: auto !important;
+    min-height: 60px !important;
   }
 
   /* Filter Inputs on Mobile */
@@ -1469,7 +1731,7 @@ body.dark-theme .wiz-step.active {
   .wiz-hospital-grid {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
-    max-height: 180px !important;
+    max-height: 200px !important;
     margin-bottom: 12px !important;
   }
 
@@ -1478,105 +1740,57 @@ body.dark-theme .wiz-step.active {
     border-radius: 10px !important;
   }
 
-  .hospital-select-card h4 {
+  /* Packages Grid on Mobile */
+  .wiz-packages-grid {
+    max-height: 250px !important;
+    gap: 10px !important;
+  }
+
+  .wiz-package-card {
+    padding: 12px 14px !important;
+  }
+
+  /* Form grid 2 columns to 1 on Mobile */
+  .ctc-form-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .ctc-phone-group-wrapper {
+    height: 40px !important;
+    border-radius: 8px !important;
+  }
+
+  .ctc-phone-group-wrapper select.ctc-country-select {
+    padding: 0 6px 0 8px !important;
+    font-size: 12px !important;
+    max-width: 95px !important;
+    min-width: 80px !important;
+  }
+
+  .ctc-phone-group-wrapper input.ctc-phone-input {
+    padding: 0 8px !important;
     font-size: 13.5px !important;
-    font-weight: 700 !important;
   }
 
-  .hospital-select-card div {
-    font-size: 11.5px !important;
-  }
-
-  /* Timing Tags Grid on Mobile */
-  .timing-tags-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-  }
-
-  .timing-tag-btn {
-    font-size: 12.5px !important;
-    padding: 10px 6px !important;
-    min-height: 42px !important;
-    border-radius: 8px !important;
-  }
-
-  /* Specialty List Grid on Mobile */
-  .specialty-checkbox-list {
-    grid-template-columns: 1fr !important;
-    gap: 6px !important;
-    max-height: 160px !important;
-  }
-
-  .specialty-check-item {
-    font-size: 13px !important;
-    padding: 10px 12px !important;
-    min-height: 42px !important;
-    border-radius: 8px !important;
-  }
-
-  .wiz-summary-card {
-    padding: 12px !important;
-    margin-bottom: 12px !important;
-  }
-
-  .wiz-summary-card div {
-    grid-template-columns: 1fr !important;
-    gap: 6px !important;
-    font-size: 12.5px !important;
-  }
-
-  /* Mobile Action Footer: Single row layout that naturally sits at end of step.
-     Releases sticky mode when keypad/input is active so it never blocks inputs or search results */
   .wiz-action-footer {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
     gap: 8px !important;
-    width: 100% !important;
-    padding-top: 12px !important;
-    padding-bottom: 8px !important;
     margin-top: 14px !important;
-    border-top: 1px solid var(--cymb-border-color) !important;
-    position: relative !important;
-    bottom: auto !important;
-    z-index: 10 !important;
+    padding-top: 12px !important;
   }
 
-  /* Unstick footer when virtual keypad / input is focused */
-  .wiz-page:focus-within .wiz-action-footer,
-  form:focus-within .wiz-action-footer,
-  .ctc-booking-modal-container:focus-within .wiz-action-footer {
-    position: relative !important;
-    bottom: auto !important;
-    z-index: 1 !important;
-  }
-
-  .wiz-action-footer button,
-  .wiz-action-footer .ctc-solid-btn {
-    flex: 1 1 0% !important;
-    min-width: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
+  .btn-wiz-primary,
+  .btn-wiz-secondary {
+    padding: 10px 14px !important;
+    font-size: 12.5px !important;
+    border-radius: 8px !important;
     justify-content: center !important;
-    gap: 6px !important;
-    padding: 10px 8px !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    border-radius: 10px !important;
-    box-shadow: none !important;
-    text-align: center !important;
-    min-height: 40px !important;
-    max-height: 44px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .wiz-action-footer button i,
-  .wiz-action-footer .ctc-solid-btn i {
-    font-size: 12px !important;
-    flex-shrink: 0 !important;
+    flex: 1 1 0% !important;
   }
 }
 

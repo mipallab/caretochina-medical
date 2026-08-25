@@ -3,13 +3,14 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, Coordinator Portal, and Headless WooCommerce Payments.
- * Version: 1.9.0
+ * Version: 2.0.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
- * Tested up to: 6.7
+ * Tested up to: 6.7.2
  * Author: CareToChina Team
  * Author URI: https://caretochina.com
- * License: Proprietary
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: caretochina-medical
  * Domain Path: /languages
  */
@@ -21,7 +22,9 @@ if (!defined('ABSPATH')) {
 // Runtime Environment Compatibility Check
 if (version_compare(PHP_VERSION, '7.4', '<')) {
     add_action('admin_notices', function() {
-        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html__('This plugin requires PHP version 7.4 or higher. Your server is running PHP ' . PHP_VERSION . '.', 'caretochina-medical') . '</p></div>';
+        /* translators: 1: Required PHP version, 2: Current PHP version */
+        $message = sprintf(__('This plugin requires PHP version %1$s or higher. Your server is running PHP %2$s.', 'caretochina-medical'), '7.4', PHP_VERSION);
+        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html($message) . '</p></div>';
     });
     return;
 }
@@ -35,7 +38,7 @@ if (isset($wp_version) && version_compare($wp_version, '6.0', '<')) {
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '1.9.0');
+define('CARETOCHINA_MEDICAL_VERSION', '2.0.0');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
 
@@ -114,6 +117,7 @@ add_action('admin_init', function() {
     delete_transient('ctc_activation_redirect');
 
     // Do not redirect on bulk plugin activation or background contexts
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     if (isset($_GET['activate-multi'])) {
         return;
     }

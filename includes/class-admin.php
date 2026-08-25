@@ -29,8 +29,8 @@ class CareToChina_Booking_Admin {
 
     public function register_admin_menu() {
         add_menu_page(
-            __('Medical Bookings', 'caretochina-booking'),
-            __('Bookings Manager', 'caretochina-booking'),
+            __('Medical Bookings', 'caretochina-medical'),
+            __('Bookings Manager', 'caretochina-medical'),
             'manage_options',
             'caretochina-bookings',
             [$this, 'render_admin_page'],
@@ -51,20 +51,25 @@ class CareToChina_Booking_Admin {
 
     public function render_admin_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('Unauthorized user access.', 'caretochina-booking'));
+            wp_die(esc_html__('Unauthorized user access.', 'caretochina-medical'));
         }
 
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $search = isset($_GET['s']) ? sanitize_text_field(wp_unslash($_GET['s'])) : '';
-        $where = '';
         if (!empty($search)) {
             $like = '%' . $wpdb->esc_like($search) . '%';
-            $where = $wpdb->prepare(" WHERE full_name LIKE %s OR booking_code LIKE %s OR email LIKE %s OR phone LIKE %s ", $like, $like, $like, $like);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $bookings = $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE full_name LIKE %s OR booking_code LIKE %s OR email LIKE %s OR phone LIKE %s ORDER BY id DESC",
+                $like, $like, $like, $like
+            ));
+        } else {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC");
         }
-
-        $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings $where ORDER BY id DESC");
         ?>
         <style>
         .ctc-admin-dashboard {
@@ -197,10 +202,10 @@ class CareToChina_Booking_Admin {
         <div class="wrap ctc-admin-dashboard careyou-admin-dashboard caretochina-admin-dashboard">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
                 <h1 class="wp-heading-inline" style="margin:0; font-family:'Manrope', sans-serif; font-size:22px; font-weight:800; color:#0F172A;">
-                    <i class="fa-solid fa-heart-pulse" style="color:#0F766E;"></i> <?php _e('CareToChina Medical Booking Manager', 'caretochina-booking'); ?>
+                    <i class="fa-solid fa-heart-pulse" style="color:#0F766E;"></i> <?php esc_html_e('CareToChina Medical Booking Manager', 'caretochina-medical'); ?>
                 </h1>
                 <button type="button" class="button button-primary button-hero" onclick="openAdminAddBookingModal()" style="background:#0F766E; border-color:#0F766E; font-weight:700; border-radius:10px; padding:8px 20px; display:inline-flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-plus-circle"></i> <?php _e('Add New Booking', 'caretochina-booking'); ?>
+                    <i class="fa-solid fa-plus-circle"></i> <?php esc_html_e('Add New Booking', 'caretochina-medical'); ?>
                 </button>
             </div>
             <hr class="wp-header-end" style="margin-bottom:16px;">
@@ -208,10 +213,10 @@ class CareToChina_Booking_Admin {
             <!-- SEARCH BAR -->
             <form method="GET" id="ctc-admin-search-form" style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap;">
                 <input type="hidden" name="page" value="caretochina-bookings">
-                <input type="text" name="s" id="ctc-admin-search-input" value="<?php echo esc_attr($search); ?>" placeholder="<?php _e('Search by patient name, email, phone or code...', 'caretochina-booking'); ?>" style="width:340px; max-width:100%; padding:9px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;" onkeyup="handleAdminSearchKeyup(this.value)">
-                <button type="submit" class="button button-secondary" style="padding:4px 16px; font-weight:600;"><?php _e('Search Bookings', 'caretochina-booking'); ?></button>
+                <input type="text" name="s" id="ctc-admin-search-input" value="<?php echo esc_attr($search); ?>" placeholder="<?php esc_html_e('Search by patient name, email, phone or code...', 'caretochina-medical'); ?>" style="width:340px; max-width:100%; padding:9px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:13.5px;" onkeyup="handleAdminSearchKeyup(this.value)">
+                <button type="submit" class="button button-secondary" style="padding:4px 16px; font-weight:600;"><?php esc_html_e('Search Bookings', 'caretochina-medical'); ?></button>
                 <?php if (!empty($search)) : ?>
-                    <a href="admin.php?page=caretochina-bookings" class="button" style="padding:4px 14px;"><?php _e('Reset', 'caretochina-booking'); ?></a>
+                    <a href="admin.php?page=caretochina-bookings" class="button" style="padding:4px 14px;"><?php esc_html_e('Reset', 'caretochina-medical'); ?></a>
                 <?php endif; ?>
             </form>
 
@@ -220,19 +225,19 @@ class CareToChina_Booking_Admin {
                 <table class="wp-list-table widefat striped table-view-list ctc-admin-custom-table">
                     <thead>
                         <tr>
-                            <th style="width:115px;"><?php _e('Code', 'caretochina-booking'); ?></th>
-                            <th style="width:160px;"><?php _e('Patient Name', 'caretochina-booking'); ?></th>
-                            <th style="width:200px;"><?php _e('Email & Phone', 'caretochina-booking'); ?></th>
-                            <th style="width:170px;"><?php _e('Specialty', 'caretochina-booking'); ?></th>
-                            <th style="width:180px;"><?php _e('Hospital & Doctor', 'caretochina-booking'); ?></th>
-                            <th style="width:130px;"><?php _e('Preferred Date', 'caretochina-booking'); ?></th>
-                            <th style="width:120px;"><?php _e('Cost', 'caretochina-booking'); ?></th>
-                            <th style="width:140px;"><?php _e('Status', 'caretochina-booking'); ?></th>
-                            <th style="width:140px; text-align:center;"><?php _e('Actions', 'caretochina-booking'); ?></th>
+                            <th style="width:115px;"><?php esc_html_e('Code', 'caretochina-medical'); ?></th>
+                            <th style="width:160px;"><?php esc_html_e('Patient Name', 'caretochina-medical'); ?></th>
+                            <th style="width:200px;"><?php esc_html_e('Email & Phone', 'caretochina-medical'); ?></th>
+                            <th style="width:170px;"><?php esc_html_e('Specialty', 'caretochina-medical'); ?></th>
+                            <th style="width:180px;"><?php esc_html_e('Hospital & Doctor', 'caretochina-medical'); ?></th>
+                            <th style="width:130px;"><?php esc_html_e('Preferred Date', 'caretochina-medical'); ?></th>
+                            <th style="width:120px;"><?php esc_html_e('Cost', 'caretochina-medical'); ?></th>
+                            <th style="width:140px;"><?php esc_html_e('Status', 'caretochina-medical'); ?></th>
+                            <th style="width:140px; text-align:center;"><?php esc_html_e('Actions', 'caretochina-medical'); ?></th>
                         </tr>
                     </thead>
                     <tbody id="caretochina-admin-bookings-tbody">
-                        <?php echo $this->generate_admin_table_rows($bookings); ?>
+                        <?php echo wp_kses_post($this->generate_admin_table_rows($bookings)); ?>
                     </tbody>
                 </table>
             </div>
@@ -242,65 +247,65 @@ class CareToChina_Booking_Admin {
         <div id="admin-add-booking-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(6px); z-index:100000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
             <div style="background:#FFFFFF; border-radius:24px; width:650px; max-width:100%; padding:32px; box-shadow:0 20px 40px rgba(0,0,0,0.3); font-family:'Inter', sans-serif; max-height:90vh; overflow-y:auto; box-sizing:border-box;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
-                    <h2 style="margin:0; font-family:'Manrope'; color:#0F172A; font-size:20px; font-weight:800;"><i class="fa-solid fa-plus-circle" style="color:#0F766E;"></i> <?php _e('Add New Patient Booking', 'caretochina-booking'); ?></h2>
+                    <h2 style="margin:0; font-family:'Manrope'; color:#0F172A; font-size:20px; font-weight:800;"><i class="fa-solid fa-plus-circle" style="color:#0F766E;"></i> <?php esc_html_e('Add New Patient Booking', 'caretochina-medical'); ?></h2>
                     <button type="button" onclick="closeAdminAddBookingModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748B;">&times;</button>
                 </div>
 
                 <form id="careyou-admin-add-form" onsubmit="submitAdminBooking(event)">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Patient Name *', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Patient Name *', 'caretochina-medical'); ?></label>
                             <input type="text" id="adm_name" required style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Patient Email *', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Patient Email *', 'caretochina-medical'); ?></label>
                             <input type="email" id="adm_email" required style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Phone Number *', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Phone Number *', 'caretochina-medical'); ?></label>
                             <input type="tel" id="adm_phone" required style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Specialty *', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Specialty *', 'caretochina-medical'); ?></label>
                             <select id="adm_specialty" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
-                                <option value="Cardiology"><?php _e('Cardiology & Heart Surgery', 'caretochina-booking'); ?></option>
-                                <option value="Orthopedics"><?php _e('Orthopedics & Joint Care', 'caretochina-booking'); ?></option>
-                                <option value="Oncology"><?php _e('Oncology & Cancer Care', 'caretochina-booking'); ?></option>
-                                <option value="Neurosurgery"><?php _e('Neurosurgery & Spine Care', 'caretochina-booking'); ?></option>
-                                <option value="Dental"><?php _e('Dental Implants', 'caretochina-booking'); ?></option>
-                                <option value="Fertility"><?php _e('Fertility & IVF', 'caretochina-booking'); ?></option>
+                                <option value="Cardiology"><?php esc_html_e('Cardiology & Heart Surgery', 'caretochina-medical'); ?></option>
+                                <option value="Orthopedics"><?php esc_html_e('Orthopedics & Joint Care', 'caretochina-medical'); ?></option>
+                                <option value="Oncology"><?php esc_html_e('Oncology & Cancer Care', 'caretochina-medical'); ?></option>
+                                <option value="Neurosurgery"><?php esc_html_e('Neurosurgery & Spine Care', 'caretochina-medical'); ?></option>
+                                <option value="Dental"><?php esc_html_e('Dental Implants', 'caretochina-medical'); ?></option>
+                                <option value="Fertility"><?php esc_html_e('Fertility & IVF', 'caretochina-medical'); ?></option>
                             </select>
                         </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Hospital', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Hospital', 'caretochina-medical'); ?></label>
                             <input type="text" id="adm_hospital" value="Shenzhen International Medical Center" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Doctor', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Doctor', 'caretochina-medical'); ?></label>
                             <input type="text" id="adm_doctor" value="Dr. Zhang Wei" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Preferred Date', 'caretochina-booking'); ?></label>
-                            <input type="date" id="adm_date" value="<?php echo date('Y-m-d', strtotime('+10 days')); ?>" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Preferred Date', 'caretochina-medical'); ?></label>
+                            <input type="date" id="adm_date" value="<?php echo esc_attr(gmdate('Y-m-d', strtotime('+10 days'))); ?>" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                         <div>
-                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php _e('Estimated Package Cost', 'caretochina-booking'); ?></label>
+                            <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;"><?php esc_html_e('Estimated Package Cost', 'caretochina-medical'); ?></label>
                             <input type="text" id="adm_cost" value="$14,500.00" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box;">
                         </div>
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #E2E8F0; padding-top:16px;">
-                        <button type="button" onclick="closeAdminAddBookingModal()" class="button button-secondary"><?php _e('Cancel', 'caretochina-booking'); ?></button>
-                        <button type="submit" id="adm_submit_btn" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; padding:6px 20px;"><?php _e('Save Patient Booking', 'caretochina-booking'); ?></button>
+                        <button type="button" onclick="closeAdminAddBookingModal()" class="button button-secondary"><?php esc_html_e('Cancel', 'caretochina-medical'); ?></button>
+                        <button type="submit" id="adm_submit_btn" class="button button-primary" style="background:#0F766E; border-color:#0F766E; font-weight:700; padding:6px 20px;"><?php esc_html_e('Save Patient Booking', 'caretochina-medical'); ?></button>
                     </div>
                 </form>
             </div>
@@ -310,14 +315,14 @@ class CareToChina_Booking_Admin {
         <div id="admin-view-booking-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(6px); z-index:100000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
             <div style="background:#FFFFFF; border-radius:24px; width:620px; max-width:100%; padding:32px; box-shadow:0 20px 40px rgba(0,0,0,0.3); font-family:'Inter', sans-serif; max-height:90vh; overflow-y:auto; box-sizing:border-box;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
-                    <h2 style="margin:0; font-family:'Manrope'; color:#0F172A; font-size:20px; font-weight:800;"><i class="fa-solid fa-file-lines" style="color:#0F766E;"></i> <?php _e('Case Details', 'caretochina-booking'); ?> <span id="admin-view-code" style="color:#0F766E;"></span></h2>
+                    <h2 style="margin:0; font-family:'Manrope'; color:#0F172A; font-size:20px; font-weight:800;"><i class="fa-solid fa-file-lines" style="color:#0F766E;"></i> <?php esc_html_e('Case Details', 'caretochina-medical'); ?> <span id="admin-view-code" style="color:#0F766E;"></span></h2>
                     <button type="button" onclick="closeAdminViewModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748B;">&times;</button>
                 </div>
                 <div id="admin-view-content" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px; color:#334155; line-height:1.5;">
                     <!-- Populated dynamically -->
                 </div>
                 <div style="display:flex; justify-content:flex-end; margin-top:24px; border-top:1px solid #E2E8F0; padding-top:16px;">
-                    <button type="button" class="button button-secondary" onclick="closeAdminViewModal()"><?php _e('Close', 'caretochina-booking'); ?></button>
+                    <button type="button" class="button button-secondary" onclick="closeAdminViewModal()"><?php esc_html_e('Close', 'caretochina-medical'); ?></button>
                 </div>
             </div>
         </div>
@@ -353,15 +358,15 @@ class CareToChina_Booking_Admin {
                     var d = res.data;
                     jQuery('#admin-view-code').text('#' + d.booking_code);
                     var html = `
-                        <div><strong><?php echo esc_js(__('Patient Name:', 'caretochina-booking')); ?></strong><br>${d.full_name}</div>
-                        <div><strong><?php echo esc_js(__('Email Address:', 'caretochina-booking')); ?></strong><br>${d.email}</div>
-                        <div><strong><?php echo esc_js(__('Phone Number:', 'caretochina-booking')); ?></strong><br>${d.phone || '—'}</div>
-                        <div><strong><?php echo esc_js(__('Specialty:', 'caretochina-booking')); ?></strong><br>${d.specialty || '—'}</div>
-                        <div><strong><?php echo esc_js(__('Assigned Hospital:', 'caretochina-booking')); ?></strong><br>${d.hospital_name || '—'}</div>
-                        <div><strong><?php echo esc_js(__('Preferred Date / Timing:', 'caretochina-booking')); ?></strong><br>${d.treatment_timing || '—'}</div>
-                        <div><strong><?php echo esc_js(__('Booking Amount / Cost:', 'caretochina-booking')); ?></strong><br>$${parseFloat(d.amount || 0).toFixed(2)} ${d.currency || 'USD'}</div>
-                        <div><strong><?php echo esc_js(__('Payment / Invoice Status:', 'caretochina-booking')); ?></strong><br>${d.invoice_status || '—'}</div>
-                        <div style="grid-column: 1 / -1; margin-top:8px;"><strong><?php echo esc_js(__('Quote & Details:', 'caretochina-booking')); ?></strong><br><div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 14px; border-radius:8px; margin-top:4px;">${d.quote_details || '—'}</div></div>
+                        <div><strong><?php echo esc_js(__('Patient Name:', 'caretochina-medical')); ?></strong><br>${d.full_name}</div>
+                        <div><strong><?php echo esc_js(__('Email Address:', 'caretochina-medical')); ?></strong><br>${d.email}</div>
+                        <div><strong><?php echo esc_js(__('Phone Number:', 'caretochina-medical')); ?></strong><br>${d.phone || '—'}</div>
+                        <div><strong><?php echo esc_js(__('Specialty:', 'caretochina-medical')); ?></strong><br>${d.specialty || '—'}</div>
+                        <div><strong><?php echo esc_js(__('Assigned Hospital:', 'caretochina-medical')); ?></strong><br>${d.hospital_name || '—'}</div>
+                        <div><strong><?php echo esc_js(__('Preferred Date / Timing:', 'caretochina-medical')); ?></strong><br>${d.treatment_timing || '—'}</div>
+                        <div><strong><?php echo esc_js(__('Booking Amount / Cost:', 'caretochina-medical')); ?></strong><br>$${parseFloat(d.amount || 0).toFixed(2)} ${d.currency || 'USD'}</div>
+                        <div><strong><?php echo esc_js(__('Payment / Invoice Status:', 'caretochina-medical')); ?></strong><br>${d.invoice_status || '—'}</div>
+                        <div style="grid-column: 1 / -1; margin-top:8px;"><strong><?php echo esc_js(__('Quote & Details:', 'caretochina-medical')); ?></strong><br><div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 14px; border-radius:8px; margin-top:4px;">${d.quote_details || '—'}</div></div>
                     `;
                     jQuery('#admin-view-content').html(html);
                     document.getElementById('admin-view-booking-modal').style.display = 'flex';
@@ -372,7 +377,7 @@ class CareToChina_Booking_Admin {
         }
 
         function deleteAdminBooking(id) {
-            if (!confirm('<?php echo esc_js(__('Are you sure you want to permanently delete this booking case?', 'caretochina-booking')); ?>')) {
+            if (!confirm('<?php echo esc_js(__('Are you sure you want to permanently delete this booking case?', 'caretochina-medical')); ?>')) {
                 return;
             }
             jQuery.post(adminAjaxUrl, {
@@ -440,7 +445,7 @@ class CareToChina_Booking_Admin {
         function submitAdminBooking(e) {
             e.preventDefault();
             var btn = jQuery('#adm_submit_btn');
-            btn.prop('disabled', true).text('<?php echo esc_js(__('Saving...', 'caretochina-booking')); ?>');
+            btn.prop('disabled', true).text('<?php echo esc_js(__('Saving...', 'caretochina-medical')); ?>');
 
             jQuery.post(adminAjaxUrl, {
                 action: 'caretochina_admin_add_booking',
@@ -454,7 +459,7 @@ class CareToChina_Booking_Admin {
                 cost: jQuery('#adm_cost').val(),
                 _wpnonce: adminNonce
             }, function(res) {
-                btn.prop('disabled', false).text('<?php echo esc_js(__('Save Patient Booking', 'caretochina-booking')); ?>');
+                btn.prop('disabled', false).text('<?php echo esc_js(__('Save Patient Booking', 'caretochina-medical')); ?>');
                 if (res.success) {
                     closeAdminAddBookingModal();
                     document.getElementById('careyou-admin-add-form').reset();
@@ -463,7 +468,7 @@ class CareToChina_Booking_Admin {
                     alert(res.data && res.data.message ? res.data.message : 'Error adding booking');
                 }
             }).fail(function() {
-                btn.prop('disabled', false).text('<?php echo esc_js(__('Save Patient Booking', 'caretochina-booking')); ?>');
+                btn.prop('disabled', false).text('<?php echo esc_js(__('Save Patient Booking', 'caretochina-medical')); ?>');
                 alert('Server communication error.');
             });
         }
@@ -480,7 +485,7 @@ class CareToChina_Booking_Admin {
 
     public function generate_admin_table_rows($bookings) {
         if (empty($bookings)) {
-            return '<tr><td colspan="9" style="padding:32px 20px; text-align:center; color:#94A3B8; font-size:14px;"><i class="fa-solid fa-folder-open" style="font-size:28px; margin-bottom:8px; display:block; color:#CBD5E1;"></i>' . esc_html__('No medical bookings found in database.', 'caretochina-booking') . '</td></tr>';
+            return '<tr><td colspan="9" style="padding:32px 20px; text-align:center; color:#94A3B8; font-size:14px;"><i class="fa-solid fa-folder-open" style="font-size:28px; margin-bottom:8px; display:block; color:#CBD5E1;"></i>' . esc_html__('No medical bookings found in database.', 'caretochina-medical') . '</td></tr>';
         }
 
         $staff_desk_url = admin_url('admin.php?page=caretochina-staff-desk');
@@ -488,13 +493,13 @@ class CareToChina_Booking_Admin {
         $html = '';
         foreach ($bookings as $b) {
             $is_guest = (intval($b->patient_id ?? 0) === 0 || intval($b->is_guest ?? 0) === 1);
-            $guest_badge = $is_guest ? '<span style="background:#FEF3C7; color:#92400E; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:4px;">' . esc_html__('Guest', 'caretochina-booking') . '</span>' : '';
+            $guest_badge = $is_guest ? '<span style="background:#FEF3C7; color:#92400E; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:4px;">' . esc_html__('Guest', 'caretochina-medical') . '</span>' : '';
             
             // Format cost
             $cost_display = '—';
             if (floatval($b->amount) > 0) {
                 $b_curr = $b->currency ?: 'USD';
-                $b_sym = class_exists('CareToChina_Pricing_Plans') ? CareToChina_Pricing_Plans::get_currency_symbol($b_curr) : '$';
+                $b_sym = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_currency_symbol($b_curr) : '$';
                 $cost_display = $b_sym . number_format((float)$b->amount, 2) . ' ' . esc_html($b_curr);
             } elseif (!empty($b->quote_details)) {
                 // If quote details contains a cost snippet
@@ -562,16 +567,16 @@ class CareToChina_Booking_Admin {
                 $cost_display,
                 esc_attr($current_status),
                 intval($b->id),
-                selected($current_status, 'pending', false), esc_html__('Pending', 'caretochina-booking'),
-                selected($current_status, 'confirmed', false), esc_html__('Confirmed', 'caretochina-booking'),
-                selected($current_status, 'completed', false), esc_html__('Completed', 'caretochina-booking'),
-                selected($current_status, 'cancelled', false), esc_html__('Cancelled', 'caretochina-booking'),
+                selected($current_status, 'pending', false), esc_html__('Pending', 'caretochina-medical'),
+                selected($current_status, 'confirmed', false), esc_html__('Confirmed', 'caretochina-medical'),
+                selected($current_status, 'completed', false), esc_html__('Completed', 'caretochina-medical'),
+                selected($current_status, 'cancelled', false), esc_html__('Cancelled', 'caretochina-medical'),
                 intval($b->id),
-                esc_attr__('View Case Details', 'caretochina-booking'),
+                esc_attr__('View Case Details', 'caretochina-medical'),
                 esc_url($staff_desk_url),
-                esc_attr__('Open in Care Staff Desk', 'caretochina-booking'),
+                esc_attr__('Open in Care Staff Desk', 'caretochina-medical'),
                 intval($b->id),
-                esc_attr__('Delete Booking', 'caretochina-booking'),
+                esc_attr__('Delete Booking', 'caretochina-medical'),
                 intval($b->id)
             );
         }
@@ -581,23 +586,27 @@ class CareToChina_Booking_Admin {
     public function handle_get_admin_bookings() {
         $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
-            wp_send_json_error(['message' => __('Unauthorized security token.', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized security token.', 'caretochina-medical')]);
         }
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-medical')]);
         }
 
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
         $search = isset($_POST['s']) ? sanitize_text_field(wp_unslash($_POST['s'])) : '';
-        $where = '';
         if (!empty($search)) {
             $like = '%' . $wpdb->esc_like($search) . '%';
-            $where = $wpdb->prepare("WHERE full_name LIKE %s OR email LIKE %s OR booking_code LIKE %s OR phone LIKE %s", $like, $like, $like, $like);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $bookings = $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE full_name LIKE %s OR email LIKE %s OR booking_code LIKE %s OR phone LIKE %s ORDER BY id DESC",
+                $like, $like, $like, $like
+            ));
+        } else {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC");
         }
-
-        $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings $where ORDER BY id DESC");
         $html = $this->generate_admin_table_rows($bookings);
 
         wp_send_json_success(['html' => $html, 'count' => count($bookings)]);
@@ -606,10 +615,10 @@ class CareToChina_Booking_Admin {
     public function handle_update_status() {
         $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
-            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-medical')]);
         }
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-medical')]);
         }
 
         global $wpdb;
@@ -619,19 +628,20 @@ class CareToChina_Booking_Admin {
         $status = isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : 'pending';
 
         if ($id > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_bookings, ['status' => $status], ['id' => $id]);
-            wp_send_json_success(['message' => __('Status updated successfully.', 'caretochina-booking')]);
+            wp_send_json_success(['message' => __('Status updated successfully.', 'caretochina-medical')]);
         }
-        wp_send_json_error(['message' => __('Invalid booking ID.', 'caretochina-booking')]);
+        wp_send_json_error(['message' => __('Invalid booking ID.', 'caretochina-medical')]);
     }
 
     public function handle_delete_booking() {
         $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
-            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-medical')]);
         }
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-medical')]);
         }
 
         global $wpdb;
@@ -639,19 +649,20 @@ class CareToChina_Booking_Admin {
         $id = isset($_POST['booking_id']) ? absint(wp_unslash($_POST['booking_id'])) : 0;
 
         if ($id > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->delete($table_bookings, ['id' => $id]);
-            wp_send_json_success(['message' => __('Booking deleted successfully.', 'caretochina-booking')]);
+            wp_send_json_success(['message' => __('Booking deleted successfully.', 'caretochina-medical')]);
         }
-        wp_send_json_error(['message' => __('Invalid booking ID.', 'caretochina-booking')]);
+        wp_send_json_error(['message' => __('Invalid booking ID.', 'caretochina-medical')]);
     }
 
     public function handle_get_booking_details() {
         $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
-            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-medical')]);
         }
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized', 'caretochina-medical')]);
         }
 
         global $wpdb;
@@ -659,21 +670,22 @@ class CareToChina_Booking_Admin {
         $id = isset($_POST['booking_id']) ? absint(wp_unslash($_POST['booking_id'])) : 0;
 
         if ($id > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
             if ($booking) {
                 wp_send_json_success($booking);
             }
         }
-        wp_send_json_error(['message' => __('Booking not found.', 'caretochina-booking')]);
+        wp_send_json_error(['message' => __('Booking not found.', 'caretochina-medical')]);
     }
 
     public function handle_add_booking() {
         $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
         if (!wp_verify_nonce($nonce, 'caretochina_admin_nonce') && !wp_verify_nonce($nonce, 'careyou_admin_nonce')) {
-            wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-medical')]);
         }
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Unauthorized user capability.', 'caretochina-medical')]);
         }
 
         global $wpdb;
@@ -685,17 +697,18 @@ class CareToChina_Booking_Admin {
         $specialty = isset($_POST['specialty']) ? sanitize_text_field(wp_unslash($_POST['specialty'])) : '';
         $hospital = isset($_POST['hospital']) ? sanitize_text_field(wp_unslash($_POST['hospital'])) : '';
         $doctor = isset($_POST['doctor']) ? sanitize_text_field(wp_unslash($_POST['doctor'])) : '';
-        $date = isset($_POST['date']) ? sanitize_text_field(wp_unslash($_POST['date'])) : date('Y-m-d');
+        $date = isset($_POST['date']) ? sanitize_text_field(wp_unslash($_POST['date'])) : gmdate('Y-m-d');
         $cost = isset($_POST['cost']) ? sanitize_text_field(wp_unslash($_POST['cost'])) : '$14,500.00';
 
         if (empty($name) || empty($email) || empty($phone)) {
-            wp_send_json_error(['message' => __('Please fill in Name, Email, and Phone fields.', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Please fill in Name, Email, and Phone fields.', 'caretochina-medical')]);
         }
 
-        $booking_code = 'CTC-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
+        $booking_code = 'CTC-' . strtoupper(substr(md5(uniqid(wp_rand(), true)), 0, 6));
         $user = get_user_by('email', $email);
         $patient_id = $user ? $user->ID : 0;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $inserted = $wpdb->insert($table_bookings, [
             'booking_code'     => $booking_code,
             'patient_id'       => $patient_id,
@@ -713,7 +726,7 @@ class CareToChina_Booking_Admin {
         if ($inserted) {
             wp_send_json_success(['booking_code' => $booking_code]);
         } else {
-            wp_send_json_error(['message' => __('Database error. Could not add booking.', 'caretochina-booking')]);
+            wp_send_json_error(['message' => __('Database error. Could not add booking.', 'caretochina-medical')]);
         }
     }
 }

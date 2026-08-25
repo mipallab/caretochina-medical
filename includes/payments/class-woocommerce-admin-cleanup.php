@@ -91,11 +91,11 @@ class CareToChina_WooCommerce_Admin_Cleanup {
                 $slug = $item[2];
 
                 // NEVER hide CareToChina plugin menus
-                if (strpos($slug, 'caretochina') !== false) {
+                if (strpos($slug, 'caretochina-medical') !== false) {
                     continue;
                 }
 
-                $raw_title = strip_tags($item[0]);
+                $raw_title = wp_strip_all_tags($item[0]);
                 $clean_title = strtolower(trim(html_entity_decode($raw_title, ENT_QUOTES, 'UTF-8')));
 
                 foreach ($target_keywords as $kw) {
@@ -127,11 +127,11 @@ class CareToChina_WooCommerce_Admin_Cleanup {
                 $slug = $item[2];
 
                 // Ignore CareToChina plugin menus
-                if (strpos($slug, 'caretochina') !== false) {
+                if (strpos($slug, 'caretochina-medical') !== false) {
                     continue;
                 }
 
-                $raw_title = strip_tags($item[0]);
+                $raw_title = wp_strip_all_tags($item[0]);
                 $clean_title = strtolower(trim(html_entity_decode($raw_title, ENT_QUOTES, 'UTF-8')));
 
                 foreach ($target_keywords as $kw) {
@@ -163,7 +163,8 @@ class CareToChina_WooCommerce_Admin_Cleanup {
         if ($warning) {
             echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('CareToChina Medical Suite Notice:', 'caretochina-medical') . '</strong> ' .
                 esc_html__('WooCommerce\'s menu structure may have changed after an update — please verify the hidden menu settings still work as expected.', 'caretochina-medical') .
-                ' <span style="color:#64748B; font-size:12px;">(' . esc_html(sprintf(__('Detected items: %s', 'caretochina-medical'), $warning)) . ')</span></p></div>';
+                ' <span style="color:#64748B; font-size:12px;">(' . esc_html(/* translators: %s: dynamic value */
+sprintf(__('Detected items: %s', 'caretochina-medical'), $warning)) . ')</span></p></div>';
         }
     }
 }

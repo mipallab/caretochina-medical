@@ -108,19 +108,12 @@ class CareToChina_Country_Helper {
         $parsed = self::parse_phone($current_value, '+1');
         $code_field = $field_name . '_country_code';
 
-        $select_style = 'width: 136px; min-width: 136px; max-width: 145px;';
-        if ($format === 'flag') {
-            $select_style = 'width: 76px; min-width: 76px; max-width: 76px; font-size: 15px;';
-        } elseif ($format === 'code') {
-            $select_style = 'width: 96px; min-width: 96px; max-width: 96px;';
-        }
-
         $html = '<div class="ctc-phone-group-wrapper" data-selector-format="' . esc_attr($format) . '">';
-        $html .= '<select name="' . esc_attr($code_field) . '" class="ctc-country-select" data-format="' . esc_attr($format) . '" style="' . esc_attr($select_style) . '">';
+        $html .= '<select name="' . esc_attr($code_field) . '" class="ctc-country-select" data-format="' . esc_attr($format) . '">';
         foreach (self::$countries as $c) {
             $sel = ($parsed['code'] === $c['dial_code']) ? 'selected' : '';
             if ($format === 'flag') {
-                $label = $c['flag'] . ' (' . $c['code'] . ')';
+                $label = $c['flag'] . ' ' . $c['dial_code'];
             } elseif ($format === 'code') {
                 $label = $c['dial_code'] . ' (' . $c['code'] . ')';
             } else {
@@ -130,7 +123,7 @@ class CareToChina_Country_Helper {
             $html .= '<option value="' . esc_attr($c['dial_code']) . '" data-dial="' . esc_attr($c['dial_code']) . '" data-flag="' . esc_attr($c['flag']) . '" ' . $sel . '>' . esc_html($label) . '</option>';
         }
         $html .= '</select>';
-        $html .= '<input type="tel" name="' . esc_attr($field_name) . '" ' . $id_attr . ' value="' . esc_attr($parsed['number']) . '" class="ctc-phone-input" placeholder="' . esc_attr($placeholder) . '" ' . $req_attr . ' autocomplete="tel-national">';
+        $html .= '<input type="tel" name="' . esc_attr($field_name) . '" ' . $id_attr . ' value="' . esc_attr($parsed['number']) . '" class="ctc-phone-input form-input" placeholder="' . esc_attr($placeholder) . '" ' . $req_attr . ' autocomplete="tel-national">';
         $html .= '</div>';
 
         return $html;
