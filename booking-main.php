@@ -40,7 +40,7 @@ class CareToChina_Medical_Booking {
             pll_register_string('Instant Medical Travel Booking', 'Instant Medical Travel Booking', 'CareToChina Booking Engine');
             pll_register_string('Care Case Code', 'Care Case Code', 'CareToChina Booking Engine');
             pll_register_string('Booking Confirmed', 'Booking Confirmed', 'CareToChina Booking Engine');
-            pll_register_string('Concierge Packages', 'Concierge Packages', 'CareToChina Booking Engine');
+            pll_register_string('Service Packages', 'Service Packages', 'CareToChina Booking Engine');
         }
     }
 

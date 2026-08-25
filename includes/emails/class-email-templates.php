@@ -70,7 +70,7 @@ class CareToChina_Email_Templates {
                 'subject'     => __('[CareToChina] Medical Consultation Request Confirmed: #{booking_code}', 'caretochina-medical'),
                 'heading'     => __('Medical Consultation Request Confirmed', 'caretochina-medical'),
                 'preheader'   => __('Your medical consultation case has been assigned to our medical team.', 'caretochina-medical'),
-                'content'     => "<p>Dear {patient_name},</p>\n<p>Thank you for submitting your medical consultation inquiry with <strong>CareToChina Medical</strong>. Your request has been securely received and assigned to our International Medical Advisory Team.</p>\n<p>You have selected the <strong>{package_name}</strong> concierge package ({package_price}) with an estimated timeline of <strong>{package_timeline}</strong>.</p>\n<p>Our coordinators are reviewing your symptoms and requirements. You can access your dedicated, private consultation room right now using the button below:</p>\n{case_summary_table}\n<p style=\"margin-top:16px;\"><em>Note: Save this email to easily return to your consultation thread anytime.</em></p>",
+                'content'     => "<p>Dear {patient_name},</p>\n<p>Thank you for submitting your medical consultation inquiry with <strong>CareToChina Medical</strong>. Your request has been securely received and assigned to our International Medical Advisory Team.</p>\n<p>You have selected the <strong>{package_name}</strong> service package ({package_price}) with an estimated timeline of <strong>{package_timeline}</strong>.</p>\n<p>Our coordinators are reviewing your symptoms and requirements. You can access your dedicated, private consultation room right now using the button below:</p>\n{case_summary_table}\n<p style=\"margin-top:16px;\"><em>Note: Save this email to easily return to your consultation thread anytime.</em></p>",
                 'btn_text'    => __('Access Live Chat Consultation →', 'caretochina-medical'),
                 'btn_url'     => '{chat_url}',
             ],
@@ -80,7 +80,7 @@ class CareToChina_Email_Templates {
                 'subject'     => __('[CareToChina] Booking Received for #{booking_code}', 'caretochina-medical'),
                 'heading'     => __('Treatment Booking Confirmed', 'caretochina-medical'),
                 'preheader'   => __('Your booking has been received and linked to your patient account.', 'caretochina-medical'),
-                'content'     => "<p>Dear {patient_name},</p>\n<p>Your medical treatment booking has been successfully linked to your patient account.</p>\n<p>Selected Package: <strong>{package_name}</strong> — {package_price} (Timeline: {package_timeline})</p>\n{case_summary_table}\n<p style=\"margin-top:16px;\">You can track your treatment timeline, milestones, and communicate with your care coordinator directly from your Patient Dashboard.</p>",
+                'content'     => "<p>Dear {patient_name},</p>\n<p>Your medical treatment booking has been successfully linked to your patient account.</p>\n<p>Selected Service Package: <strong>{package_name}</strong> — {package_price} (Timeline: {package_timeline})</p>\n{case_summary_table}\n<p style=\"margin-top:16px;\">You can track your treatment timeline, milestones, and communicate with your care coordinator directly from your Patient Dashboard.</p>",
                 'btn_text'    => __('Open Patient Dashboard →', 'caretochina-medical'),
                 'btn_url'     => '{dashboard_url}',
             ],
@@ -100,7 +100,7 @@ class CareToChina_Email_Templates {
                 'subject'     => __('[New Inquiry] #{booking_code} - {patient_name} ({package_name})', 'caretochina-medical'),
                 'heading'     => __('New Patient Consultation Case Received', 'caretochina-medical'),
                 'preheader'   => __('A new patient has submitted a medical inquiry.', 'caretochina-medical'),
-                'content'     => "<p>A new medical consultation case has been submitted and is awaiting coordinator review:</p>\n{case_summary_table}\n<p><strong>Patient Details:</strong><br>Email: {patient_email}<br>Phone: {patient_phone}<br>Package: {package_name} — {package_price} (Timeline: {package_timeline})<br>Condition / Notes: {quote_details}</p>",
+                'content'     => "<p>A new medical consultation case has been submitted and is awaiting coordinator review:</p>\n{case_summary_table}\n<p><strong>Patient Details:</strong><br>Email: {patient_email}<br>Phone: {patient_phone}<br>Service Package: {package_name} — {package_price} (Timeline: {package_timeline})<br>Condition / Notes: {quote_details}</p>",
                 'btn_text'    => __('Open Staff Consultation Desk →', 'caretochina-medical'),
                 'btn_url'     => '{staff_portal_url}',
             ],
@@ -130,7 +130,7 @@ class CareToChina_Email_Templates {
                 'subject'     => __('[CareToChina] Payment Confirmed: #{booking_code} - {amount} {currency}', 'caretochina-medical'),
                 'heading'     => __('Payment Received Successfully', 'caretochina-medical'),
                 'preheader'   => __('Your payment has been processed and your official receipt is ready.', 'caretochina-medical'),
-                'content'     => "<p>Dear {patient_name},</p>\n<p>We have successfully received your payment of <strong>{amount} {currency}</strong> via {payment_method} for case <strong>#{booking_code}</strong>.</p>\n<p>Concierge Package: <strong>{package_name}</strong> (Timeline: {package_timeline})</p>\n{case_summary_table}\n<p style=\"margin-top:16px;\">Your treatment confirmation and hospital itinerary are now locked. Our medical logistics team has commenced final travel and clinic arrangements.</p>",
+                'content'     => "<p>Dear {patient_name},</p>\n<p>We have successfully received your payment of <strong>{amount} {currency}</strong> via {payment_method} for case <strong>#{booking_code}</strong>.</p>\n<p>Service Package: <strong>{package_name}</strong> (Timeline: {package_timeline})</p>\n{case_summary_table}\n<p style=\"margin-top:16px;\">Your treatment confirmation and hospital itinerary are now locked. Our medical logistics team has commenced final travel and clinic arrangements.</p>",
                 'btn_text'    => __('View Invoice & Receipt →', 'caretochina-medical'),
                 'btn_url'     => '{dashboard_url}',
             ],
@@ -319,7 +319,7 @@ class CareToChina_Email_Templates {
             <?php endif; ?>
             <?php if (!empty($data['package_name'])) : ?>
                 <tr style="border-bottom:1px solid #E2E8F0;">
-                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php esc_html_e('Concierge Package:', 'caretochina-medical'); ?></td>
+                    <td style="padding:10px 14px; font-weight:700; color:#64748B; background:#F1F5F9;"><?php esc_html_e('Service Package:', 'caretochina-medical'); ?></td>
                     <td style="padding:10px 14px; font-weight:700; color:#6D28D9;"><?php echo esc_html($data['package_name']); ?></td>
                 </tr>
             <?php endif; ?>

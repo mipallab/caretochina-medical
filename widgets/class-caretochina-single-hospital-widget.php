@@ -75,7 +75,7 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
         $this->add_control(
             'show_packages',
             [
-                'label'        => __('Show Concierge Packages Comparison', 'caretochina-medical'),
+                'label'        => __('Show Service Packages Comparison', 'caretochina-medical'),
                 'type'         => Controls_Manager::SWITCHER,
                 'default'      => 'yes',
             ]

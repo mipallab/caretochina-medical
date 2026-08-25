@@ -15,13 +15,14 @@ class CareToChina_Package_Product_Sync {
     }
 
     public function __construct() {
+        add_action('save_post_service_package', [$this, 'sync_package_on_save'], 20, 2);
         add_action('save_post_ctc_package', [$this, 'sync_package_on_save'], 20, 2);
         add_action('transition_post_status', [$this, 'sync_package_on_status_change'], 20, 3);
         add_action('before_delete_post', [$this, 'soft_delete_package_product'], 10, 1);
     }
 
     /**
-     * Retrieve or create a virtual non-taxable WC_Product for a Concierge Package
+     * Retrieve or create a virtual non-taxable WC_Product for a Service Package
      */
     public function get_or_create_product($package_name, $package_id = 0) {
         if (!class_exists('WooCommerce')) {
@@ -30,7 +31,7 @@ class CareToChina_Package_Product_Sync {
 
         $sanitized_name = trim($package_name);
         if (empty($sanitized_name)) {
-            $sanitized_name = __('CareToChina Concierge Package', 'caretochina-medical');
+            $sanitized_name = __('CareToChina Service Package', 'caretochina-medical');
         }
 
         $package_id = intval($package_id);
@@ -128,7 +129,7 @@ class CareToChina_Package_Product_Sync {
      * Hook callback on post status change
      */
     public function sync_package_on_status_change($new_status, $old_status, $post) {
-        if ($post->post_type !== 'ctc_package' || !class_exists('WooCommerce')) {
+        if (!in_array($post->post_type, ['service_package', 'ctc_package'], true) || !class_exists('WooCommerce')) {
             return;
         }
 
@@ -146,7 +147,7 @@ class CareToChina_Package_Product_Sync {
      * Soft deactivate backing WC_Product when package is deleted (preserves historical orders)
      */
     public function soft_delete_package_product($post_id) {
-        if (get_post_type($post_id) !== 'ctc_package' || !class_exists('WooCommerce')) {
+        if (!in_array(get_post_type($post_id), ['service_package', 'ctc_package'], true) || !class_exists('WooCommerce')) {
             return;
         }
 

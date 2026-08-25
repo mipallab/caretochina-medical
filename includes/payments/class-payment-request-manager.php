@@ -99,7 +99,7 @@ class CareToChina_Payment_Request_Manager {
         // Validation: Enforce EXACTLY ONE pricing source
         if ($pricing_type === 'package' || $pricing_type === 'treatment_plan') {
             if ($package_id <= 0) {
-                wp_send_json_error(['message' => __('Please select a valid Concierge Package.', 'caretochina-medical')]);
+                wp_send_json_error(['message' => __('Please select a valid Service Package.', 'caretochina-medical')]);
             }
 
             if ($package_id > 0 && class_exists('CareToChina_Packages')) {
@@ -116,7 +116,7 @@ class CareToChina_Payment_Request_Manager {
             }
 
             if (empty($final_title)) {
-                $final_title = !empty($plan_name) ? $plan_name : __('Concierge Package', 'caretochina-medical');
+                $final_title = !empty($plan_name) ? $plan_name : __('Service Package', 'caretochina-medical');
             }
 
         } elseif ($pricing_type === 'custom_amount') {

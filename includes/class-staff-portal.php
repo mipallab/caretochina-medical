@@ -746,7 +746,7 @@ class CareToChina_Staff_Portal {
                             <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
                                 <label style="border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 8px; text-align:center; font-size:11px; font-weight:700; cursor:pointer; color:#475569;" class="ctc-pricing-opt-label active">
                                     <input type="radio" name="pricing_type" value="package" checked style="margin-bottom:4px;" onchange="window.ctcSwitchPricingType('package')"><br>
-                                    <?php esc_html_e('Concierge Package', 'caretochina-medical'); ?>
+                                    <?php esc_html_e('Service Package', 'caretochina-medical'); ?>
                                 </label>
                                 <label style="border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 8px; text-align:center; font-size:11px; font-weight:700; cursor:pointer; color:#475569;" class="ctc-pricing-opt-label">
                                     <input type="radio" name="pricing_type" value="custom_amount" style="margin-bottom:4px;" onchange="window.ctcSwitchPricingType('custom_amount')"><br>
@@ -759,12 +759,12 @@ class CareToChina_Staff_Portal {
                             </div>
                         </div>
 
-                        <!-- SECTION 1: CONCIERGE PACKAGE -->
+                        <!-- SECTION 1: SERVICE PACKAGE -->
                         <div id="pricing-sec-package" class="pricing-sec-box">
                             <div style="margin-bottom:14px;">
-                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('Select Concierge Package *', 'caretochina-medical'); ?></label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:4px;"><?php esc_html_e('Select Service Package *', 'caretochina-medical'); ?></label>
                                 <select name="package_id" id="req_package_select" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;" onchange="if(window.ctcOnStaffPackageChange) window.ctcOnStaffPackageChange(this)">
-                                    <option value="0"><?php esc_html_e('-- Select Concierge Package --', 'caretochina-medical'); ?></option>
+                                    <option value="0"><?php esc_html_e('-- Select Service Package --', 'caretochina-medical'); ?></option>
                                     <?php
                                     $packages = class_exists('CareToChina_Packages') ? CareToChina_Packages::instance()->get_all_packages() : [];
                                     if (!empty($packages)) {

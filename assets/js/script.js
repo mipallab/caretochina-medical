@@ -233,7 +233,7 @@ window.appWizard = {
         if ($firstCard.length) {
           $firstCard.trigger('click');
         } else {
-          alert('Please select a concierge package to proceed.');
+          alert('Please select a service package to proceed.');
           return;
         }
       }
@@ -306,7 +306,7 @@ window.appWizard = {
   },
 
   /**
-   * Render Concierge Packages (Plan A, B, C, D) into Step 2 Grid
+   * Render Service Packages (Plan A, B, C, D) into Step 2 Grid
    */
   renderPackages() {
     var self = this;
@@ -317,7 +317,7 @@ window.appWizard = {
     var packages = (bookingObj.packages && bookingObj.packages.length > 0) ? bookingObj.packages : [];
 
     if (packages.length === 0) {
-      grid.html('<div style="text-align:center; padding:24px; color:#0F766E;"><i class="fa-solid fa-spinner fa-spin"></i> Loading concierge packages...</div>');
+      grid.html('<div style="text-align:center; padding:24px; color:#0F766E;"><i class="fa-solid fa-spinner fa-spin"></i> Loading service packages...</div>');
       jQuery.get(bookingObj.ajax_url, { action: 'ctc_get_packages' }, function(res) {
         if (res.success && res.data && res.data.packages && res.data.packages.length > 0) {
           bookingObj.packages = res.data.packages;

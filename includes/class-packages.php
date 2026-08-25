@@ -15,16 +15,20 @@ class CareToChina_Packages {
     }
 
     public function __construct() {
-        // Register Post Type
+        // Register Post Type & DB Migration
         add_action('init', [$this, 'register_post_type']);
         add_action('init', [$this, 'maybe_auto_seed_packages'], 20);
 
-        // Admin Meta Boxes & Save
+        // Admin Meta Boxes & Save (supporting service_package & legacy ctc_package)
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
+        add_action('save_post_service_package', [$this, 'save_package_meta']);
         add_action('save_post_ctc_package', [$this, 'save_package_meta']);
         add_action('admin_notices', [$this, 'display_package_admin_notices']);
 
         // Custom Admin List Columns
+        add_filter('manage_service_package_posts_columns', [$this, 'register_admin_columns']);
+        add_action('manage_service_package_posts_custom_column', [$this, 'render_admin_columns'], 10, 2);
+        add_filter('manage_edit-service_package_sortable_columns', [$this, 'register_sortable_columns']);
         add_filter('manage_ctc_package_posts_columns', [$this, 'register_admin_columns']);
         add_action('manage_ctc_package_posts_custom_column', [$this, 'render_admin_columns'], 10, 2);
         add_filter('manage_edit-ctc_package_sortable_columns', [$this, 'register_sortable_columns']);
@@ -42,12 +46,17 @@ class CareToChina_Packages {
     }
 
     /**
-     * Gracefully redirect legacy pricing plans admin URLs to Concierge Packages
+     * Gracefully redirect legacy pricing plans / ctc_package admin URLs to Service Packages
      */
     public function handle_legacy_page_redirects() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (isset($_GET['page']) && in_array($_GET['page'], ['caretochina-pricing-plans', 'careyou-pricing-plans'], true)) {
-            wp_safe_redirect(admin_url('edit.php?post_type=ctc_package'));
+            wp_safe_redirect(admin_url('edit.php?post_type=service_package'));
+            exit;
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if (isset($_GET['post_type']) && $_GET['post_type'] === 'ctc_package') {
+            wp_safe_redirect(admin_url('edit.php?post_type=service_package'));
             exit;
         }
     }
@@ -120,21 +129,29 @@ class CareToChina_Packages {
     }
 
     /**
-     * Register Custom Post Type for Concierge Packages
+     * Register Custom Post Type for Service Packages
      */
     public function register_post_type() {
+        // Automatic DB migration from legacy ctc_package to service_package
+        global $wpdb;
+        if (!get_option('caretochina_cpt_migrated_service_package')) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wpdb->query("UPDATE {$wpdb->posts} SET post_type = 'service_package' WHERE post_type = 'ctc_package'");
+            update_option('caretochina_cpt_migrated_service_package', 1);
+        }
+
         $labels = [
-            'name'               => __('Concierge Packages', 'caretochina-medical'),
-            'singular_name'      => __('Concierge Package', 'caretochina-medical'),
-            'menu_name'          => __('Concierge Packages', 'caretochina-medical'),
+            'name'               => __('Service Packages', 'caretochina-medical'),
+            'singular_name'      => __('Service Package', 'caretochina-medical'),
+            'menu_name'          => __('Service Packages', 'caretochina-medical'),
             'add_new'            => __('Add New Package', 'caretochina-medical'),
-            'add_new_item'       => __('Add New Concierge Package', 'caretochina-medical'),
-            'edit_item'          => __('Edit Concierge Package', 'caretochina-medical'),
-            'new_item'           => __('New Package', 'caretochina-medical'),
-            'view_item'          => __('View Package', 'caretochina-medical'),
-            'search_items'       => __('Search Packages', 'caretochina-medical'),
-            'not_found'          => __('No packages found', 'caretochina-medical'),
-            'not_found_in_trash' => __('No packages found in Trash', 'caretochina-medical'),
+            'add_new_item'       => __('Add New Service Package', 'caretochina-medical'),
+            'edit_item'          => __('Edit Service Package', 'caretochina-medical'),
+            'new_item'           => __('New Service Package', 'caretochina-medical'),
+            'view_item'          => __('View Service Package', 'caretochina-medical'),
+            'search_items'       => __('Search Service Packages', 'caretochina-medical'),
+            'not_found'          => __('No service packages found', 'caretochina-medical'),
+            'not_found_in_trash' => __('No service packages found in Trash', 'caretochina-medical'),
         ];
 
         $args = [
@@ -152,7 +169,7 @@ class CareToChina_Packages {
             'show_in_rest'       => true,
         ];
 
-        register_post_type('ctc_package', $args);
+        register_post_type('service_package', $args);
     }
 
     /**
@@ -165,7 +182,7 @@ class CareToChina_Packages {
         }
 
         $existing = get_posts([
-            'post_type'      => 'ctc_package',
+            'post_type'      => ['service_package', 'ctc_package'],
             'post_status'    => 'any',
             'posts_per_page' => 1,
             'fields'         => 'ids',
@@ -245,7 +262,7 @@ class CareToChina_Packages {
 
         foreach ($defaults as $data) {
             $post_id = wp_insert_post([
-                'post_type'   => 'ctc_package',
+                'post_type'   => 'service_package',
                 'post_title'  => $data['title'],
                 'post_status' => 'publish',
                 'menu_order'  => $data['order'],
@@ -272,12 +289,20 @@ class CareToChina_Packages {
     }
 
     /**
-     * Add Meta Boxes on ctc_package Edit Screen
+     * Add Meta Boxes on service_package Edit Screen
      */
     public function add_meta_boxes() {
         add_meta_box(
             'ctc_package_details_mb',
-            __('Concierge Package Inclusions & Configuration', 'caretochina-medical'),
+            __('Service Package Inclusions & Configuration', 'caretochina-medical'),
+            [$this, 'render_meta_box'],
+            'service_package',
+            'normal',
+            'high'
+        );
+        add_meta_box(
+            'ctc_package_details_mb',
+            __('Service Package Inclusions & Configuration', 'caretochina-medical'),
             [$this, 'render_meta_box'],
             'ctc_package',
             'normal',
@@ -487,18 +512,18 @@ class CareToChina_Packages {
      * Delete Protection Check (covers both caretochina_bookings AND caretochina_payment_requests)
      */
     public function check_delete_protection($post_id) {
-        if (get_post_type($post_id) !== 'ctc_package') {
+        if (!in_array(get_post_type($post_id), ['service_package', 'ctc_package'], true)) {
             return;
         }
 
         $ref_count = $this->get_package_reference_count($post_id);
         if ($ref_count > 0) {
             /* translators: %d: Reference count */
-            $msg = sprintf(__('This Concierge Package is referenced by %d existing booking(s) and/or payment request(s) and cannot be permanently deleted. Please deactivate it instead to preserve financial and audit history.', 'caretochina-medical'), $ref_count);
+            $msg = sprintf(__('This Service Package is referenced by %d existing booking(s) and/or payment request(s) and cannot be permanently deleted. Please deactivate it instead to preserve financial and audit history.', 'caretochina-medical'), $ref_count);
             wp_die(
                 '<h1>' . esc_html__('Action Prohibited', 'caretochina-medical') . '</h1>'
                 . '<p>' . esc_html($msg) . '</p>'
-                . '<p><a href="' . esc_url(admin_url('edit.php?post_type=ctc_package')) . '" class="button button-primary">' . esc_html__('Return to Packages List', 'caretochina-medical') . '</a></p>',
+                . '<p><a href="' . esc_url(admin_url('edit.php?post_type=service_package')) . '" class="button button-primary">' . esc_html__('Return to Packages List', 'caretochina-medical') . '</a></p>',
                 esc_html__('Package Deletion Prohibited', 'caretochina-medical'),
                 ['back_link' => true]
             );
@@ -528,7 +553,7 @@ class CareToChina_Packages {
      */
     public function get_active_packages() {
         $posts = get_posts([
-            'post_type'      => 'ctc_package',
+            'post_type'      => ['service_package', 'ctc_package'],
             'post_status'    => 'publish',
             'posts_per_page' => -1,
             'orderby'        => 'menu_order title',
@@ -562,7 +587,7 @@ class CareToChina_Packages {
      */
     public function get_all_packages() {
         $posts = get_posts([
-            'post_type'      => 'ctc_package',
+            'post_type'      => ['service_package', 'ctc_package'],
             'post_status'    => 'publish',
             'posts_per_page' => -1,
             'orderby'        => 'menu_order title',
@@ -586,7 +611,7 @@ class CareToChina_Packages {
         }
 
         $post = get_post($package_id);
-        if (!$post || $post->post_type !== 'ctc_package') {
+        if (!$post || !in_array($post->post_type, ['service_package', 'ctc_package'], true)) {
             return null;
         }
 
@@ -631,7 +656,7 @@ class CareToChina_Packages {
      */
     public function display_package_admin_notices() {
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        if (!$screen || $screen->post_type !== 'ctc_package') {
+        if (!$screen || !in_array($screen->post_type, ['service_package', 'ctc_package'], true)) {
             return;
         }
 

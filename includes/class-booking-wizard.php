@@ -164,9 +164,9 @@ class CareToChina_Booking_Wizard {
                         </div>
                     <?php endif; ?>
                     <span class="badge-pill ctc-badge-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> <?php esc_html_e('CareToChina Consultation Wizard', 'caretochina-medical'); ?></span>
-                    <h2 id="wiz-modal-title" class="section-title wiz-modal-title"><?php esc_html_e('Instant Medical Travel & Concierge Booking', 'caretochina-medical'); ?></h2>
+                    <h2 id="wiz-modal-title" class="section-title wiz-modal-title"><?php esc_html_e('Instant Medical Travel & Service Booking', 'caretochina-medical'); ?></h2>
                     <p class="section-subtitle text-muted wiz-modal-subtitle">
-                        <?php esc_html_e('Choose your hospital and concierge package in 3 simple steps. Our team coordinates every detail of your medical journey.', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Choose your hospital and service package in 3 simple steps. Our team coordinates every detail of your medical journey.', 'caretochina-medical'); ?>
                     </p>
                 </div>
 
@@ -179,7 +179,7 @@ class CareToChina_Booking_Wizard {
                     <div class="wiz-step-divider"></div>
                     <div class="wiz-step" data-step="2">
                         <span class="wiz-step-num">2</span>
-                        <span class="wiz-step-label"><?php esc_html_e('Package', 'caretochina-medical'); ?></span>
+                        <span class="wiz-step-label"><?php esc_html_e('Service Package', 'caretochina-medical'); ?></span>
                     </div>
                     <div class="wiz-step-divider"></div>
                     <div class="wiz-step" data-step="3">
@@ -215,10 +215,10 @@ class CareToChina_Booking_Wizard {
                         </div>
                     </div>
 
-                    <!-- STEP 2: SELECT CONCIERGE PACKAGE -->
+                    <!-- STEP 2: SELECT SERVICE PACKAGE -->
                     <div class="wiz-page" id="wiz-step-2" style="display:none;">
                         <div class="form-group mb-16">
-                            <label class="form-label wiz-plan-title"><?php esc_html_e('Select Your Concierge Service Package *', 'caretochina-medical'); ?></label>
+                            <label class="form-label wiz-plan-title"><?php esc_html_e('Select Your Service Package *', 'caretochina-medical'); ?></label>
                             <p class="wiz-plan-subtext"><?php esc_html_e('Select your medical escort and coordination tier. Package pricing is fixed onto your booking.', 'caretochina-medical'); ?></p>
                             
                             <div id="wiz-packages-list-grid" class="wiz-packages-grid">
@@ -403,7 +403,7 @@ class CareToChina_Booking_Wizard {
                 $package_price_formatted = $pkg->price_formatted;
                 $package_timeline        = $pkg->timeline ?? '';
                 $currency                = $pkg->currency ?: $currency;
-                $quote_details          .= "\n[Selected Concierge Package: " . $pkg->name . ' (' . $pkg->price_formatted . ')]';
+                $quote_details          .= "\n[Selected Service Package: " . $pkg->name . ' (' . $pkg->price_formatted . ')]';
             }
         }
 
@@ -417,7 +417,7 @@ class CareToChina_Booking_Wizard {
             $guest_token_hash = hash('sha256', $raw_guest_token);
         }
 
-        $specialty_label = $package_title ?: ($hospital_name ?: __('Medical Concierge Consultation', 'caretochina-medical'));
+        $specialty_label = $package_title ?: ($hospital_name ?: __('Medical Service Consultation', 'caretochina-medical'));
 
         // DUPLICATE CONSULTATION / BOOKING PROTECTION
         $lock_key = 'ctc_sub_lock_' . md5($email . '|' . strtolower($specialty_label));
