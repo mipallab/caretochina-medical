@@ -183,6 +183,7 @@ class CareToChina_Packages {
                 'price'       => 0.00,
                 'is_active'   => 0,
                 'order'       => 1,
+                'timeline'    => '5 Weeks',
                 'coordination'=> "• Medical Report Assessment & Treatment Planning: Professional assessment of medical reports, hospital and specialist recommendations, and development of treatment plans and cost estimates\n• Pre-Departure Video Consultation: Scheduling a pre-departure video consultation with the doctor to align on treatment direction and expectations in advance\n• Medical Document & Itinerary Assistance: Assistance with medical documents and visa materials, and follow-up on flight itinerary arrangements\n• Priority In-Person Consultation Scheduling: Priority scheduling of in-person doctor consultations upon arrival, minimizing wait times\n• Professional Medical Escort Interpretation: Professional medical interpreters and portable translation devices provided, accompanying the patient throughout for communication support\n• Full Hospitalization Coordination: Admission procedures, coordination during hospitalization, and post-operative follow-up arrangements\n• VIP Fast-Track Access: VIP hospital coordination with priority access to renowned specialists\n• Medication & Return-Home Coordination: Post-operative medication guidance, assistance with taking medication abroad, and preparation of bilingual (Chinese-English) medical summaries for follow-up care after returning home\n• Round-the-Clock Service Support: Dedicated customer service available 24/7, with immediate response for urgent matters",
                 'vehicle'     => 'Luxury business vehicle',
                 'interpreter' => 'Driver + bilingual interpreter for airport transfers',
@@ -198,6 +199,7 @@ class CareToChina_Packages {
                 'price'       => 0.00,
                 'is_active'   => 0,
                 'order'       => 2,
+                'timeline'    => '4 Weeks',
                 'coordination'=> "• Medical report assessment, hospital and specialist recommendations, treatment plan and cost estimate\n• Assistance with medical documents and visa materials, and flight itinerary follow-up\n• Priority scheduling of in-person doctor consultations\n• Professional medical interpreter and translation device provided\n• Hospitalization coordination and post-operative follow-up arrangements\n• Customer service response during business hours, with priority handling of urgent matters",
                 'vehicle'     => 'Premium business vehicle',
                 'interpreter' => 'Driver + bilingual (English + Chinese) interpreter for airport transfers',
@@ -213,6 +215,7 @@ class CareToChina_Packages {
                 'price'       => 0.00,
                 'is_active'   => 0,
                 'order'       => 3,
+                'timeline'    => '3 Weeks',
                 'coordination'=> "• Medical report assessment, hospital and specialist recommendations\n• Assistance with medical documents and visa materials\n• Scheduling of doctor consultations, with translation device provided\n• Hospitalization coordination",
                 'vehicle'     => 'Business vehicle with driver',
                 'interpreter' => 'Driver + bilingual interpreter for airport transfers + translation device',
@@ -228,6 +231,7 @@ class CareToChina_Packages {
                 'price'       => 0.00,
                 'is_active'   => 0,
                 'order'       => 4,
+                'timeline'    => '1 Week',
                 'coordination'=> "• Medical report assessment, hospital and specialist recommendations (basic)\n• Basic guidance on medical documents and visa materials\n• Assistance booking in-person consultations",
                 'vehicle'     => 'Business vehicle with driver',
                 'interpreter' => 'Driver + bilingual translation device for airport transfers',
@@ -259,6 +263,7 @@ class CareToChina_Packages {
                 update_post_meta($post_id, '_ctc_pkg_companion', $data['companion']);
                 update_post_meta($post_id, '_ctc_pkg_travel', $data['travel']);
                 update_post_meta($post_id, '_ctc_pkg_positioning', $data['positioning']);
+                update_post_meta($post_id, '_ctc_pkg_timeline', $data['timeline']);
                 update_post_meta($post_id, '_ctc_pkg_is_active', 0);
             }
         }
@@ -288,6 +293,7 @@ class CareToChina_Packages {
 
         $price         = get_post_meta($post->ID, '_ctc_pkg_price', true);
         $badge         = get_post_meta($post->ID, '_ctc_pkg_badge', true);
+        $timeline      = get_post_meta($post->ID, '_ctc_pkg_timeline', true);
         $coordination  = get_post_meta($post->ID, '_ctc_pkg_medical_coordination', true);
         $vehicle       = get_post_meta($post->ID, '_ctc_pkg_vehicle', true);
         $interpreter   = get_post_meta($post->ID, '_ctc_pkg_interpreter', true);
@@ -362,6 +368,13 @@ class CareToChina_Packages {
             <div class="ctc-pkg-admin-field">
                 <label for="ctc_pkg_badge"><?php esc_html_e('Tier Badge / Highlight Tag', 'caretochina-medical'); ?></label>
                 <input type="text" name="ctc_pkg_badge" id="ctc_pkg_badge" value="<?php echo esc_attr($badge); ?>" placeholder="e.g. Ultimate VIP, Most Popular, Best Value">
+            </div>
+
+            <!-- Timeline / Duration -->
+            <div class="ctc-pkg-admin-field">
+                <label for="ctc_pkg_timeline"><?php esc_html_e('Package Timeline / Duration', 'caretochina-medical'); ?></label>
+                <input type="text" name="ctc_pkg_timeline" id="ctc_pkg_timeline" value="<?php echo esc_attr($timeline); ?>" placeholder="e.g. 5 Weeks, 4 Weeks, 1 Week">
+                <span class="ctc-pkg-hint"><?php esc_html_e('The estimated service duration for this package (e.g. 5 Weeks, 3 Weeks, 1 Week).', 'caretochina-medical'); ?></span>
             </div>
 
             <!-- Dedicated Vehicle -->
@@ -445,6 +458,7 @@ class CareToChina_Packages {
         }
 
         $badge         = isset($_POST['ctc_pkg_badge']) ? sanitize_text_field(wp_unslash($_POST['ctc_pkg_badge'])) : '';
+        $timeline      = isset($_POST['ctc_pkg_timeline']) ? sanitize_text_field(wp_unslash($_POST['ctc_pkg_timeline'])) : '';
         $vehicle       = isset($_POST['ctc_pkg_vehicle']) ? sanitize_text_field(wp_unslash($_POST['ctc_pkg_vehicle'])) : '';
         $interpreter   = isset($_POST['ctc_pkg_interpreter']) ? sanitize_text_field(wp_unslash($_POST['ctc_pkg_interpreter'])) : '';
         $accommodation = isset($_POST['ctc_pkg_accommodation']) ? sanitize_text_field(wp_unslash($_POST['ctc_pkg_accommodation'])) : '';
@@ -457,6 +471,7 @@ class CareToChina_Packages {
         update_post_meta($post_id, '_ctc_pkg_price', $price);
         update_post_meta($post_id, '_ctc_pkg_currency', self::get_store_currency());
         update_post_meta($post_id, '_ctc_pkg_badge', $badge);
+        update_post_meta($post_id, '_ctc_pkg_timeline', $timeline);
         update_post_meta($post_id, '_ctc_pkg_vehicle', $vehicle);
         update_post_meta($post_id, '_ctc_pkg_interpreter', $interpreter);
         update_post_meta($post_id, '_ctc_pkg_accommodation', $accommodation);
@@ -596,6 +611,7 @@ class CareToChina_Packages {
             'currency_symbol'=> $symbol,
             'price_formatted'=> $symbol . number_format($price, 2) . ' ' . $currency,
             'badge'         => get_post_meta($id, '_ctc_pkg_badge', true) ?: '',
+            'timeline'      => get_post_meta($id, '_ctc_pkg_timeline', true) ?: '',
             'vehicle'       => get_post_meta($id, '_ctc_pkg_vehicle', true) ?: '',
             'interpreter'   => get_post_meta($id, '_ctc_pkg_interpreter', true) ?: '',
             'accommodation' => get_post_meta($id, '_ctc_pkg_accommodation', true) ?: '',
@@ -656,6 +672,7 @@ class CareToChina_Packages {
         $new_cols['cb']         = $columns['cb'];
         $new_cols['title']      = __('Package Title', 'caretochina-medical');
         $new_cols['price']      = __('Price (Store Currency)', 'caretochina-medical');
+        $new_cols['timeline']   = __('Timeline', 'caretochina-medical');
         $new_cols['badge']      = __('Badge', 'caretochina-medical');
         $new_cols['status']     = __('Status', 'caretochina-medical');
         $new_cols['usage']      = __('Bookings / Requests', 'caretochina-medical');
@@ -674,6 +691,9 @@ class CareToChina_Packages {
                 } else {
                     echo '<span style="color:#EF4444; font-weight:700;">' . esc_html__('Not Set (0.00)', 'caretochina-medical') . '</span>';
                 }
+                break;
+            case 'timeline':
+                echo !empty($pkg->timeline) ? '<span style="background:#EDE9FE; color:#6D28D9; padding:3px 8px; border-radius:6px; font-weight:700; font-size:11px;"><span class="dashicons dashicons-clock" style="font-size:13px; vertical-align:middle; margin-right:2px;"></span>' . esc_html($pkg->timeline) . '</span>' : '—';
                 break;
             case 'badge':
                 echo !empty($pkg->badge) ? '<span style="background:#CCFBF1; color:#0F766E; padding:3px 8px; border-radius:6px; font-weight:700; font-size:11px;">' . esc_html($pkg->badge) . '</span>' : '—';
