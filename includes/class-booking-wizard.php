@@ -392,14 +392,18 @@ class CareToChina_Booking_Wizard {
         $snapshotted_price = 0.00;
         $currency = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_store_currency() : get_option('ctc_payment_currency', 'USD');
         $package_title = '';
+        $package_price_formatted = '';
+        $package_timeline = '';
 
         if ($package_id > 0 && class_exists('CareToChina_Packages')) {
             $pkg = CareToChina_Packages::instance()->get_package($package_id);
             if ($pkg) {
-                $snapshotted_price = floatval($pkg->price);
-                $package_title     = $pkg->name;
-                $currency          = $pkg->currency ?: $currency;
-                $quote_details    .= "\n[Selected Concierge Package: " . $pkg->name . ' (' . $pkg->price_formatted . ')]';
+                $snapshotted_price       = floatval($pkg->price);
+                $package_title           = $pkg->name;
+                $package_price_formatted = $pkg->price_formatted;
+                $package_timeline        = $pkg->timeline ?? '';
+                $currency                = $pkg->currency ?: $currency;
+                $quote_details          .= "\n[Selected Concierge Package: " . $pkg->name . ' (' . $pkg->price_formatted . ')]';
             }
         }
 
@@ -503,7 +507,7 @@ class CareToChina_Booking_Wizard {
             ], $dash_url) : $dash_url;
 
             // Send Emails
-            $this->send_notifications($booking_code, $full_name, $email, $hospital_name, $specialty_str, $treatment_timing, $guest_chat_url);
+            $this->send_notifications($booking_code, $full_name, $email, $hospital_name, $specialty_str, $treatment_timing, $guest_chat_url, $package_title, $package_price_formatted, $package_timeline, $quote_details);
 
             wp_send_json_success([
                 'booking_id'      => $booking_id,
@@ -523,23 +527,27 @@ class CareToChina_Booking_Wizard {
         }
     }
 
-    private function send_notifications($booking_code, $name, $email, $hospital, $specialty, $timing, $chat_url = '') {
+    private function send_notifications($booking_code, $name, $email, $hospital, $specialty, $timing, $chat_url = '', $package_name = '', $package_price = '', $package_timeline = '', $quote_details = '') {
         $dashboard_url = !empty($chat_url) ? $chat_url : (class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/'));
         $site_name = get_bloginfo('name') ?: 'CareToChina Medical';
         $admin_email = get_option('admin_email');
 
         $email_data = [
-            'patient_name'    => $name,
-            'full_name'       => $name,
-            'patient_email'   => $email,
-            'booking_code'    => $booking_code,
-            'hospital_name'   => $hospital ?: __('Best Matched Medical Center', 'caretochina-medical'),
-            'specialty'       => $specialty ?: __('General Medical Consultation', 'caretochina-medical'),
-            'timing'          => $timing ?: __('Flexible / As soon as possible', 'caretochina-medical'),
-            'status'          => 'Pending Coordinator Review',
-            'chat_url'        => $dashboard_url,
-            'dashboard_url'   => $dashboard_url,
-            'staff_portal_url'=> admin_url('admin.php?page=caretochina-staff-desk'),
+            'patient_name'      => $name,
+            'full_name'         => $name,
+            'patient_email'     => $email,
+            'booking_code'      => $booking_code,
+            'hospital_name'     => $hospital ?: __('Best Matched Medical Center', 'caretochina-medical'),
+            'specialty'         => $specialty ?: __('General Medical Consultation', 'caretochina-medical'),
+            'package_name'      => $package_name ?: __('Not Selected', 'caretochina-medical'),
+            'package_price'     => $package_price ?: '',
+            'package_timeline'  => $package_timeline ?: '',
+            'quote_details'     => $quote_details ?: '',
+            'timing'            => $timing ?: __('Flexible / As soon as possible', 'caretochina-medical'),
+            'status'            => 'Pending Coordinator Review',
+            'chat_url'          => $dashboard_url,
+            'dashboard_url'     => $dashboard_url,
+            'staff_portal_url'  => admin_url('admin.php?page=caretochina-staff-desk'),
         ];
 
         // 1. Send confirmation to Patient / Guest via Template Engine

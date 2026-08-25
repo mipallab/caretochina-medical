@@ -1415,6 +1415,16 @@ class CareToChina_Staff_Portal {
                 'dashboard_url'   => $dash_url,
             ];
 
+            // Enrich with package data if available
+            if (!empty($booking->package_id) && class_exists('CareToChina_Packages')) {
+                $pkg = CareToChina_Packages::instance()->get_package(intval($booking->package_id));
+                if ($pkg) {
+                    $email_data['package_name']     = $pkg->name;
+                    $email_data['package_price']    = $pkg->price_formatted;
+                    $email_data['package_timeline'] = $pkg->timeline ?? '';
+                }
+            }
+
             if (class_exists('CareToChina_Email_Templates')) {
                 CareToChina_Email_Templates::send_notification('status_update', $email, $email_data);
             }

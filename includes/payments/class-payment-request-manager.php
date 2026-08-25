@@ -208,6 +208,9 @@ class CareToChina_Payment_Request_Manager {
                 'custom_title'   => $final_title,
                 'amount'         => number_format($final_amount, 2),
                 'currency'       => $currency,
+                'package_name'   => (!empty($thread_booking->package_id) && class_exists('CareToChina_Packages')) ? (($pr_pkg = CareToChina_Packages::instance()->get_package(intval($thread_booking->package_id))) ? $pr_pkg->name : '') : '',
+                'package_price'  => (!empty($thread_booking->package_id) && class_exists('CareToChina_Packages') && isset($pr_pkg) && $pr_pkg) ? $pr_pkg->price_formatted : '',
+                'package_timeline' => (!empty($thread_booking->package_id) && class_exists('CareToChina_Packages') && isset($pr_pkg) && $pr_pkg) ? ($pr_pkg->timeline ?? '') : '',
                 'chat_url'       => $chat_dest_url,
                 'dashboard_url'  => home_url('/patient-dashboard/'),
             ]);
