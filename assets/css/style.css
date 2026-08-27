@@ -7210,7 +7210,16 @@ body[data-bs-theme="dark"] #ctc-booking-modal .btn-wiz-secondary:hover {
 @media (max-height: 680px) and (min-width: 601px),
 (orientation: landscape) and (max-height: 680px) and (min-width: 601px) {
   #ctc-booking-modal .wiz-header .wiz-brand-logo-wrap {
-    display: none !important;
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-header .wiz-brand-logo {
+    max-height: 24px !important;
+    max-width: 120px !important;
+    display: block !important;
+    object-fit: contain !important;
   }
 
   #ctc-booking-modal .wiz-header .wiz-modal-subtitle {
