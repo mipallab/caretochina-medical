@@ -123,7 +123,7 @@ class CareToChina_Country_Helper {
             $html .= '<option value="' . esc_attr($c['dial_code']) . '" data-dial="' . esc_attr($c['dial_code']) . '" data-flag="' . esc_attr($c['flag']) . '" ' . $sel . '>' . esc_html($label) . '</option>';
         }
         $html .= '</select>';
-        $html .= '<input type="tel" name="' . esc_attr($field_name) . '" ' . $id_attr . ' value="' . esc_attr($parsed['number']) . '" class="ctc-phone-input form-input" placeholder="' . esc_attr($placeholder) . '" ' . $req_attr . ' autocomplete="tel-national">';
+        $html .= '<input type="tel" name="' . esc_attr($field_name) . '" ' . $id_attr . ' value="' . esc_attr($parsed['number']) . '" class="ctc-phone-input" placeholder="' . esc_attr($placeholder) . '" ' . $req_attr . ' autocomplete="tel-national">';
         $html .= '</div>';
 
         return $html;

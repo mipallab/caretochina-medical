@@ -55,7 +55,7 @@ class CareToChina_Hospital_Settings {
      */
     public static function get_settings() {
         $defaults = [
-            'concierge_title'        => __('CareToChina Concierge', 'caretochina-medical'),
+            'concierge_title'        => __('CareToChina Service', 'caretochina-medical'),
             'concierge_subtitle'     => __('Direct Hospital Booking & Coordination Support', 'caretochina-medical'),
             'concierge_badge'        => __('24/7 Dedicated Support', 'caretochina-medical'),
             'services'               => [
@@ -66,7 +66,7 @@ class CareToChina_Hospital_Settings {
                 ],
                 [
                     'label' => __('MEDICAL TRANSLATION:', 'caretochina-medical'),
-                    'value' => __('Full Concierge In-Hospital', 'caretochina-medical'),
+                    'value' => __('Full Service In-Hospital', 'caretochina-medical'),
                     'icon'  => 'fas fa-language'
                 ],
                 [
@@ -78,15 +78,15 @@ class CareToChina_Hospital_Settings {
             // Direct Contact & Booking Channels
             'whatsapp_number'        => '',
             'whatsapp_label'         => __('Chat & Confirm on WhatsApp', 'caretochina-medical'),
-            'whatsapp_message'       => __('Hello CareToChina Concierge, I want to inquire and confirm my booking at {hospital_name}.', 'caretochina-medical'),
+            'whatsapp_message'       => __('Hello CareToChina Service, I want to inquire and confirm my booking at {hospital_name}.', 'caretochina-medical'),
             'wechat_id'              => '',
             'wechat_label'           => __('Chat & Confirm on WeChat', 'caretochina-medical'),
             'wechat_qr'              => '',
-            'wechat_message'         => __('Scan QR code or search WeChat ID to connect with our China Medical Concierge.', 'caretochina-medical'),
+            'wechat_message'         => __('Scan QR code or search WeChat ID to connect with our China Medical Service.', 'caretochina-medical'),
             'phone_number'           => '',
             'phone_label'            => __('Hotline Phone Line', 'caretochina-medical'),
             'email'                  => '',
-            'email_label'            => __('Direct Email Concierge', 'caretochina-medical'),
+            'email_label'            => __('Direct Email Service', 'caretochina-medical'),
             'facebook_url'           => '',
             'facebook_label'         => __('Facebook Page / Messenger', 'caretochina-medical'),
             'instagram_url'          => '',
@@ -275,8 +275,8 @@ class CareToChina_Hospital_Settings {
                         <i class="fas fa-hospital-user"></i>
                     </div>
                     <div>
-                        <h2><?php esc_html_e('Hospital Concierge & Booking Channels Settings', 'caretochina-medical'); ?></h2>
-                        <p><?php esc_html_e('Configure global concierge information, social links, direct chat channels (WhatsApp, Facebook, Instagram, YouTube), and booking solutions displayed on single hospital pages.', 'caretochina-medical'); ?></p>
+                        <h2><?php esc_html_e('Hospital Service & Booking Channels Settings', 'caretochina-medical'); ?></h2>
+                        <p><?php esc_html_e('Configure global service information, social links, direct chat channels (WhatsApp, Facebook, Instagram, YouTube), and booking solutions displayed on single hospital pages.', 'caretochina-medical'); ?></p>
                     </div>
                 </div>
                 <div class="ctc-header-badge">
@@ -287,17 +287,17 @@ class CareToChina_Hospital_Settings {
             <form method="post" action="" class="ctc-settings-form">
                 <?php wp_nonce_field('ctc_save_hospital_settings', 'ctc_hospital_settings_nonce'); ?>
 
-                <!-- SECTION 1: Concierge Card Identity & Header -->
+                <!-- SECTION 1: Service Card Identity & Header -->
                 <div class="ctc-card">
                     <div class="ctc-card-header">
                         <i class="fas fa-user-nurse"></i>
-                        <h3><?php esc_html_e('Concierge Header & Identity', 'caretochina-medical'); ?></h3>
+                        <h3><?php esc_html_e('Service Header & Identity', 'caretochina-medical'); ?></h3>
                     </div>
                     <div class="ctc-card-body">
                         <div class="ctc-form-row ctc-grid-2">
                             <div class="ctc-field">
-                                <label for="concierge_title"><?php esc_html_e('Concierge Card Title', 'caretochina-medical'); ?></label>
-                                <input type="text" id="concierge_title" name="concierge_title" value="<?php echo esc_attr($settings['concierge_title']); ?>" class="regular-text" placeholder="CareToChina Concierge" required>
+                                <label for="concierge_title"><?php esc_html_e('Service Card Title', 'caretochina-medical'); ?></label>
+                                <input type="text" id="concierge_title" name="concierge_title" value="<?php echo esc_attr($settings['concierge_title']); ?>" class="regular-text" placeholder="CareToChina Service" required>
                                 <span class="ctc-hint"><?php esc_html_e('Displayed prominently at the top of the sidebar card.', 'caretochina-medical'); ?></span>
                             </div>
                             <div class="ctc-field">
@@ -309,14 +309,14 @@ class CareToChina_Hospital_Settings {
                     </div>
                 </div>
 
-                <!-- SECTION 2: Concierge Services & Coordination Highlights -->
+                <!-- SECTION 2: Service Highlights & Coordination Highlights -->
                 <div class="ctc-card">
                     <div class="ctc-card-header">
                         <i class="fas fa-list-check"></i>
-                        <h3><?php esc_html_e('Concierge Highlights & Service Points', 'caretochina-medical'); ?></h3>
+                        <h3><?php esc_html_e('Service Highlights & Key Points', 'caretochina-medical'); ?></h3>
                     </div>
                     <div class="ctc-card-body">
-                        <p class="ctc-section-desc"><?php esc_html_e('These highlight lines appear in the top section of the concierge card (e.g. Care Coordination, Medical Translation, Visa Help). You can edit them or add new items below.', 'caretochina-medical'); ?></p>
+                        <p class="ctc-section-desc"><?php esc_html_e('These highlight lines appear in the top section of the service card (e.g. Care Coordination, Medical Translation, Visa Help). You can edit them or add new items below.', 'caretochina-medical'); ?></p>
                         
                         <div id="ctc-services-container" class="ctc-repeater-list">
                             <?php 
@@ -381,7 +381,7 @@ class CareToChina_Hospital_Settings {
                             </div>
                             <div class="ctc-field" style="margin-top: 10px;">
                                 <label for="whatsapp_message"><?php esc_html_e('Pre-filled WhatsApp Booking Message Template', 'caretochina-medical'); ?></label>
-                                <textarea id="whatsapp_message" name="whatsapp_message" rows="2" class="large-text" placeholder="Hello CareToChina Concierge, I want to inquire and confirm my booking at {hospital_name}."><?php echo esc_textarea($settings['whatsapp_message']); ?></textarea>
+                                <textarea id="whatsapp_message" name="whatsapp_message" rows="2" class="large-text" placeholder="Hello CareToChina Service, I want to inquire and confirm my booking at {hospital_name}."><?php echo esc_textarea($settings['whatsapp_message']); ?></textarea>
                                 <span class="ctc-hint"><?php esc_html_e('Use placeholder {hospital_name} to automatically insert the current hospital name.', 'caretochina-medical'); ?></span>
                             </div>
                         </div>
@@ -413,7 +413,7 @@ class CareToChina_Hospital_Settings {
                                 </div>
                                 <div class="ctc-field">
                                     <label for="wechat_message"><?php esc_html_e('WeChat Welcome Note / Instructions', 'caretochina-medical'); ?></label>
-                                    <textarea id="wechat_message" name="wechat_message" rows="2" class="large-text" placeholder="Scan QR code or search WeChat ID to connect with our China Medical Concierge."><?php echo esc_textarea($settings['wechat_message']); ?></textarea>
+                                    <textarea id="wechat_message" name="wechat_message" rows="2" class="large-text" placeholder="Scan QR code or search WeChat ID to connect with our China Medical Service."><?php echo esc_textarea($settings['wechat_message']); ?></textarea>
                                 </div>
                             </div>
                         </div>
@@ -432,12 +432,12 @@ class CareToChina_Hospital_Settings {
                             </div>
                             <div class="ctc-grid-2" style="margin-top: 14px;">
                                 <div class="ctc-field">
-                                    <label for="email"><i class="fas fa-envelope"></i> <?php esc_html_e('Concierge Inquiry Email Address', 'caretochina-medical'); ?></label>
-                                    <input type="email" id="email" name="email" value="<?php echo esc_attr($settings['email']); ?>" class="regular-text" placeholder="concierge@caretochina.com">
+                                    <label for="email"><i class="fas fa-envelope"></i> <?php esc_html_e('Service Inquiry Email Address', 'caretochina-medical'); ?></label>
+                                    <input type="email" id="email" name="email" value="<?php echo esc_attr($settings['email']); ?>" class="regular-text" placeholder="service@caretochina.com">
                                 </div>
                                 <div class="ctc-field">
                                     <label for="email_label"><?php esc_html_e('Email Label / Subtitle', 'caretochina-medical'); ?></label>
-                                    <input type="text" id="email_label" name="email_label" value="<?php echo esc_attr($settings['email_label']); ?>" class="regular-text" placeholder="Direct Email Concierge">
+                                    <input type="text" id="email_label" name="email_label" value="<?php echo esc_attr($settings['email_label']); ?>" class="regular-text" placeholder="Direct Email Service">
                                 </div>
                             </div>
                         </div>
@@ -593,33 +593,33 @@ class CareToChina_Hospital_Settings {
                                 <input type="checkbox" name="show_concierge_card" value="yes" <?php checked($settings['show_concierge_card'], 'yes'); ?>>
                                 <span class="ctc-slider"></span>
                             </label>
-                            <span class="ctc-toggle-text"><?php esc_html_e('Show Concierge & Channels Sidebar Box on Single Hospital Page', 'caretochina-medical'); ?></span>
+                            <span class="ctc-toggle-text"><?php esc_html_e('Show Service & Channels Sidebar Box on Single Hospital Page', 'caretochina-medical'); ?></span>
                         </div>
                         <div class="ctc-toggle-row" style="margin-top: 14px;">
                             <label class="ctc-switch">
                                 <input type="checkbox" name="show_social_bar" value="yes" <?php checked($settings['show_social_bar'], 'yes'); ?>>
                                 <span class="ctc-slider"></span>
                             </label>
-                            <span class="ctc-toggle-text"><?php esc_html_e('Show Social Media Buttons (Facebook, Instagram, YouTube) in Concierge Card', 'caretochina-medical'); ?></span>
+                            <span class="ctc-toggle-text"><?php esc_html_e('Show Social Media Buttons (Facebook, Instagram, YouTube) in Service Card', 'caretochina-medical'); ?></span>
                         </div>
                         <div class="ctc-toggle-row" style="margin-top: 14px;">
                             <label class="ctc-switch">
                                 <input type="checkbox" name="show_booking_button" value="yes" <?php checked($settings['show_booking_button'], 'yes'); ?>>
                                 <span class="ctc-slider"></span>
                             </label>
-                            <span class="ctc-toggle-text"><?php esc_html_e('Show Direct Booking Solution Action Button in Concierge Card', 'caretochina-medical'); ?></span>
+                            <span class="ctc-toggle-text"><?php esc_html_e('Show Direct Booking Solution Action Button in Service Card', 'caretochina-medical'); ?></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- SECTION 6: Global Concierge Service Notes -->
+                <!-- SECTION 6: Global Service Notes -->
                 <div class="ctc-card">
                     <div class="ctc-card-header">
                         <i class="fas fa-file-shield"></i>
-                        <h3><?php esc_html_e('Global Concierge Service Notes & Inclusions', 'caretochina-medical'); ?></h3>
+                        <h3><?php esc_html_e('Global Service Notes & Inclusions', 'caretochina-medical'); ?></h3>
                     </div>
                     <div class="ctc-card-body">
-                        <p class="ctc-section-desc"><?php esc_html_e('These standard service notes (smart translator device, international wifi, RMB exchange assistance, accompanying guest rules, legal policy) are rendered across all concierge packages, single hospital comparison grids, and the booking wizard.', 'caretochina-medical'); ?></p>
+                        <p class="ctc-section-desc"><?php esc_html_e('These standard service notes (smart translator device, international wifi, RMB exchange assistance, accompanying guest rules, legal policy) are rendered across all service packages, single hospital comparison grids, and the booking wizard.', 'caretochina-medical'); ?></p>
                         <div class="ctc-field full" style="margin-top:14px;">
                             <label for="caretochina_global_service_notes" style="font-weight:700; display:block; margin-bottom:6px;"><?php esc_html_e('Global Service Notes Text Block', 'caretochina-medical'); ?></label>
                             <textarea id="caretochina_global_service_notes" name="caretochina_global_service_notes" rows="8" class="large-text" style="font-family:monospace; font-size:12.5px; line-height:1.6; border-radius:8px; padding:10px 14px; border:1px solid #CBD5E1;"><?php echo esc_textarea(CareToChina_Packages::get_global_service_notes()); ?></textarea>
@@ -631,7 +631,7 @@ class CareToChina_Hospital_Settings {
                 <!-- Submit Button -->
                 <div class="ctc-submit-bar">
                     <button type="submit" class="button button-primary button-hero ctc-save-btn">
-                        <i class="fas fa-floppy-disk"></i> <?php esc_html_e('Save Hospital Settings & Channels', 'caretochina-medical'); ?>
+                        <i class="fas fa-floppy-disk"></i> <?php esc_html_e('Save Info', 'caretochina-medical'); ?>
                     </button>
                 </div>
 
@@ -891,7 +891,9 @@ class CareToChina_Hospital_Settings {
                 color: #ffffff !important;
                 font-weight: 700 !important;
                 font-size: 14px !important;
-                padding: 10px 28px !important;
+                padding: 12px 30px !important;
+                min-height: auto !important;
+                line-height: 1.5 !important;
                 border-radius: 999px !important;
                 box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25) !important;
                 display: inline-flex !important;

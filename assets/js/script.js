@@ -7,7 +7,7 @@ function getBookingObj() {
 }
 
 // Global Cross-Browser Web Audio Notifier with User Interaction Unlock
-var CTC_Audio = (function() {
+var CTC_Audio = (function () {
   var ctx = null;
   var unlocked = false;
 
@@ -20,36 +20,36 @@ var CTC_Audio = (function() {
         }
       }
       if (ctx && ctx.state === 'suspended') {
-        ctx.resume().then(function() {
+        ctx.resume().then(function () {
           unlocked = true;
-        }).catch(function() {});
+        }).catch(function () { });
       } else if (ctx && ctx.state === 'running') {
         unlocked = true;
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   // Pre-warm / unlock on first user gesture anywhere on page
   if (typeof document !== 'undefined') {
     var unlockEvents = ['click', 'touchstart', 'keydown', 'mousedown'];
-    var unlockHandler = function() {
+    var unlockHandler = function () {
       initContext();
       if (unlocked) {
-        unlockEvents.forEach(function(evt) {
+        unlockEvents.forEach(function (evt) {
           document.removeEventListener(evt, unlockHandler, true);
         });
       }
     };
-    unlockEvents.forEach(function(evt) {
+    unlockEvents.forEach(function (evt) {
       document.addEventListener(evt, unlockHandler, { capture: true, passive: true });
     });
   }
 
   return {
-    unlock: function() {
+    unlock: function () {
       initContext();
     },
-    play: function(type) {
+    play: function (type) {
       initContext();
       if (!ctx) return;
 
@@ -92,7 +92,7 @@ var CTC_Audio = (function() {
           osc.start(now);
           osc.stop(now + 0.45);
         }
-      } catch(e) {
+      } catch (e) {
         console.warn('Audio play error:', e);
       }
     }
@@ -114,25 +114,29 @@ window.appWizard = {
     this.selectedPackageId = 0;
     this.selectedPackageName = '';
     this.selectedPackagePrice = 0.00;
-    
+
+    // Clear search and reset city filter to All Cities
+    jQuery('#wiz-hospital-search').val('');
+    jQuery('#wiz-hospital-city-filter').val('');
+
     // Clear form inputs
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
     jQuery('#wiz_package_id').val(0);
     jQuery('#wiz_package_name').val('');
     jQuery('#wiz_package_price').val(0);
-    
+
     // Reset steps
     this.currentStep = 1;
     this.renderHospitals();
     this.renderPackages();
     this.showStep(1);
-    
+
     // Reset form and steps indicator visibility
     jQuery('#ctc-booking-wizard-form').show();
     jQuery('.wizard-steps-indicator').show();
     jQuery('#ctc-wizard-status').hide().empty();
-    
+
     jQuery('html, body').addClass('ctc-modal-open');
     jQuery('#ctc-booking-modal').addClass('show');
   },
@@ -150,7 +154,7 @@ window.appWizard = {
     jQuery('#wiz_package_id').val(0);
     jQuery('#wiz_package_name').val('');
     jQuery('#wiz_package_price').val(0);
-    
+
     // Reset steps and jump directly to Step 2 (Package Selection)
     this.currentStep = 2;
     this.renderPackages();
@@ -192,17 +196,17 @@ window.appWizard = {
   },
 
   closeModal() {
-    jQuery('html, body').removeClass('ctc-modal-open');
+    jQuery('html, body').removeClass('ctc-modal-open').css({ overflow: '', height: '', 'touch-action': '' });
     jQuery('#ctc-booking-modal').removeClass('show');
   },
 
   showStep(stepNum) {
     this.currentStep = stepNum;
-    jQuery('.wiz-page').hide();
-    jQuery('#wiz-step-' + stepNum).fadeIn(250);
+    jQuery('.wiz-page').removeClass('active').hide();
+    jQuery('#wiz-step-' + stepNum).addClass('active').show();
 
     jQuery('.wiz-step').removeClass('active completed');
-    jQuery('.wiz-step').each(function() {
+    jQuery('.wiz-step').each(function () {
       const step = parseInt(jQuery(this).data('step'));
       if (step === stepNum) {
         jQuery(this).addClass('active');
@@ -248,7 +252,7 @@ window.appWizard = {
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
     jQuery('.hospital-select-card').removeClass('selected');
-    
+
     this.renderPackages();
     this.showStep(2);
   },
@@ -267,28 +271,27 @@ window.appWizard = {
     if (!listGrid.length) return;
 
     listGrid.empty();
-    const searchVal = jQuery('#wiz-hospital-search').val().toLowerCase();
+    const searchVal = (jQuery('#wiz-hospital-search').val() || '').toLowerCase().trim();
     const cityVal = jQuery('#wiz-hospital-city-filter').val();
     const bookingObj = getBookingObj();
 
     bookingObj.hospitals.forEach(h => {
       if (searchVal && h.title.toLowerCase().indexOf(searchVal) === -1) return;
-      if (cityVal && !h.cities.some(c => c.id == cityVal)) return;
+      if (cityVal && cityVal !== '' && cityVal !== '0' && !h.cities.some(c => c.id == cityVal)) return;
 
       const imgSrc = h.image_thumb || h.image;
       const srcsetAttribute = h.image_srcset ? `srcset="${h.image_srcset}" sizes="70px"` : '';
 
+      const cityNames = (h.cities && Array.isArray(h.cities)) ? h.cities.map(c => c.name).filter(Boolean).join(', ') : '';
+      const metaText = [h.certification, h.rating].filter(Boolean).join(' • ');
+
       const card = jQuery(`
-        <div class="hospital-select-card" onclick="appWizard.selectHospitalCard(this, ${h.id}, '${h.title.replace(/'/g, "\\'")}')" style="border:1px solid #E2E8F0; padding:12px; border-radius:12px; cursor:pointer; background:#FFF; transition:all 0.2s; display:flex; gap:12px; align-items:center;">
-          <img src="${imgSrc}" ${srcsetAttribute} loading="lazy" alt="${h.title}" style="width:70px; height:50px; border-radius:6px; object-fit:cover;">
-          <div style="flex:1; min-width:0;">
-            <h4 style="margin:0 0 2px 0; font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#0F172A;">${h.title}</h4>
-            <div style="font-size:11px; color:#64748B; display:flex; align-items:center; gap:4px;">
-              <i class="fa-solid fa-map-marker-alt"></i> ${h.cities.map(c => c.name).join(', ')}
-            </div>
-            <div style="font-size:10px; color:#14B8A6; font-weight:600; margin-top:2px;">
-              ${h.certification} • ${h.rating}
-            </div>
+        <div class="hospital-select-card" onclick="appWizard.selectHospitalCard(this, ${h.id}, '${h.title.replace(/'/g, "\\'")}')">
+          <img src="${imgSrc}" ${srcsetAttribute} loading="lazy" alt="${h.title}" class="hospital-select-card-img">
+          <div class="hospital-select-card-info">
+            <h4 class="hospital-select-card-title">${h.title}</h4>
+            ${cityNames ? `<div class="hospital-select-card-city"><i class="fa-solid fa-map-marker-alt"></i> ${cityNames}</div>` : ''}
+            ${metaText ? `<div class="hospital-select-card-meta">${metaText}</div>` : ''}
           </div>
         </div>
       `);
@@ -318,7 +321,7 @@ window.appWizard = {
 
     if (packages.length === 0) {
       grid.html('<div style="text-align:center; padding:24px; color:#0F766E;"><i class="fa-solid fa-spinner fa-spin"></i> Loading service packages...</div>');
-      jQuery.get(bookingObj.ajax_url, { action: 'ctc_get_packages' }, function(res) {
+      jQuery.get(bookingObj.ajax_url, { action: 'ctc_get_packages' }, function (res) {
         if (res.success && res.data && res.data.packages && res.data.packages.length > 0) {
           bookingObj.packages = res.data.packages;
           self.renderPackages();
@@ -331,7 +334,7 @@ window.appWizard = {
 
     grid.empty();
 
-    packages.forEach(function(pkg, idx) {
+    packages.forEach(function (pkg, idx) {
       var isChecked = (self.selectedPackageId == pkg.id) || (self.selectedPackageId === 0 && idx === 0);
       if (isChecked && self.selectedPackageId === 0) {
         self.selectedPackageId = pkg.id;
@@ -343,27 +346,18 @@ window.appWizard = {
       }
 
       var cardHtml = `
-        <div class="wiz-package-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPackage(this, ${pkg.id}, '${pkg.name.replace(/'/g, "\\'")}', ${pkg.price})" style="border:1.5px solid ${isChecked ? '#0F766E' : '#E2E8F0'}; background:${isChecked ? '#F0FDFA' : '#FFF'}; border-radius:12px; padding:14px 16px; cursor:pointer; transition:all 0.2s; position:relative;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input type="radio" name="wiz_pkg_radio" value="${pkg.id}" ${isChecked ? 'checked' : ''} style="accent-color:#0F766E; margin:0;">
-              <strong style="font-size:14px; color:#0F172A;">${pkg.name}</strong>
-              ${pkg.badge ? `<span style="background:#CCFBF1; color:#0F766E; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; text-transform:uppercase;">${pkg.badge}</span>` : ''}
+        <div class="wiz-package-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPackage(this, ${pkg.id}, '${pkg.name.replace(/'/g, "\\'")}', ${pkg.price})">
+          <div class="wiz-pkg-card-header">
+            <input type="radio" name="wiz_pkg_radio" class="wiz-pkg-radio" value="${pkg.id}" ${isChecked ? 'checked' : ''}>
+            <div class="wiz-pkg-info">
+              <div class="wiz-pkg-title-row">
+                <strong class="wiz-pkg-name">${pkg.name}</strong>
+                ${pkg.badge ? `<span class="wiz-pkg-badge">${pkg.badge}</span>` : ''}
+              </div>
             </div>
-            <div style="text-align:right;">
-              <span style="font-size:15px; font-weight:900; color:#0F766E;">${pkg.price_formatted}</span>
+            <div class="wiz-pkg-card-right">
+              <span class="wiz-pkg-price">${pkg.price_formatted}</span>
             </div>
-          </div>
-
-          ${pkg.positioning ? `<p style="margin:0 0 8px 0; font-size:12px; color:#475569; line-height:1.4;">${pkg.positioning}</p>` : ''}
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11.5px; color:#64748B; border-top:1px solid #E2E8F0; padding-top:8px; margin-top:6px;">
-            ${pkg.vehicle ? `<div><i class="fa-solid fa-car-side" style="color:#0F766E; width:14px;"></i> <strong>Vehicle:</strong> ${pkg.vehicle}</div>` : ''}
-            ${pkg.interpreter ? `<div><i class="fa-solid fa-language" style="color:#0F766E; width:14px;"></i> <strong>Interpreter:</strong> ${pkg.interpreter}</div>` : ''}
-            ${pkg.accommodation ? `<div><i class="fa-solid fa-hotel" style="color:#0F766E; width:14px;"></i> <strong>Hotel:</strong> ${pkg.accommodation}</div>` : ''}
-            ${pkg.dining ? `<div><i class="fa-solid fa-utensils" style="color:#0F766E; width:14px;"></i> <strong>Dining:</strong> ${pkg.dining}</div>` : ''}
-            ${pkg.companion ? `<div style="grid-column: span 2;"><i class="fa-solid fa-user-plus" style="color:#0F766E; width:14px;"></i> <strong>Companion:</strong> ${pkg.companion}</div>` : ''}
-            ${pkg.travel ? `<div style="grid-column: span 2;"><i class="fa-solid fa-compass" style="color:#0F766E; width:14px;"></i> <strong>Travel:</strong> ${pkg.travel}</div>` : ''}
           </div>
         </div>
       `;
@@ -373,8 +367,8 @@ window.appWizard = {
   },
 
   selectPackage(element, id, name, price) {
-    jQuery('.wiz-package-card').removeClass('selected').css({ 'border-color': '#E2E8F0', 'background': '#FFF' });
-    jQuery(element).addClass('selected').css({ 'border-color': '#0F766E', 'background': '#F0FDFA' });
+    jQuery('.wiz-package-card').removeClass('selected');
+    jQuery(element).addClass('selected');
     jQuery(element).find('input[type="radio"]').prop('checked', true);
 
     this.selectedPackageId = id;
@@ -405,29 +399,29 @@ window.appWizard = {
 // CENTRALIZED BROWSER WEB NOTIFICATION ENGINE (DESKTOP & MOBILE)
 // ==========================================================================
 window.CTC_BrowserNotif = {
-  init: function() {
+  init: function () {
     if (!("Notification" in window)) return;
-    
+
     // Auto-prompt for notification permission after 20 seconds of user activity on the portal
     if (Notification.permission === "default") {
-      setTimeout(function() {
+      setTimeout(function () {
         if (Notification.permission === "default") {
           CTC_BrowserNotif.requestPermission();
         }
       }, 20000);
     }
   },
-  requestPermission: function(callback) {
+  requestPermission: function (callback) {
     if (!("Notification" in window)) return;
     try {
-      Notification.requestPermission().then(function(permission) {
+      Notification.requestPermission().then(function (permission) {
         if (typeof callback === 'function') callback(permission);
       });
     } catch (e) {
       console.warn('Browser notification permission error:', e);
     }
   },
-  send: function(title, body, url) {
+  send: function (title, body, url) {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
     try {
       var notif = new Notification(title, {
@@ -436,7 +430,7 @@ window.CTC_BrowserNotif = {
         tag: 'ctc-notice-' + Date.now()
       });
       if (url) {
-        notif.onclick = function() {
+        notif.onclick = function () {
           window.focus();
           if (window.location.href !== url) {
             window.location.href = url;
@@ -588,10 +582,10 @@ window.appDash = {
     const sidebar = jQuery('.ctc-dash-sidebar');
     const container = jQuery('.ctc-dash-grid');
     const btnIcon = jQuery('.ctc-sidebar-toggle-btn i');
-    
+
     sidebar.toggleClass('collapsed');
     container.toggleClass('sidebar-collapsed');
-    
+
     if (sidebar.hasClass('collapsed')) {
       btnIcon.removeClass('fa-angles-left').addClass('fa-angles-right');
     } else {
@@ -600,7 +594,7 @@ window.appDash = {
   }
 };
 
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
   var apiObj = (typeof caretochina_obj !== 'undefined') ? caretochina_obj : ((typeof careyou_obj !== 'undefined') ? careyou_obj : { ajax_url: '/wp-admin/admin-ajax.php', nonce: '' });
 
   function isUserLoggedIn() {
@@ -616,29 +610,33 @@ jQuery(document).ready(function($) {
   }
 
   // Render Cities filter in wizard
-  if ($('#wiz-hospital-city-filter').length && apiObj.all_cities) {
+  if ($('#wiz-hospital-city-filter').length && apiObj.all_cities && Array.isArray(apiObj.all_cities)) {
     const filter = $('#wiz-hospital-city-filter');
+    filter.find('option:not(:first)').remove();
     apiObj.all_cities.forEach(c => {
-      filter.append(`<option value="${c.id}">${c.name}</option>`);
+      if (c && c.id && c.name) {
+        filter.append(`<option value="${c.id}">${c.name}</option>`);
+      }
     });
+    filter.val('');
   }
 
   // Search & filter listeners
-  $(document).on('keyup input', '#wiz-hospital-search', function() {
+  $(document).on('keyup input', '#wiz-hospital-search', function () {
     appWizard.renderHospitals();
   });
-  $(document).on('keydown', '#wiz-hospital-search', function(e) {
+  $(document).on('keydown', '#wiz-hospital-search', function (e) {
     if (e.key === 'Enter' || e.keyCode === 13) {
       e.preventDefault();
       $(this).blur();
     }
   });
-  $(document).on('change', '#wiz-hospital-city-filter', function() {
+  $(document).on('change', '#wiz-hospital-city-filter', function () {
     appWizard.renderHospitals();
   });
 
   // Modal open triggers
-  $(document).on('click', 'a[href="#booking"], .ctc-trigger-booking, [id="booking"], .ctc-quote-btn, .ctc-sidebar-quote-btn', function(e) {
+  $(document).on('click', 'a[href="#booking"], .ctc-trigger-booking, [id="booking"], .ctc-quote-btn, .ctc-sidebar-quote-btn', function (e) {
     e.preventDefault();
     if (typeof apiObj.current_hospital !== 'undefined' && apiObj.current_hospital) {
       appWizard.openScenario2(apiObj.current_hospital);
@@ -647,20 +645,25 @@ jQuery(document).ready(function($) {
     }
   });
 
-  // Close modals on backdrop or Escape
-  $(document).on('click', '#ctc-booking-modal', function(e) {
+  // Close modals on Close button, backdrop or Escape
+  $(document).on('click', '.ctc-booking-modal-close', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    appWizard.closeModal();
+  });
+  $(document).on('click', '#ctc-booking-modal', function (e) {
     if ($(e.target).is('#ctc-booking-modal')) {
       appWizard.closeModal();
     }
   });
-  $(document).on('keyup', function(e) {
+  $(document).on('keyup', function (e) {
     if (e.key === 'Escape' || e.keyCode === 27) {
       appWizard.closeModal();
       $('#wiz-auth-gate-modal').hide();
     }
   });  // GLOBAL CHAT ATTACHMENT HELPER
   window.appChat = {
-    handleFileSelected: function(input) {
+    handleFileSelected: function (input) {
       if (input.files && input.files[0]) {
         var file = input.files[0];
         if (file.size > 2097152) {
@@ -673,7 +676,7 @@ jQuery(document).ready(function($) {
         jQuery('#patient_attachment_preview').css('display', 'flex');
       }
     },
-    clearAttachment: function() {
+    clearAttachment: function () {
       var input = document.getElementById('patient_chat_file_input');
       if (input) input.value = '';
       jQuery('#patient_attachment_preview').hide();
@@ -693,7 +696,7 @@ jQuery(document).ready(function($) {
   }
 
   // WIZARD FORM SUBMISSION HANDLER (Direct submission for both Guests and Logged-in Patients)
-  $('#ctc-booking-wizard-form').on('submit', function(e) {
+  $('#ctc-booking-wizard-form').on('submit', function (e) {
     e.preventDefault();
 
     var fullName = ($('#wiz_full_name').val() || '').trim();
@@ -721,7 +724,7 @@ jQuery(document).ready(function($) {
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Submitting Booking...');
     var postData = (typeof serializedData === 'string' ? serializedData : $.param(serializedData)) + '&action=caretochina_submit_booking&nonce=' + apiObj.nonce;
 
-    $.post(apiObj.ajax_url, postData, function(res) {
+    $.post(apiObj.ajax_url, postData, function (res) {
       status.show();
       if (res.success && res.data) {
         sessionStorage.removeItem('ctc_wizard_draft');
@@ -729,7 +732,7 @@ jQuery(document).ready(function($) {
         status.html(`<div style="background:#D1FAE5; color:#065F46; padding:16px; border-radius:12px; font-weight:700; font-size:14px;"><i class="fa-solid fa-circle-check"></i> ${res.data.message}</div>`);
         btn.html('<i class="fa-solid fa-check"></i> Confirmed');
 
-        setTimeout(function() {
+        setTimeout(function () {
           appWizard.closeModal();
           $('#ctc-booking-wizard-form')[0].reset();
           btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Submit');
@@ -757,7 +760,7 @@ jQuery(document).ready(function($) {
         status.html(`<div style="color:#EF4444; font-weight:700; font-size:14px;"><i class="fa-solid fa-triangle-exclamation"></i> ${(res.data && res.data.message) || 'Failed to submit booking.'}</div>`);
         btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Submit');
       }
-    }).fail(function() {
+    }).fail(function () {
       btn.prop('disabled', false).html('<i class="fa-solid fa-check-circle"></i> Confirm & Submit');
       alert('Network error submitting booking.');
     });
@@ -770,7 +773,7 @@ jQuery(document).ready(function($) {
   var lastCoordinatorMsgCount = -1;
   var lastPaymentCardCount = -1;
 
-  $('#patient-chat-box').on('scroll', function() {
+  $('#patient-chat-box').on('scroll', function () {
     var elem = $(this);
     if (elem.scrollTop() + elem.innerHeight() < elem[0].scrollHeight - 50) {
       userIsScrolledUp = true;
@@ -788,7 +791,7 @@ jQuery(document).ready(function($) {
       booking_id: patientBookingId,
       guest_token: guestToken,
       nonce: apiObj.nonce
-    }, function(res) {
+    }, function (res) {
       if (res.success && res.data) {
         var newHtml = res.data.html;
 
@@ -824,7 +827,7 @@ jQuery(document).ready(function($) {
             if (window.CTC_BrowserNotif) {
               CTC_BrowserNotif.send('Medical Payment Request Issued', 'Your care coordinator has sent a treatment payment request. Click to view & pay.', window.location.href);
             }
-            $('#patient-unread-invoice-badge').text('1').css({display:'inline-block', background:'#EF4444', color:'#FFF'});
+            $('#patient-unread-invoice-badge').text('1').css({ display: 'inline-block', background: '#EF4444', color: '#FFF' });
           }
         }
         lastPaymentCardCount = paymentCards;
@@ -837,15 +840,15 @@ jQuery(document).ready(function($) {
           if (unreadBadge.length) unreadBadge.hide().text('0');
           if (hdrBadge.length) hdrBadge.hide().text('0');
         } else if (lastCoordinatorMsgCount > 0) {
-          if (unreadBadge.length) unreadBadge.text(lastCoordinatorMsgCount).css({display:'inline-block', background:'#EF4444', color:'#FFF'});
-          if (hdrBadge.length) hdrBadge.text(lastCoordinatorMsgCount).css({display:'flex', background:'#EF4444', color:'#FFF'});
+          if (unreadBadge.length) unreadBadge.text(lastCoordinatorMsgCount).css({ display: 'inline-block', background: '#EF4444', color: '#FFF' });
+          if (hdrBadge.length) hdrBadge.text(lastCoordinatorMsgCount).css({ display: 'flex', background: '#EF4444', color: '#FFF' });
         }
 
         chatBox.html(newHtml);
         if (!userIsScrolledUp) {
           chatBox.scrollTop(chatBox[0].scrollHeight);
         }
-        
+
         var typingInd = $('#patient-chat-typing-indicator');
         if (res.data.is_typing) {
           typingInd.text((res.data.typing_name || 'Coordinator') + ' is typing...').show();
@@ -871,7 +874,7 @@ jQuery(document).ready(function($) {
       </div>
     `);
 
-    toastHtml.on('click', function() {
+    toastHtml.on('click', function () {
       if (window.appDash && typeof window.appDash.switchTabDirect === 'function') {
         window.appDash.switchTabDirect('messages');
       }
@@ -879,10 +882,31 @@ jQuery(document).ready(function($) {
     });
 
     $('body').append(toastHtml);
-    setTimeout(function() {
-      toastHtml.fadeOut(400, function() { $(this).remove(); });
+    setTimeout(function () {
+      toastHtml.fadeOut(400, function () { $(this).remove(); });
     }, 6000);
   }
+
+  window.appChat = {
+    handleFileSelected: function (input) {
+      if (input.files && input.files[0]) {
+        var file = input.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+          alert('File size exceeds 2MB limit.');
+          input.value = '';
+          return;
+        }
+        $('#patient_attachment_name').text(file.name);
+        $('#patient_attachment_preview').show();
+      }
+    },
+    clearAttachment: function () {
+      var fileInput = document.getElementById('patient_chat_file_input');
+      if (fileInput) fileInput.value = '';
+      $('#patient_attachment_preview').hide();
+      $('#patient_attachment_name').text('');
+    }
+  };
 
   if ($('#patient-chat-box').length) {
     fetchPatientChat();
@@ -890,7 +914,7 @@ jQuery(document).ready(function($) {
   }
 
   // PATIENT / GUEST MESSAGING SUBMISSION (WITH ATTACHMENTS)
-  $('#patient-message-form').on('submit', function(e) {
+  $('#patient-message-form').on('submit', function (e) {
     e.preventDefault();
     var input = $('#patient_msg_input');
     var fileInput = document.getElementById('patient_chat_file_input');
@@ -913,10 +937,10 @@ jQuery(document).ready(function($) {
           </div>
       </div>
     `;
-    
+
     chatBox.append(optimisticHtml);
     chatBox.scrollTop(chatBox[0].scrollHeight);
-    
+
     var fd = new FormData(this);
     fd.append('action', 'caretochina_send_patient_message');
     fd.append('nonce', apiObj.nonce);
@@ -931,7 +955,7 @@ jQuery(document).ready(function($) {
       data: fd,
       processData: false,
       contentType: false,
-      success: function(res) {
+      success: function (res) {
         if (res.success && res.data && res.data.html) {
           chatBox.html(res.data.html);
           chatBox.scrollTop(chatBox[0].scrollHeight);
@@ -942,7 +966,7 @@ jQuery(document).ready(function($) {
           $('#' + tempMsgId + ' span').text((res.data && res.data.message) || 'Failed to send');
         }
       },
-      error: function() {
+      error: function () {
         $('#' + tempMsgId).css('opacity', '1.0');
         $('#' + tempMsgId + ' .msg-bubble').css('background', '#EF4444');
         $('#' + tempMsgId + ' i').removeClass('fa-spinner fa-spin').addClass('fa-circle-exclamation');
@@ -952,7 +976,7 @@ jQuery(document).ready(function($) {
   });
 
   var isTypingSent = false;
-  $('#patient_msg_input').on('keyup input', function() {
+  $('#patient_msg_input').on('keyup input', function () {
     if (!isTypingSent) {
       isTypingSent = true;
       $.post(apiObj.ajax_url, {
@@ -960,7 +984,7 @@ jQuery(document).ready(function($) {
         booking_id: patientBookingId,
         nonce: apiObj.nonce
       });
-      setTimeout(function() {
+      setTimeout(function () {
         isTypingSent = false;
       }, 3000);
     }
@@ -973,13 +997,13 @@ jQuery(document).ready(function($) {
     var chatViewport = document.getElementById('patient-chat-box');
     var msgInput = document.getElementById('patient_msg_input');
 
-    var handleViewportChange = function() {
+    var handleViewportChange = function () {
       if (!chatViewport) {
         chatViewport = document.getElementById('patient-chat-box');
       }
       if (chatViewport && document.activeElement === msgInput) {
         // Smoothly scroll chat to latest message when keyboard pops up
-        setTimeout(function() {
+        setTimeout(function () {
           chatViewport.scrollTop = chatViewport.scrollHeight;
         }, 150);
       }
@@ -989,8 +1013,8 @@ jQuery(document).ready(function($) {
     window.visualViewport.addEventListener('scroll', handleViewportChange);
 
     if (msgInput) {
-      msgInput.addEventListener('focus', function() {
-        setTimeout(function() {
+      msgInput.addEventListener('focus', function () {
+        setTimeout(function () {
           if (chatViewport) chatViewport.scrollTop = chatViewport.scrollHeight;
         }, 300);
       });
@@ -1002,7 +1026,7 @@ jQuery(document).ready(function($) {
   // ==========================================================================
   function updateItiPadding(el) {
     if (!el) return;
-    setTimeout(function() {
+    setTimeout(function () {
       var $el = $(el);
       var $container = $el.closest('.iti');
       var $selected = $container.find('.iti__selected-country, .iti__country-container, .iti__selected-country-primary');
@@ -1023,7 +1047,7 @@ jQuery(document).ready(function($) {
       return;
     }
 
-    $('input.ctc-intl-phone, input[type="tel"]:not(.ctc-phone-input)').each(function() {
+    $('input.ctc-intl-phone, input[type="tel"]:not(.ctc-phone-input)').each(function () {
       var el = this;
       if ($(el).closest('.ctc-phone-group-wrapper').length || $(el).closest('#ctc-booking-modal').length || $(el).attr('type') === 'hidden') {
         return; // Managed cleanly by native country code selector group
@@ -1039,11 +1063,11 @@ jQuery(document).ready(function($) {
           separateDialCode: true,
           showSelectedDialCode: true,
           initialCountry: 'auto',
-          geoIpLookup: function(callback) {
+          geoIpLookup: function (callback) {
             fetch('https://ipapi.co/json')
-              .then(function(res) { return res.json(); })
-              .then(function(data) { callback(data.country_code); })
-              .catch(function() { callback('us'); });
+              .then(function (res) { return res.json(); })
+              .then(function (data) { callback(data.country_code); })
+              .catch(function () { callback('us'); });
           },
           preferredCountries: ['us', 'gb', 'ca', 'au', 'cn', 'bd', 'in', 'ae', 'sa'],
           utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js'
@@ -1051,22 +1075,22 @@ jQuery(document).ready(function($) {
         $(el).data('iti-instance', iti);
 
         updateItiPadding(el);
-        el.addEventListener('countrychange', function() {
+        el.addEventListener('countrychange', function () {
           updateItiPadding(el);
         });
-        el.addEventListener('open:countrydropdown', function() {
+        el.addEventListener('open:countrydropdown', function () {
           updateItiPadding(el);
         });
-        el.addEventListener('close:countrydropdown', function() {
+        el.addEventListener('close:countrydropdown', function () {
           updateItiPadding(el);
         });
-      } catch (err) {}
+      } catch (err) { }
     });
   }
 
   function syncIntlPhoneValues(form) {
     if (!form) return;
-    $(form).find('input[type="tel"], input[name="phone"], input[name="user_phone"], input[name="whatsapp"], input[name="user_whatsapp"]').each(function() {
+    $(form).find('input[type="tel"], input[name="phone"], input[name="user_phone"], input[name="whatsapp"], input[name="user_whatsapp"]').each(function () {
       var iti = $(this).data('iti-instance');
       if (iti && typeof iti.getNumber === 'function') {
         var rawVal = $(this).val().trim();
@@ -1089,7 +1113,7 @@ jQuery(document).ready(function($) {
   // ==========================================================================
   // NATIVE COUNTRY SELECT & PHONE INPUT GROUP AUTO-STRIP LOGIC
   // ==========================================================================
-  $(document).on('input paste blur', '.ctc-phone-group-wrapper .ctc-phone-input', function() {
+  $(document).on('input paste blur', '.ctc-phone-group-wrapper .ctc-phone-input', function () {
     var $input = $(this);
     var $wrapper = $input.closest('.ctc-phone-group-wrapper');
     var $select = $wrapper.find('.ctc-country-select');
@@ -1109,7 +1133,7 @@ jQuery(document).ready(function($) {
     // 2. If user pasted a + from another country (e.g. +1 or +44 or +880), auto-select that country
     if (val.charAt(0) === '+') {
       var matched = false;
-      $select.find('option').each(function() {
+      $select.find('option').each(function () {
         var optDial = $(this).val();
         if (optDial && val.indexOf(optDial) === 0) {
           $select.val(optDial);
@@ -1129,7 +1153,7 @@ jQuery(document).ready(function($) {
     }
   });
 
-  $(document).on('change', '.ctc-phone-group-wrapper .ctc-country-select', function() {
+  $(document).on('change', '.ctc-phone-group-wrapper .ctc-country-select', function () {
     var $select = $(this);
     var $wrapper = $select.closest('.ctc-phone-group-wrapper');
     var $input = $wrapper.find('.ctc-phone-input');
@@ -1144,7 +1168,7 @@ jQuery(document).ready(function($) {
   });
 
   function syncPhoneGroupWidths() {
-    $('.ctc-phone-group-wrapper').each(function() {
+    $('.ctc-phone-group-wrapper').each(function () {
       var $wrapper = $(this);
       var $select = $wrapper.find('.ctc-country-select');
       var format = $wrapper.attr('data-selector-format') || $select.attr('data-format') || 'both';
@@ -1162,8 +1186,8 @@ jQuery(document).ready(function($) {
   // Initialize on document ready & modal open
   initIntlTelInputs();
   syncPhoneGroupWidths();
-  $(document).on('click', '.ctc-trigger-booking, a[href="#booking"], .ctc-auth-tab-btn, .ctc-sidebar-tab', function() {
-    setTimeout(function() {
+  $(document).on('click', '.ctc-trigger-booking, a[href="#booking"], .ctc-auth-tab-btn, .ctc-sidebar-tab', function () {
+    setTimeout(function () {
       initIntlTelInputs();
       syncPhoneGroupWidths();
     }, 150);
@@ -1195,7 +1219,7 @@ jQuery(document).ready(function($) {
   }
 
   // Real-time password validation listener
-  $(document).on('keyup input', '#reg_user_pass', function() {
+  $(document).on('keyup input', '#reg_user_pass', function () {
     var pass = $(this).val();
     var rulesBox = $('#reg_pass_rules');
     if (!rulesBox.length) return;
@@ -1219,7 +1243,7 @@ jQuery(document).ready(function($) {
   });
 
   // Real-time confirm password listener
-  $(document).on('keyup input', '#reg_user_pass_confirm', function() {
+  $(document).on('keyup input', '#reg_user_pass_confirm', function () {
     var confirmVal = $(this).val();
     var passVal = $('#reg_user_pass').val();
     var matchBox = $('#reg_pass_match_msg');
@@ -1239,7 +1263,7 @@ jQuery(document).ready(function($) {
   });
 
   // PATIENT PROFILE UPDATE
-  $('#patient-profile-form').on('submit', function(e) {
+  $('#patient-profile-form').on('submit', function (e) {
     e.preventDefault();
     syncIntlPhoneValues(this);
 
@@ -1249,17 +1273,17 @@ jQuery(document).ready(function($) {
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Saving...');
     var formData = $(this).serialize() + '&action=caretochina_update_patient_profile&nonce=' + apiObj.nonce;
 
-    $.post(apiObj.ajax_url, formData, function(res) {
+    $.post(apiObj.ajax_url, formData, function (res) {
       box.show();
       if (res.success) {
         box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-check"></i> Saved!');
-        
+
         if (res.data.new_avatar_url) {
           $('.ctc-dash-avatar, .ctc-profile-avatar-img').attr('src', res.data.new_avatar_url);
         }
 
-        setTimeout(function() {
+        setTimeout(function () {
           btn.html('<i class="fa-solid fa-floppy-disk"></i> Save Profile Changes');
         }, 6000);
       } else {
@@ -1270,19 +1294,19 @@ jQuery(document).ready(function($) {
   });
 
   // Patient Account Delete Handler
-  $(document).on('click', '#delete_own_profile_btn', function(e) {
+  $(document).on('click', '#delete_own_profile_btn', function (e) {
     e.preventDefault();
     if (!confirm('Are you absolutely sure you want to permanently delete your patient account, your booking request cases, and all chat message history? This action is irreversible.')) {
       return;
     }
-    
+
     var btn = $(this);
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Deleting Account...');
-    
+
     $.post(apiObj.ajax_url, {
       action: 'caretochina_patient_delete_own_account',
       nonce: apiObj.nonce
-    }, function(res) {
+    }, function (res) {
       if (res.success) {
         alert(res.data.message || 'Account successfully deleted.');
         window.location.href = res.data.redirect || '/';
@@ -1294,12 +1318,12 @@ jQuery(document).ready(function($) {
   });
 
   // Patient Profile Image AJAX Upload Handler
-  $(document).on('click', '.ctc-profile-badge-avatar, .ctc-change-avatar-btn', function(e) {
+  $(document).on('click', '.ctc-profile-badge-avatar, .ctc-change-avatar-btn', function (e) {
     e.preventDefault();
     $('#ctc-avatar-file-input').trigger('click');
   });
 
-  $(document).on('change', '#ctc-avatar-file-input', function() {
+  $(document).on('change', '#ctc-avatar-file-input', function () {
     var fileInput = this;
     if (fileInput.files.length === 0) return;
 
@@ -1334,21 +1358,21 @@ jQuery(document).ready(function($) {
       data: formData,
       processData: false,
       contentType: false,
-      success: function(res) {
+      success: function (res) {
         if (res.success) {
           statusSpan.html('<span style="color:#10b981;"><i class="fa-solid fa-circle-check"></i> Uploaded!</span>');
           $('.ctc-dash-avatar, .ctc-profile-avatar-img').attr('src', res.data.avatar_url);
-          setTimeout(function() {
+          setTimeout(function () {
             statusSpan.fadeOut();
           }, 3000);
         } else {
           statusSpan.html('<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ' + res.data.message + '</span>');
         }
       },
-      error: function() {
+      error: function () {
         statusSpan.html('<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Upload failed. Try again.</span>');
       },
-      complete: function() {
+      complete: function () {
         $('.ctc-avatar-upload-overlay').css('opacity', '').html('<i class="fa-solid fa-camera" style="font-size: 20px;"></i>');
         fileInput.value = '';
       }
@@ -1356,7 +1380,7 @@ jQuery(document).ready(function($) {
   });
 
   // AUTH LOGIN SUBMISSION
-  $('#careyou-auth-login-form').on('submit', function(e) {
+  $('#careyou-auth-login-form').on('submit', function (e) {
     e.preventDefault();
     var btn = $('#login_submit_btn');
     var box = $('#login-response-box');
@@ -1364,11 +1388,11 @@ jQuery(document).ready(function($) {
 
     var formData = $(this).serialize() + '&action=caretochina_user_login&nonce=' + apiObj.nonce;
 
-    $.post(apiObj.ajax_url, formData, function(res) {
+    $.post(apiObj.ajax_url, formData, function (res) {
       box.show();
       if (res.success) {
         box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
-        setTimeout(function() { window.location.href = res.data.redirect; }, 1000);
+        setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
       } else {
         box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
@@ -1377,7 +1401,7 @@ jQuery(document).ready(function($) {
   });
 
   // AUTH REGISTER SUBMISSION (WITH JS PASSWORD & PHONE VALIDATION)
-  $('#careyou-auth-register-form').on('submit', function(e) {
+  $('#careyou-auth-register-form').on('submit', function (e) {
     e.preventDefault();
     var pass = $('#reg_user_pass').val();
     var passConfirm = $('#reg_user_pass_confirm').val();
@@ -1404,11 +1428,11 @@ jQuery(document).ready(function($) {
 
     var formData = $(this).serialize() + '&action=caretochina_user_register&nonce=' + apiObj.nonce;
 
-    $.post(apiObj.ajax_url, formData, function(res) {
+    $.post(apiObj.ajax_url, formData, function (res) {
       box.show();
       if (res.success) {
         box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
-        setTimeout(function() { window.location.href = res.data.redirect; }, 1000);
+        setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
       } else {
         box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');

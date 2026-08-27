@@ -88,6 +88,7 @@ class CareToChina_Medical_Booking {
             'service_notes'      => $service_notes,
             'all_specialties'    => CareToChina_Booking_Wizard::instance()->get_all_specialties(),
             'all_cities'         => CareToChina_Booking_Wizard::instance()->get_all_cities(),
+            'pricing_url'        => home_url('/pricing/'),
         ];
 
         if (is_singular('hospital')) {

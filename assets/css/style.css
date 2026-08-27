@@ -825,6 +825,15 @@ body.ctc-modal-open {
 /* ==========================================================================
    CARETOCHINA CONSULTATION & BOOKING WIZARD MODAL SYSTEM
    ========================================================================== */
+html.ctc-modal-open,
+body.ctc-modal-open {
+  overflow: hidden !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
 .ctc-booking-modal-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -856,54 +865,67 @@ body.ctc-modal-open {
   border-radius: 20px !important;
   width: 740px !important;
   max-width: 100% !important;
-  padding: 32px 36px !important;
+  padding: 24px 28px 20px !important;
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35) !important;
   position: relative !important;
   animation: cymbModalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   max-height: 90vh !important;
   max-height: 90dvh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
   box-sizing: border-box !important;
 }
 
 @keyframes cymbModalFadeIn {
-  from { opacity: 0; transform: scale(0.97) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .ctc-booking-modal-close {
   position: absolute !important;
-  top: 18px !important;
-  right: 18px !important;
+  top: 16px !important;
+  right: 16px !important;
   background: #F1F5F9 !important;
   border: 1px solid #E2E8F0 !important;
-  font-size: 20px !important;
+  font-size: 24px !important;
   font-weight: 700 !important;
   color: #64748B !important;
   cursor: pointer !important;
-  width: 36px !important;
-  height: 36px !important;
+  width: 38px !important;
+  height: 38px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   line-height: 1 !important;
   transition: all 0.2s ease !important;
-  z-index: 10 !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  user-select: none !important;
 }
 
 .ctc-booking-modal-close:hover {
   background: #FEE2E2 !important;
   color: #EF4444 !important;
   border-color: #FECACA !important;
+  transform: scale(1.05) !important;
 }
 
 /* WIZARD HEADER */
 .wiz-header {
   text-align: center !important;
-  margin-bottom: 22px !important;
-  padding: 0 20px !important;
+  margin-bottom: 18px !important;
+  padding: 0 16px !important;
+  flex-shrink: 0 !important;
 }
 
 .wiz-brand-logo-wrap {
@@ -921,21 +943,22 @@ body.ctc-modal-open {
 .ctc-badge-pill {
   background: #CCFBF1 !important;
   color: #0F766E !important;
-  padding: 5px 14px !important;
+  padding: 6px 16px !important;
   font-weight: 700 !important;
-  font-size: 12px !important;
+  font-size: 12.5px !important;
   border-radius: 999px !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
+  margin-bottom: 12px !important;
 }
 
 .wiz-modal-title {
   color: #0F172A !important;
-  margin: 14px 0 6px 0 !important;
+  margin: 0 0 10px 0 !important;
   font-size: 22px !important;
   font-weight: 800 !important;
-  line-height: 1.3 !important;
+  line-height: 1.35 !important;
 }
 
 .wiz-modal-subtitle {
@@ -943,7 +966,7 @@ body.ctc-modal-open {
   font-size: 13.5px !important;
   color: #64748B !important;
   max-width: 580px !important;
-  line-height: 1.5 !important;
+  line-height: 1.55 !important;
 }
 
 /* STEP INDICATORS (3 STEPS) */
@@ -951,12 +974,13 @@ body.ctc-modal-open {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  margin-bottom: 24px !important;
-  padding: 10px 16px !important;
+  margin-bottom: 18px !important;
+  padding: 14px 14px !important;
   background: #F8FAFC !important;
   border: 1px solid #E2E8F0 !important;
   border-radius: 14px !important;
   gap: 8px !important;
+  flex-shrink: 0 !important;
 }
 
 .wiz-step {
@@ -970,6 +994,14 @@ body.ctc-modal-open {
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
   white-space: nowrap !important;
+}
+
+.wiz-lbl-short {
+  display: none !important;
+}
+
+.wiz-lbl-full {
+  display: inline !important;
 }
 
 .wiz-step-num {
@@ -1005,34 +1037,115 @@ body.ctc-modal-open {
   border-radius: 2px !important;
 }
 
+#ctc-booking-wizard-form {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+.wiz-page {
+  width: 100% !important;
+  min-height: 0 !important;
+}
+
+.wiz-page#wiz-step-1:not(.active),
+.wiz-page#wiz-step-2:not(.active),
+.wiz-page#wiz-step-3:not(.active),
+.wiz-page:not(.active),
+#ctc-booking-wizard-form .wiz-page:not(.active) {
+  display: none !important;
+}
+
+.wiz-page.active,
+#ctc-booking-wizard-form .wiz-page.active {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
 /* STEP 1: HOSPITAL SELECTION */
 .wiz-step-filters {
   display: flex !important;
-  gap: 12px !important;
-  margin-bottom: 16px !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+  flex-shrink: 0 !important;
 }
 
-.wiz-step-filters input.form-input {
-  flex: 2 !important;
+.wiz-step-filters input.form-input,
+.wiz-step-filters input#wiz-hospital-search {
+  flex: 1.4 !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  border: 1px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  box-sizing: border-box !important;
 }
 
-.wiz-step-filters select.form-select {
+.wiz-step-filters select.form-select,
+.wiz-step-filters select#wiz-hospital-city-filter {
   flex: 1 !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  border: 1px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  box-sizing: border-box !important;
 }
 
 .wiz-hospital-grid {
   display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: 14px !important;
-  max-height: 280px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: min-content !important;
+  align-content: start !important;
+  gap: 12px !important;
+  flex: 1 1 auto !important;
+  min-height: 180px !important;
+  max-height: 320px !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
   padding-right: 6px !important;
-  margin-bottom: 20px !important;
+  margin-bottom: 12px !important;
+}
+
+.wiz-hospital-grid::-webkit-scrollbar,
+.wiz-packages-grid::-webkit-scrollbar,
+.wiz-page#wiz-step-3::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.wiz-hospital-grid::-webkit-scrollbar-track,
+.wiz-packages-grid::-webkit-scrollbar-track,
+.wiz-page#wiz-step-3::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.wiz-hospital-grid::-webkit-scrollbar-thumb,
+.wiz-packages-grid::-webkit-scrollbar-thumb,
+.wiz-page#wiz-step-3::-webkit-scrollbar-thumb {
+  background: #CBD5E1 !important;
+  border-radius: 999px !important;
 }
 
 .hospital-select-card {
+  min-height: 74px !important;
+  height: auto !important;
+  flex-shrink: 0 !important;
   border: 1.5px solid #E2E8F0 !important;
-  padding: 12px !important;
+  padding: 10px 14px !important;
   border-radius: 12px !important;
   cursor: pointer !important;
   background: #FFFFFF !important;
@@ -1041,6 +1154,64 @@ body.ctc-modal-open {
   gap: 12px !important;
   align-items: center !important;
   box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.hospital-select-card-img,
+.hospital-select-card img {
+  width: 70px !important;
+  height: 52px !important;
+  min-width: 70px !important;
+  min-height: 52px !important;
+  max-width: 70px !important;
+  max-height: 52px !important;
+  flex-shrink: 0 !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+}
+
+.hospital-select-card-info {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.hospital-select-card-title,
+.hospital-select-card h4 {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  margin: 0 0 3px 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: #0F172A !important;
+}
+
+.hospital-select-card-city {
+  font-size: 11.5px !important;
+  color: #64748B !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-bottom: 2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.hospital-select-card-meta {
+  font-size: 10.5px !important;
+  color: #0D9488 !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .hospital-select-card:hover {
@@ -1056,25 +1227,84 @@ body.ctc-modal-open {
 }
 
 /* STEP 2: CONCIERGE PACKAGES */
+.wiz-page#wiz-step-2 .form-group {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+}
+
+.wiz-plan-title,
+.wiz-plan-subtext {
+  flex-shrink: 0 !important;
+}
+
 .wiz-packages-grid {
   display: grid !important;
   grid-template-columns: 1fr !important;
-  gap: 12px !important;
-  max-height: 320px !important;
+  grid-auto-rows: min-content !important;
+  align-content: start !important;
+  gap: 10px !important;
+  flex: 1 1 auto !important;
+  min-height: 160px !important;
+  max-height: 300px !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
   padding-right: 6px !important;
-  margin-bottom: 14px !important;
+  margin-bottom: 10px !important;
 }
 
 .wiz-package-card {
+  min-height: 64px !important;
+  height: auto !important;
+  flex-shrink: 0 !important;
   border: 1.5px solid #E2E8F0 !important;
   background: #FFFFFF !important;
   border-radius: 14px !important;
-  padding: 16px 18px !important;
+  padding: 14px 16px !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   position: relative !important;
   box-sizing: border-box !important;
+}
+
+.wiz-service-notes-box {
+  flex-shrink: 0 !important;
+  margin-top: 8px !important;
+}
+
+/* STEP 3: DETAILS FORM */
+.wiz-page#wiz-step-3.active {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.wiz-step3-fields-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: 320px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+.wiz-step3-fields-scroll::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.wiz-step3-fields-scroll::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.wiz-step3-fields-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1 !important;
+  border-radius: 999px !important;
 }
 
 .wiz-package-card:hover {
@@ -1121,8 +1351,8 @@ body.ctc-modal-open {
 .ctc-form-grid-2 {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 14px 16px !important;
-  margin-bottom: 12px !important;
+  gap: 10px 14px !important;
+  margin-bottom: 8px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
@@ -1136,10 +1366,10 @@ body.ctc-modal-open {
 }
 
 .form-label {
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  color: #1E293B !important;
-  margin-bottom: 6px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  margin-bottom: 3px !important;
   display: block !important;
 }
 
@@ -1147,12 +1377,14 @@ body.ctc-modal-open {
 .form-select,
 textarea.form-input {
   width: 100% !important;
-  height: 44px !important;
-  padding: 10px 14px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 6px 12px !important;
   background: #F8FAFC !important;
-  border: 1.5px solid #CBD5E1 !important;
-  border-radius: 10px !important;
-  font-size: 14px !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
   color: #0F172A !important;
   font-family: inherit !important;
   transition: all 0.2s ease !important;
@@ -1162,7 +1394,10 @@ textarea.form-input {
 
 textarea.form-input {
   height: auto !important;
-  min-height: 76px !important;
+  min-height: 56px !important;
+  max-height: 76px !important;
+  padding: 6px 10px !important;
+  font-size: 12.5px !important;
   resize: vertical !important;
 }
 
@@ -1179,11 +1414,13 @@ textarea.form-input:focus {
   display: flex !important;
   align-items: center !important;
   width: 100% !important;
-  height: 44px !important;
+  height: 38px !important;
+  min-height: 38px !important;
   background: #F8FAFC !important;
-  border: 1.5px solid #CBD5E1 !important;
-  border-radius: 10px !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 8px !important;
   overflow: hidden !important;
+  padding: 0 !important;
   transition: all 0.2s ease !important;
   box-sizing: border-box !important;
 }
@@ -1197,33 +1434,46 @@ textarea.form-input:focus {
 .ctc-phone-group-wrapper select.ctc-country-select {
   height: 100% !important;
   border: none !important;
+  border-right: 1px solid #CBD5E1 !important;
+  border-radius: 0 !important;
   background: transparent !important;
-  padding: 0 8px 0 10px !important;
-  font-size: 13px !important;
+  padding: 0 6px 0 8px !important;
+  margin: 0 !important;
+  font-size: 12px !important;
   color: #0F172A !important;
   font-weight: 600 !important;
   cursor: pointer !important;
   outline: none !important;
-  border-right: 1px solid #CBD5E1 !important;
-  border-radius: 0 !important;
-  min-width: 90px !important;
-  max-width: 115px !important;
+  box-shadow: none !important;
+  min-width: 80px !important;
+  max-width: 95px !important;
   flex-shrink: 0 !important;
-  appearance: auto !important;
-  -webkit-appearance: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
 }
 
-.ctc-phone-group-wrapper input.ctc-phone-input {
+.ctc-phone-group-wrapper input.ctc-phone-input,
+.ctc-phone-group-wrapper input.form-input,
+.ctc-phone-group-wrapper input {
   height: 100% !important;
+  min-height: 100% !important;
   border: none !important;
+  border-radius: 0 !important;
   background: transparent !important;
-  padding: 0 12px !important;
-  font-size: 14px !important;
-  color: #0F172A !important;
-  flex: 1 !important;
-  min-width: 0 !important;
-  outline: none !important;
   box-shadow: none !important;
+  outline: none !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: #0F172A !important;
+  font-weight: 500 !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  line-height: normal !important;
   box-sizing: border-box !important;
 }
 
@@ -1233,9 +1483,10 @@ textarea.form-input:focus {
   justify-content: space-between !important;
   align-items: center !important;
   gap: 12px !important;
-  margin-top: 22px !important;
+  margin-top: auto !important;
   border-top: 1px solid #E2E8F0 !important;
-  padding-top: 16px !important;
+  padding-top: 10px !important;
+  flex-shrink: 0 !important;
 }
 
 .btn-wiz-primary {
@@ -1243,7 +1494,7 @@ textarea.form-input:focus {
   color: #FFFFFF !important;
   border: none !important;
   font-weight: 700 !important;
-  padding: 12px 24px !important;
+  padding: 12px 30px !important;
   border-radius: 10px !important;
   font-size: 14px !important;
   cursor: pointer !important;
@@ -1264,7 +1515,7 @@ textarea.form-input:focus {
   border: 1px solid #E2E8F0 !important;
   box-shadow: none !important;
   font-weight: 600 !important;
-  padding: 12px 20px !important;
+  padding: 12px 30px !important;
   border-radius: 10px !important;
   font-size: 14px !important;
   cursor: pointer !important;
@@ -1278,9 +1529,10 @@ textarea.form-input:focus {
   background: #E2E8F0 !important;
   color: #0F172A !important;
 }
-  font-size: 12px !important;
-  color: #64748B !important;
-  line-height: 1.4 !important;
+
+font-size: 12px !important;
+color: #64748B !important;
+line-height: 1.4 !important;
 }
 
 .pricing-plan-card .plan-card-right {
@@ -1627,76 +1879,131 @@ body[data-bs-theme="dark"] .ctc-booking-modal-close {
   border-color: #334155 !important;
 }
 
-/* WIZARD RESPONSIVENESS (MOBILE & TABLET) */
-@media (max-width: 640px) {
+/* WIZARD RESPONSIVENESS (MOBILE & TABLET <= 768px) */
+@media (max-width: 768px) {
 
   .ctc-booking-modal-overlay,
   .caretochina-booking-wizard-container {
-    padding: 0 !important;
-    align-items: flex-end !important;
+    padding: 20px 14px !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .ctc-booking-modal-overlay.show,
+  .caretochina-booking-wizard-container.show {
+    display: flex !important;
   }
 
   .ctc-booking-modal-container {
-    padding: 32px 16px 20px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
-    max-height: 94vh !important;
-    max-height: 94dvh !important;
-    box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+    padding: 24px 18px 18px !important;
+    width: 95% !important;
+    max-width: 480px !important;
+    border-radius: 20px !important;
+    max-height: 86vh !important;
+    max-height: 86dvh !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45) !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    margin: auto !important;
   }
 
   .ctc-booking-modal-close {
     top: 10px !important;
     right: 10px !important;
     font-size: 18px !important;
-    width: 30px !important;
-    height: 30px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
   }
 
   .wiz-header {
-    margin-bottom: 12px !important;
-    padding: 0 10px !important;
+    margin-bottom: 14px !important;
+    padding: 0 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .ctc-badge-pill {
+    padding: 5px 14px !important;
+    font-size: 11.5px !important;
+    margin-bottom: 10px !important;
   }
 
   .wiz-modal-title {
     font-size: 17px !important;
-    line-height: 1.25 !important;
-    margin: 8px 0 4px 0 !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    margin: 0 0 8px 0 !important;
+    padding: 0 4px !important;
   }
 
   .wiz-modal-subtitle {
-    font-size: 12px !important;
-    line-height: 1.35 !important;
+    font-size: 12.5px !important;
+    line-height: 1.5 !important;
+    color: #64748B !important;
+    max-width: 95% !important;
+    margin: 0 auto !important;
+  }
+
+  .wiz-lbl-short {
+    display: inline !important;
+  }
+
+  .wiz-lbl-full {
+    display: none !important;
   }
 
   /* Mobile Step Indicators */
   .wizard-steps-indicator {
     display: flex !important;
-    padding: 8px 10px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 12px !important;
     margin-bottom: 14px !important;
     gap: 4px !important;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .wiz-step {
-    font-size: 11px !important;
-    padding: 2px 4px !important;
-    gap: 4px !important;
+    font-size: 11.5px !important;
+    padding: 4px 6px !important;
+    gap: 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 
   .wiz-step-num {
-    width: 18px !important;
-    height: 18px !important;
-    font-size: 10px !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .wiz-step-label {
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
   }
 
   .wiz-step-divider {
+    flex: 1 1 auto !important;
     min-width: 6px !important;
+    max-width: 28px !important;
+    height: 2px !important;
+    margin: 0 2px !important;
   }
 
   /* Form Labels & Inputs for Mobile */
@@ -1722,56 +2029,166 @@ body[data-bs-theme="dark"] .ctc-booking-modal-close {
 
   /* Filter Inputs on Mobile */
   .wiz-step-filters {
-    flex-direction: column !important;
-    gap: 6px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
     margin-bottom: 12px !important;
+  }
+
+  .wiz-step-filters input.form-input,
+  .wiz-step-filters input#wiz-hospital-search {
+    flex: 1.4 !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 6px 12px !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+  }
+
+  .wiz-step-filters select.form-select,
+  .wiz-step-filters select#wiz-hospital-city-filter {
+    flex: 1 !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
   }
 
   /* Hospital Cards Grid on Mobile */
   .wiz-hospital-grid {
     grid-template-columns: 1fr !important;
+    grid-auto-rows: min-content !important;
+    align-content: start !important;
     gap: 8px !important;
-    max-height: 200px !important;
-    margin-bottom: 12px !important;
+    min-height: 140px !important;
+    max-height: 220px !important;
+    margin-bottom: 10px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 
   .hospital-select-card {
-    padding: 10px 12px !important;
+    padding: 8px 10px !important;
     border-radius: 10px !important;
+    min-height: 66px !important;
   }
 
   /* Packages Grid on Mobile */
+  .wiz-plan-title {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    margin: 0 0 3px 0 !important;
+    color: #0F172A !important;
+  }
+
+  .wiz-plan-subtext {
+    font-size: 11.5px !important;
+    color: #64748B !important;
+    line-height: 1.4 !important;
+    margin: 0 0 8px 0 !important;
+  }
+
   .wiz-packages-grid {
-    max-height: 250px !important;
-    gap: 10px !important;
+    min-height: 140px !important;
+    max-height: 220px !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+    grid-auto-rows: min-content !important;
+    align-content: start !important;
   }
 
   .wiz-package-card {
-    padding: 12px 14px !important;
+    padding: 10px 12px !important;
+    min-height: 56px !important;
+    border-radius: 10px !important;
   }
 
-  /* Form grid 2 columns to 1 on Mobile */
-  .ctc-form-grid-2 {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-    margin-bottom: 10px !important;
+  .wiz-package-card h4,
+  .wiz-package-name {
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
   }
 
-  .ctc-phone-group-wrapper {
-    height: 40px !important;
+  .wiz-package-price {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+  }
+
+  .wiz-package-desc {
+    font-size: 11px !important;
+  }
+
+  .wiz-service-notes-box {
+    padding: 8px 10px !important;
+    font-size: 11.5px !important;
     border-radius: 8px !important;
+    margin-top: 6px !important;
+  }
+
+  /* Step 3 Scroll Area on Mobile */
+  .wiz-step3-fields-scroll {
+    max-height: 220px !important;
+    min-height: 140px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 4px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .form-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    margin-bottom: 2px !important;
+    color: #475569 !important;
+    display: block !important;
+  }
+
+  .form-input,
+  .form-select,
+  input.form-input,
+  select.form-select,
+  .ctc-phone-group-wrapper {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    border: 1px solid #CBD5E1 !important;
+  }
+
+  textarea.form-input {
+    min-height: 48px !important;
+    max-height: 66px !important;
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    border: 1px solid #CBD5E1 !important;
+  }
+
+  .ctc-form-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .form-group {
+    margin-bottom: 5px !important;
   }
 
   .ctc-phone-group-wrapper select.ctc-country-select {
-    padding: 0 6px 0 8px !important;
-    font-size: 12px !important;
-    max-width: 95px !important;
-    min-width: 80px !important;
+    padding: 0 4px 0 6px !important;
+    font-size: 11.5px !important;
+    max-width: 80px !important;
+    min-width: 70px !important;
   }
 
   .ctc-phone-group-wrapper input.ctc-phone-input {
-    padding: 0 8px !important;
-    font-size: 13.5px !important;
+    padding: 0 6px !important;
+    font-size: 12px !important;
   }
 
   .wiz-action-footer {
@@ -1780,8 +2197,9 @@ body[data-bs-theme="dark"] .ctc-booking-modal-close {
     justify-content: space-between !important;
     align-items: center !important;
     gap: 8px !important;
-    margin-top: 14px !important;
-    padding-top: 12px !important;
+    margin-top: auto !important;
+    padding-top: 10px !important;
+    flex-shrink: 0 !important;
   }
 
   .btn-wiz-primary,
@@ -1795,15 +2213,204 @@ body[data-bs-theme="dark"] .ctc-booking-modal-close {
 }
 
 @media (max-width: 480px) {
-  .wiz-action-footer {
-    gap: 6px !important;
+
+  .ctc-booking-modal-overlay,
+  .caretochina-booking-wizard-container {
+    padding: 16px 10px !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
+  .ctc-booking-modal-overlay.show,
+  .caretochina-booking-wizard-container.show {
+    display: flex !important;
+  }
+
+  .ctc-booking-modal-container {
+    padding: 22px 16px 16px !important;
+    width: 96% !important;
+    max-width: 430px !important;
+    border-radius: 20px !important;
+    max-height: 86vh !important;
+    max-height: 86dvh !important;
+    margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .ctc-booking-modal-close {
+    top: 10px !important;
+    right: 10px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 18px !important;
+  }
+
+  .wiz-header {
+    margin-bottom: 12px !important;
+    padding: 0 4px !important;
+  }
+
+  .ctc-badge-pill {
+    padding: 5px 12px !important;
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .wiz-modal-title {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    margin: 0 0 6px 0 !important;
+  }
+
+  .wiz-modal-subtitle {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    margin: 0 auto !important;
+  }
+
+  .wizard-steps-indicator {
+    padding: 8px 10px !important;
+    margin-bottom: 12px !important;
+    gap: 2px !important;
+    border-radius: 10px !important;
+  }
+
+  .wiz-step-filters {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .wiz-step-filters input.form-input,
+  .wiz-step-filters input#wiz-hospital-search {
+    flex: 1.3 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+  }
+
+  .wiz-step-filters select.form-select,
+  .wiz-step-filters select#wiz-hospital-city-filter {
+    flex: 1 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 5px 8px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+  }
+
+  .wiz-step {
+    font-size: 10.5px !important;
+    padding: 2px 3px !important;
+    gap: 3px !important;
+  }
+
+  .wiz-step-num {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    font-size: 10px !important;
+  }
+
+  .wiz-step-label {
+    font-size: 10.5px !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  .wiz-step-divider {
+    min-width: 4px !important;
+    max-width: 12px !important;
+  }
+
+  .wiz-hospital-grid {
+    min-height: 130px !important;
+    max-height: 200px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .hospital-select-card {
+    min-height: 64px !important;
+    padding: 8px 10px !important;
+  }
+
+  .hospital-select-card img {
+    width: 60px !important;
+    height: 46px !important;
+    min-width: 60px !important;
+    min-height: 46px !important;
+  }
+
+  .wiz-packages-grid {
+    min-height: 130px !important;
+    max-height: 200px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .wiz-step3-fields-scroll {
+    min-height: 130px !important;
+    max-height: 200px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .form-label {
+    font-size: 10.5px !important;
+    margin-bottom: 2px !important;
+    font-weight: 600 !important;
+  }
+
+  .form-input,
+  .form-select,
+  input.form-input,
+  select.form-select,
+  .ctc-phone-group-wrapper {
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 11.5px !important;
+  }
+
+  textarea.form-input {
+    min-height: 44px !important;
+    max-height: 60px !important;
+    padding: 4px 8px !important;
+    font-size: 11.5px !important;
+  }
+
+  .ctc-form-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 5px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .wiz-action-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    margin-top: auto !important;
+    padding-top: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .btn-wiz-primary,
+  .btn-wiz-secondary,
   .wiz-action-footer button,
   .wiz-action-footer .ctc-solid-btn {
-    padding: 9px 6px !important;
-    font-size: 11.5px !important;
-    min-height: 38px !important;
+    width: 100% !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    min-height: 36px !important;
+    justify-content: center !important;
+    text-align: center !important;
+    border-radius: 8px !important;
   }
 }
 
@@ -2661,6 +3268,7 @@ body.wp-night-mode .wiz-auth-notice.notice-error {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -2688,6 +3296,7 @@ body.wp-night-mode .wiz-auth-notice.notice-error {
     opacity: 0;
     transform: scale(0.94) translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -2936,6 +3545,7 @@ body[data-bs-theme="dark"] .ctc-btn-skip-pay:hover {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -3461,7 +4071,7 @@ body[data-bs-theme="dark"] .iti__search-input {
   right: -50px;
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -3647,7 +4257,8 @@ body[data-bs-theme="dark"] .iti__search-input {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
   border-radius: 18px;
-  padding: 22px;
+  padding: 0 !important;
+  overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
@@ -3655,15 +4266,17 @@ body[data-bs-theme="dark"] .iti__search-input {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
-  margin-bottom: 14px;
+  padding: 14px 18px;
+  background: #F8FAFC;
   border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+  user-select: none;
 }
 
 .ctc-guest-summary-header h3 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   color: #0F172A;
   display: flex;
   align-items: center;
@@ -3672,14 +4285,19 @@ body[data-bs-theme="dark"] .iti__search-input {
 
 .ctc-guest-summary-header h3 i {
   color: #0F766E;
+  font-size: 15px;
+}
+
+.ctc-guest-summary-body {
+  padding: 12px 18px 16px 18px;
 }
 
 .ctc-summary-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  padding: 10px 0;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
   border-bottom: 1px solid #F1F5F9;
   font-size: 13px;
 }
@@ -3691,49 +4309,53 @@ body[data-bs-theme="dark"] .iti__search-input {
 .ctc-summary-row-lbl {
   color: #64748B;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 12.5px;
   flex-shrink: 0;
 }
 
 .ctc-summary-row-val {
   color: #0F172A;
   font-weight: 600;
+  font-size: 13px;
   text-align: right;
   word-break: break-word;
 }
 
 .ctc-highlight-code {
-  color: #0F766E;
-  font-weight: 800;
-  font-size: 14px;
-  background: #CCFBF1;
-  padding: 2px 8px;
-  border-radius: 6px;
+  color: #0F766E !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  background: #E6FFFA !important;
+  border: 1px solid #99F6E4 !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  font-family: monospace, monospace !important;
+  display: inline-block !important;
 }
 
 .ctc-highlight-price {
-  color: #0F766E;
-  font-weight: 800;
-  font-size: 15px;
+  color: #0F766E !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
 }
 
 .ctc-guest-continuity-notice {
-  margin-top: 18px;
-  padding: 12px 14px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  font-size: 12px;
-  color: #64748B;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #F0FDFA;
+  border: 1px solid #CCFBF1;
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: #0F766E;
   line-height: 1.45;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
 }
 
 .ctc-guest-continuity-notice i {
-  color: #0F766E;
-  margin-top: 2px;
+  color: #0D9488;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -3984,74 +4606,118 @@ body[data-bs-theme="dark"] .iti__search-input {
 /* CHAT INPUT BAR & FORM */
 .ctc-chat-form {
   margin-top: auto;
+  padding: 14px 20px 16px 20px;
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+  border-radius: 0 0 18px 18px;
+  box-sizing: border-box;
 }
 
 .ctc-chat-input-bar {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   width: 100%;
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 28px;
+  padding: 14px 10px 5px 14px;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ctc-chat-input-bar:focus-within {
+  background: #FFFFFF;
+  border-color: #0F766E;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .ctc-chat-attach-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #F1F5F9;
-  border: 1px solid #CBD5E1;
-  color: #475569;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: #64748B;
   cursor: pointer;
   font-size: 17px;
+  padding: 0;
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .ctc-chat-attach-btn:hover {
-  background: #E2E8F0;
   color: #0F766E;
+  background: #E2E8F0;
+  transform: scale(1.05);
 }
 
 .ctc-chat-text-input {
-  flex: 1;
-  height: 44px;
-  padding: 0 16px;
-  border-radius: 12px;
-  border: 1.5px solid #CBD5E1;
-  background: #FFFFFF;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 8px;
+  border: none !important;
+  background: transparent !important;
   color: #0F172A;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-weight: 400;
+  outline: none !important;
+  box-shadow: none !important;
   box-sizing: border-box;
 }
 
-.ctc-chat-text-input:focus {
-  border-color: #0F766E;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+.ctc-chat-text-input::placeholder {
+  color: #94A3B8;
+  font-size: 13.5px;
 }
 
 .ctc-chat-send-btn {
-  height: 44px;
-  padding: 0 20px;
-  border-radius: 12px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 22px;
+  border-radius: 20px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13.5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   flex-shrink: 0;
+  border: none;
+  background: linear-gradient(135deg, #0F766E, #0D9488);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25);
+}
+
+.ctc-chat-send-btn:hover {
+  background: linear-gradient(135deg, #115E59, #0F766E);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
+}
+
+.ctc-chat-send-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(15, 118, 110, 0.2);
 }
 
 .ctc-chat-allowed-hint {
   font-size: 11px;
   color: #94A3B8;
-  margin-top: 5px;
+  margin-top: 6px;
   text-align: right;
+  padding-right: 8px;
+  font-weight: 500;
 }
 
 .ctc-attachment-preview-box {
@@ -4371,6 +5037,39 @@ body[data-bs-theme="dark"] .ctc-summary-row-val {
   color: #F8FAFC !important;
 }
 
+html.dark-theme .ctc-highlight-code,
+body.dark-theme .ctc-highlight-code,
+html.dark .ctc-highlight-code,
+body.dark .ctc-highlight-code,
+body[data-theme="dark"] .ctc-highlight-code,
+body.dark-mode .ctc-highlight-code,
+body[data-bs-theme="dark"] .ctc-highlight-code {
+  background: rgba(20, 184, 166, 0.2) !important;
+  color: #2DD4BF !important;
+  border: 1px solid rgba(45, 212, 191, 0.4) !important;
+}
+
+html.dark-theme .ctc-highlight-price,
+body.dark-theme .ctc-highlight-price,
+html.dark .ctc-highlight-price,
+body.dark .ctc-highlight-price,
+body[data-theme="dark"] .ctc-highlight-price,
+body.dark-mode .ctc-highlight-price,
+body[data-bs-theme="dark"] .ctc-highlight-price {
+  color: #2DD4BF !important;
+}
+
+html.dark-theme .ctc-guest-summary-header,
+body.dark-theme .ctc-guest-summary-header,
+html.dark .ctc-guest-summary-header,
+body.dark .ctc-guest-summary-header,
+body[data-theme="dark"] .ctc-guest-summary-header,
+body.dark-mode .ctc-guest-summary-header,
+body[data-bs-theme="dark"] .ctc-guest-summary-header {
+  background: #0F172A !important;
+  border-bottom-color: #2D3748 !important;
+}
+
 html.dark-theme .ctc-guest-continuity-notice,
 body.dark-theme .ctc-guest-continuity-notice,
 html.dark .ctc-guest-continuity-notice,
@@ -4378,7 +5077,7 @@ body.dark .ctc-guest-continuity-notice,
 body[data-theme="dark"] .ctc-guest-continuity-notice,
 body.dark-mode .ctc-guest-continuity-notice,
 body[data-bs-theme="dark"] .ctc-guest-continuity-notice {
-  background: #0F172A !important;
+  background: rgba(15, 23, 42, 0.6) !important;
   border-color: #2D3748 !important;
   color: #94A3B8 !important;
 }
@@ -4439,6 +5138,28 @@ body[data-bs-theme="dark"] .chat-pdf-pill {
   color: #F8FAFC !important;
 }
 
+html.dark-theme .ctc-chat-form,
+body.dark-theme .ctc-chat-form,
+html.dark .ctc-chat-form,
+body.dark .ctc-chat-form,
+body[data-theme="dark"] .ctc-chat-form,
+body.dark-mode .ctc-chat-form,
+body[data-bs-theme="dark"] .ctc-chat-form {
+  background: #0F172A !important;
+  border-color: #1E293B !important;
+}
+
+html.dark-theme .ctc-chat-input-bar,
+body.dark-theme .ctc-chat-input-bar,
+html.dark .ctc-chat-input-bar,
+body.dark .ctc-chat-input-bar,
+body[data-theme="dark"] .ctc-chat-input-bar,
+body.dark-mode .ctc-chat-input-bar,
+body[data-bs-theme="dark"] .ctc-chat-input-bar {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
 html.dark-theme .ctc-chat-text-input,
 body.dark-theme .ctc-chat-text-input,
 html.dark .ctc-chat-text-input,
@@ -4446,8 +5167,8 @@ body.dark .ctc-chat-text-input,
 body[data-theme="dark"] .ctc-chat-text-input,
 body.dark-mode .ctc-chat-text-input,
 body[data-bs-theme="dark"] .ctc-chat-text-input {
-  background: #0F172A !important;
-  border-color: #334155 !important;
+  background: transparent !important;
+  border: none !important;
   color: #F8FAFC !important;
 }
 
@@ -4468,8 +5189,8 @@ body.dark .ctc-chat-attach-btn,
 body[data-theme="dark"] .ctc-chat-attach-btn,
 body.dark-mode .ctc-chat-attach-btn,
 body[data-bs-theme="dark"] .ctc-chat-attach-btn {
-  background: #0F172A !important;
-  border-color: #334155 !important;
+  background: transparent !important;
+  border: none !important;
   color: #94A3B8 !important;
 }
 
@@ -4701,14 +5422,12 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
    ========================================================================== */
 
 /* 1. GLOBAL TOUCH TARGETS & SENIOR ACCESSIBILITY (48px - 56px) */
-.ctc-solid-btn,
+.ctc-solid-btn:not(.ctc-chat-send-btn):not(#patient_send_btn):not(.btn-wiz-primary):not(.btn-wiz-secondary),
 .ctc-channel-btn,
 .timing-tag-btn,
 .ctc-btn-receipt,
 .ctc-btn-pay,
 .auth-submit-btn,
-.ctc-chat-send-btn,
-.ctc-chat-attach-btn,
 .ctc-quote-btn,
 .ctc-sidebar-quote-btn,
 .ctc-hdr-btn-glass {
@@ -4734,17 +5453,15 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
 }
 
 /* Primary Action Target Size Floor (48px - 56px) */
-.btn-wiz-primary,
 .auth-submit-btn,
 .ctc-btn-pay,
 #save_profile_btn,
-#ctc-wizard-submit-btn,
 .ctc-quote-btn,
 .ctc-sidebar-quote-btn {
-  min-height: 52px !important;
-  padding: 12px 24px !important;
-  font-size: 16px !important;
-  font-weight: 800 !important;
+  min-height: 48px !important;
+  padding: 12px 30px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
 }
 
 /* 2. SAFE-AREA-INSETS FOR FIXED & STICKY BOTTOM ELEMENTS */
@@ -4752,6 +5469,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
 .ctc-chat-input-bar {
   padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
 }
+
 .wiz-action-footer {
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
 }
@@ -4772,6 +5490,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     opacity: 1 !important;
     background: rgba(15, 118, 110, 0.75) !important;
   }
+
   .ctc-change-avatar-btn {
     display: flex !important;
     font-size: 14px !important;
@@ -4784,6 +5503,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   .caretochina-guest-dashboard {
     padding: 20px 16px;
   }
+
   .ctc-guest-layout {
     grid-template-columns: 280px 1fr;
     gap: 16px;
@@ -4827,34 +5547,24 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
 
 /* 7. GLOBAL MOBILE FORMS (iOS Auto-Zoom Bug Fix: 16px Floor for <= 768px) */
 @media (max-width: 768px) {
-  input,
-  select,
-  textarea,
-  .form-input,
-  .form-select,
+
+  .ctc-guest-dashboard input,
+  .ctc-guest-dashboard select,
+  .ctc-guest-dashboard textarea,
   .ctc-chat-text-input,
-  .wiz-hospital-grid input,
-  .specialty-checkbox-list input,
-  .ctc-form-grid-2 input,
-  .ctc-form-grid-2 select,
-  .ctc-form-grid-2 textarea,
   .auth-input-group input,
   .auth-input-group select,
   .auth-input-group textarea,
   .ctc-dash-panel input,
   .ctc-dash-panel select,
   .ctc-dash-panel textarea,
-  #wiz-hospital-search,
-  #wiz-hospital-city-filter,
-  #wiz_phone,
   #patient_msg_input {
     font-size: 16px !important;
     min-height: 48px !important;
   }
 
-  .form-label,
   .auth-input-group label,
-  .ctc-form-grid-2 label {
+  .ctc-dash-panel .form-label {
     font-size: 15px !important;
     font-weight: 700 !important;
     margin-bottom: 6px !important;
@@ -4873,6 +5583,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     overflow-x: visible !important;
     border: none !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern,
   .ctc-payment-history-table {
     display: block !important;
@@ -4880,15 +5591,18 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     border: none !important;
     background: transparent !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern thead,
   .ctc-payment-history-table thead {
     display: none !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern tbody,
   .ctc-payment-history-table tbody {
     display: block !important;
     width: 100% !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern tr,
   .ctc-payment-history-table tr {
     display: block !important;
@@ -4899,6 +5613,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     margin-bottom: 16px !important;
     box-shadow: var(--cymb-shadow-sm) !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern td,
   .ctc-payment-history-table td {
     display: flex !important;
@@ -4910,12 +5625,14 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     font-size: 15px !important;
     text-align: right !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern td:last-child,
   .ctc-payment-history-table td:last-child {
     border-bottom: none !important;
     padding-top: 14px !important;
     justify-content: flex-end !important;
   }
+
   .ctc-dash-panel table.ctc-table-modern td::before,
   .ctc-payment-history-table td::before {
     content: attr(data-label) !important;
@@ -4933,6 +5650,7 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     background: #1C2541 !important;
     border-color: #2D3748 !important;
   }
+
   html.dark-theme .ctc-dash-panel table.ctc-table-modern td,
   body.dark-theme .ctc-dash-panel table.ctc-table-modern td {
     border-bottom-color: rgba(255, 255, 255, 0.08) !important;
@@ -4985,84 +5703,172 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     font-size: 13px;
   }
 
-  .ctc-guest-summary-card,
+  .ctc-guest-summary-card {
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    margin-bottom: 12px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .ctc-guest-summary-header {
+    padding: 12px 14px !important;
+    margin: 0 !important;
+    background: #F8FAFC !important;
+    border-bottom: 1px solid #E2E8F0 !important;
+  }
+
+  .ctc-guest-summary-body {
+    padding: 6px 14px 14px 14px !important;
+  }
+
+  .ctc-summary-row {
+    padding: 8px 0 !important;
+    gap: 8px !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+    font-size: 12.5px !important;
+  }
+
+  .ctc-summary-row-lbl {
+    font-size: 12px !important;
+  }
+
+  .ctc-summary-row-val {
+    font-size: 12.5px !important;
+  }
+
+  .ctc-highlight-code {
+    font-size: 12px !important;
+    padding: 2px 7px !important;
+  }
+
+  .ctc-guest-continuity-notice {
+    margin-top: 10px !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+
   .ctc-guest-chat-panel,
   .ctc-dash-panel#dash-panel-messages .ctc-panel-card {
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .ctc-chat-panel-header {
+    padding: 12px 14px !important;
+    border-bottom: 1px solid #F1F5F9 !important;
   }
 
   .ctc-chat-viewport {
-    min-height: 280px;
-    max-height: calc(100dvh - 160px);
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 10px;
+    height: 380px !important;
+    min-height: 280px !important;
+    max-height: 52vh !important;
+    max-height: 52dvh !important;
+    padding: 12px 10px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    background: #F8FAFC !important;
   }
 
   .chat-msg.coordinator .msg-bubble,
   .chat-msg.patient .msg-bubble {
-    max-width: 90%;
-    font-size: 14px;
-    padding: 10px 14px;
+    max-width: 86% !important;
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    line-height: 1.45 !important;
   }
 
   .chat-coordinator-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+  }
+
+  .ctc-chat-form {
+    padding: 8px 10px !important;
+    border-top: 1px solid #F1F5F9 !important;
+  }
+
+  .ctc-chat-input-bar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    background: #F1F5F9 !important;
+    border: 1.5px solid #E2E8F0 !important;
+    border-radius: 24px !important;
+    padding: 8px 10px 8px 24px !important;
+    box-sizing: border-box !important;
   }
 
   .ctc-chat-attach-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    font-size: 16px;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 50% !important;
+    font-size: 15px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #64748B !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
   }
 
   .ctc-chat-text-input {
-    height: 48px;
-    font-size: 16px !important;
-    padding: 0 12px;
-    border-radius: 10px;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    font-size: 13.5px !important;
+    padding: 0 6px !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .ctc-chat-text-input::placeholder {
+    font-size: 12px !important;
   }
 
   .ctc-chat-send-btn {
-    height: 48px;
-    padding: 0 16px;
-    border-radius: 10px;
-  }
-
-  /* Booking Wizard Modal Mobile Ergonomics */
-  .ctc-booking-modal-container {
-    width: 95% !important;
-    max-width: 95% !important;
-    padding: 20px 16px !important;
-    border-radius: 20px !important;
-    max-height: 92vh !important;
-  }
-
-  .wizard-steps-indicator {
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    gap: 8px !important;
-    padding-bottom: 8px !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  .wiz-step {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    max-width: 34px !important;
+    max-height: 34px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex-shrink: 0 !important;
-    padding: 4px 8px !important;
-    font-size: 13px !important;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3) !important;
   }
 
-  .wiz-step-filters {
-    flex-direction: column !important;
-    gap: 10px !important;
+  .ctc-chat-send-btn .ctc-btn-send-text {
+    display: none !important;
   }
 
-  .wiz-hospital-grid {
-    grid-template-columns: 1fr !important;
-    max-height: 260px !important;
+  .ctc-chat-send-btn i {
+    font-size: 12.5px !important;
+    margin: 0 !important;
+  }
+
+  .ctc-chat-allowed-hint {
+    font-size: 10px !important;
+    text-align: center !important;
+    margin-top: 3px !important;
   }
 
   .timing-tags-grid {
@@ -5073,20 +5879,6 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   .specialty-checkbox-list {
     grid-template-columns: 1fr !important;
     max-height: 200px !important;
-  }
-
-  .wiz-action-footer {
-    flex-direction: column-reverse !important;
-    gap: 10px !important;
-  }
-
-  .wiz-action-footer button {
-    width: 100% !important;
-  }
-
-  .ctc-form-grid-2 {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
   }
 
   .ctc-dash-banner {
@@ -5111,20 +5903,24 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   .ctc-hosp-hero-img-box {
     height: 160px !important;
   }
+
   .ctc-dash-banner {
     padding: 14px 18px !important;
     margin-bottom: 14px !important;
   }
+
   .ctc-dash-avatar {
     width: 48px !important;
     height: 48px !important;
     min-width: 48px !important;
     min-height: 48px !important;
   }
+
   .ctc-chat-viewport {
     min-height: 180px !important;
     max-height: 45vh !important;
   }
+
   .ctc-booking-modal-container {
     max-height: 94vh !important;
     padding: 14px 18px !important;
@@ -5136,17 +5932,21 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
   .ctc-guest-header-title {
     font-size: 16px;
   }
+
   .ctc-guest-header-icon {
     display: none;
   }
+
   .ctc-chat-viewport {
     min-height: 240px;
     max-height: calc(100dvh - 160px);
   }
+
   .ctc-recaptcha-container {
     overflow: hidden;
     max-width: 100%;
   }
+
   .ctc-recaptcha-container .g-recaptcha {
     transform: scale(0.85);
     -webkit-transform: scale(0.85);
@@ -5160,8 +5960,1653 @@ body[data-bs-theme="dark"] #ctc-printable-receipt-area #rcpt-gateway {
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+   AUTHORITATIVE BOOKING WIZARD MODAL COMPACT STYLES (ALL SCREEN SIZES)
+   ========================================================================== */
+#ctc-booking-modal.ctc-booking-modal-overlay {
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+}
+
+#ctc-booking-modal.ctc-booking-modal-overlay.show {
+  display: flex !important;
+}
+
+#ctc-booking-modal .ctc-booking-modal-container {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: min(92vh, 92dvh) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  padding: 22px 26px 18px !important;
+}
+
+#ctc-booking-modal .ctc-booking-modal-close,
+.ctc-booking-modal-close {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #64748B !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  user-select: none !important;
+  transition: all 0.2s ease !important;
+}
+
+#ctc-booking-modal .ctc-booking-modal-close:hover,
+.ctc-booking-modal-close:hover {
+  background: #FEE2E2 !important;
+  color: #EF4444 !important;
+  border-color: #FECACA !important;
+  transform: scale(1.05) !important;
+}
+
+/* 1. HEADER TEXT GAPS & SPACING */
+#ctc-booking-modal .wiz-header {
+  flex-shrink: 0 !important;
+  text-align: center !important;
+  margin-bottom: 16px !important;
+  padding: 0 12px !important;
+}
+
+#ctc-booking-modal .wiz-brand-logo-wrap {
+  margin-bottom: 10px !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+#ctc-booking-modal .wiz-brand-logo {
+  max-height: 36px !important;
+  max-width: 160px !important;
+  object-fit: contain !important;
+}
+
+#ctc-booking-modal .ctc-badge-pill {
+  padding: 5px 14px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+#ctc-booking-modal .wiz-modal-title {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  margin: 0 0 8px 0 !important;
+  color: #0F172A !important;
+}
+
+#ctc-booking-modal .wiz-modal-subtitle {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  color: #64748B !important;
+  max-width: 580px !important;
+  margin: 0 auto !important;
+}
+
+/* 2. STEPS SECTION TOP & BOTTOM SPACING */
+#ctc-booking-modal .wizard-steps-indicator {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-top: 4px !important;
+  margin-bottom: 16px !important;
+  padding: 10px 16px !important;
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  gap: 8px !important;
+}
+
+#ctc-booking-modal #ctc-booking-wizard-form {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+#ctc-booking-modal .wiz-page.active {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+#ctc-booking-modal .wiz-step-filters {
+  flex-shrink: 0 !important;
+}
+
+#ctc-booking-modal .wiz-hospital-grid {
+  flex: 1 1 auto !important;
+  min-height: 80px !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+#ctc-booking-modal .wiz-page#wiz-step-2 .form-group {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+}
+
+#ctc-booking-modal .wiz-packages-grid {
+  flex: 1 1 auto !important;
+  min-height: 80px !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding-right: 4px !important;
+  margin-bottom: 8px !important;
+}
+
+#ctc-booking-modal .wiz-package-card {
+  border: 1.5px solid #E2E8F0 !important;
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+#ctc-booking-modal .wiz-package-card:hover {
+  border-color: #0F766E !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.08) !important;
+}
+
+#ctc-booking-modal .wiz-package-card.selected {
+  border-color: #0F766E !important;
+  background: #F0FDFA !important;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15) !important;
+}
+
+#ctc-booking-modal .wiz-pkg-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+#ctc-booking-modal .wiz-pkg-radio {
+  accent-color: #0F766E !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+#ctc-booking-modal .wiz-pkg-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+#ctc-booking-modal .wiz-pkg-title-row {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 4px 6px !important;
+}
+
+#ctc-booking-modal .wiz-pkg-name {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  line-height: 1.3 !important;
+}
+
+#ctc-booking-modal .wiz-pkg-badge {
+  background: #CCFBF1 !important;
+  color: #0F766E !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  padding: 1.5px 6px !important;
+  border-radius: 999px !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1.1 !important;
+}
+
+#ctc-booking-modal .wiz-pkg-card-right {
+  text-align: right !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+  padding-left: 4px !important;
+  white-space: nowrap !important;
+}
+
+#ctc-booking-modal .wiz-pkg-price {
+  font-size: 13.5px !important;
+  font-weight: 900 !important;
+  color: #0F766E !important;
+  white-space: nowrap !important;
+}
+
+/* Pricing Page CTA Link */
+#ctc-booking-modal .wiz-pricing-cta-wrap {
+  margin-top: 6px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+
+#ctc-booking-modal .wiz-pricing-cta-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0F766E !important;
+  background: #F0FDFA !important;
+  border: 1px solid #99F6E4 !important;
+  padding: 7px 16px !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+#ctc-booking-modal .wiz-pricing-cta-btn:hover {
+  background: #0F766E !important;
+  color: #FFFFFF !important;
+  border-color: #0F766E !important;
+  text-decoration: none !important;
+}
+
+#ctc-booking-modal .wiz-step3-fields-scroll {
+  flex: 1 1 auto !important;
+  min-height: 80px !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+#ctc-booking-modal .wiz-action-footer {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: auto !important;
+  padding-top: 10px !important;
+  flex-shrink: 0 !important;
+  border-top: 1px solid #E2E8F0 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  background: inherit !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+#ctc-booking-modal .wiz-action-footer .ctc-solid-btn,
+#ctc-booking-modal .wiz-action-footer button,
+#ctc-booking-modal .btn-wiz-primary,
+#ctc-booking-modal .btn-wiz-secondary,
+#ctc-booking-modal #ctc-wizard-submit-btn {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  flex: 1 1 0% !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+}
+
+/* 3. STEP 3 LABELS & TEXTAREA FOR 2-3 PARAGRAPHS */
+#ctc-booking-modal .form-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+  line-height: 1.3 !important;
+}
+
+#ctc-booking-modal input.form-input:not(.ctc-phone-input),
+#ctc-booking-modal .form-input:not(.ctc-phone-input):not(textarea),
+#ctc-booking-modal .form-select:not(.ctc-country-select),
+#ctc-booking-modal select.form-select:not(.ctc-country-select),
+#ctc-booking-modal .ctc-phone-group-wrapper {
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 5px 12px !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  border: 1px solid #CBD5E1 !important;
+  background: #F8FAFC !important;
+  box-sizing: border-box !important;
+}
+
+#ctc-booking-modal .ctc-phone-group-wrapper {
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+#ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select {
+  height: 100% !important;
+  min-height: 100% !important;
+  border: none !important;
+  border-right: 1px solid #CBD5E1 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 4px 0 8px !important;
+  margin: 0 !important;
+  font-size: 12px !important;
+  max-width: 85px !important;
+  min-width: 72px !important;
+  outline: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+
+#ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+#ctc-booking-modal .ctc-phone-group-wrapper input.form-input,
+#ctc-booking-modal .ctc-phone-group-wrapper input {
+  height: 100% !important;
+  min-height: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+}
+
+/* Step 3 Textarea: Multi-line room */
+#ctc-booking-modal textarea.form-input,
+#ctc-booking-modal textarea#wiz_quote_details {
+  height: auto !important;
+  min-height: 64px !important;
+  max-height: 130px !important;
+  padding: 8px 12px !important;
+  font-size: 12.5px !important;
+  line-height: 1.45 !important;
+  border-radius: 8px !important;
+  border: 1px solid #CBD5E1 !important;
+  background: #F8FAFC !important;
+  box-sizing: border-box !important;
+  resize: vertical !important;
+  width: 100% !important;
+}
+
+#ctc-booking-modal .ctc-form-grid-2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px 12px !important;
+  margin-bottom: 8px !important;
+}
+
+#ctc-booking-modal .form-group {
+  margin-bottom: 6px !important;
+}
+
+/* ==========================================================================
+   COMPREHENSIVE DARK MODE SUPPORT FOR BOOKING WIZARD MODAL
+   ========================================================================== */
+html.dark-theme #ctc-booking-modal .ctc-booking-modal-container,
+body.dark-theme #ctc-booking-modal .ctc-booking-modal-container,
+html.dark #ctc-booking-modal .ctc-booking-modal-container,
+body.dark #ctc-booking-modal .ctc-booking-modal-container,
+body[data-theme="dark"] #ctc-booking-modal .ctc-booking-modal-container,
+body.dark-mode #ctc-booking-modal .ctc-booking-modal-container,
+body[data-bs-theme="dark"] #ctc-booking-modal .ctc-booking-modal-container,
+.dark #ctc-booking-modal .ctc-booking-modal-container,
+[data-theme="dark"] #ctc-booking-modal .ctc-booking-modal-container {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
+}
+
+html.dark-theme #ctc-booking-modal .ctc-booking-modal-close,
+body.dark-theme #ctc-booking-modal .ctc-booking-modal-close,
+html.dark #ctc-booking-modal .ctc-booking-modal-close,
+body.dark #ctc-booking-modal .ctc-booking-modal-close,
+body[data-theme="dark"] #ctc-booking-modal .ctc-booking-modal-close,
+body.dark-mode #ctc-booking-modal .ctc-booking-modal-close,
+body[data-bs-theme="dark"] #ctc-booking-modal .ctc-booking-modal-close,
+.dark #ctc-booking-modal .ctc-booking-modal-close {
+  background: #1E293B !important;
+  color: #94A3B8 !important;
+  border: 1px solid #334155 !important;
+}
+
+html.dark-theme #ctc-booking-modal .ctc-booking-modal-close:hover,
+body.dark-theme #ctc-booking-modal .ctc-booking-modal-close:hover,
+html.dark #ctc-booking-modal .ctc-booking-modal-close:hover,
+body.dark #ctc-booking-modal .ctc-booking-modal-close:hover,
+body[data-theme="dark"] #ctc-booking-modal .ctc-booking-modal-close:hover,
+body.dark-mode #ctc-booking-modal .ctc-booking-modal-close:hover,
+body[data-bs-theme="dark"] #ctc-booking-modal .ctc-booking-modal-close:hover {
+  background: #334155 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .ctc-badge-pill,
+body.dark-theme #ctc-booking-modal .ctc-badge-pill,
+html.dark #ctc-booking-modal .ctc-badge-pill,
+body.dark #ctc-booking-modal .ctc-badge-pill,
+body[data-theme="dark"] #ctc-booking-modal .ctc-badge-pill,
+body.dark-mode #ctc-booking-modal .ctc-badge-pill,
+body[data-bs-theme="dark"] #ctc-booking-modal .ctc-badge-pill,
+.dark #ctc-booking-modal .ctc-badge-pill {
+  background: rgba(20, 184, 166, 0.18) !important;
+  color: #2DD4BF !important;
+  border: 1px solid rgba(45, 212, 191, 0.35) !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-modal-title,
+body.dark-theme #ctc-booking-modal .wiz-modal-title,
+html.dark #ctc-booking-modal .wiz-modal-title,
+body.dark #ctc-booking-modal .wiz-modal-title,
+body[data-theme="dark"] #ctc-booking-modal .wiz-modal-title,
+body.dark-mode #ctc-booking-modal .wiz-modal-title,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-modal-title,
+.dark #ctc-booking-modal .wiz-modal-title,
+[data-theme="dark"] #ctc-booking-modal .wiz-modal-title {
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-modal-subtitle,
+body.dark-theme #ctc-booking-modal .wiz-modal-subtitle,
+html.dark #ctc-booking-modal .wiz-modal-subtitle,
+body.dark #ctc-booking-modal .wiz-modal-subtitle,
+body[data-theme="dark"] #ctc-booking-modal .wiz-modal-subtitle,
+body.dark-mode #ctc-booking-modal .wiz-modal-subtitle,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-modal-subtitle,
+.dark #ctc-booking-modal .wiz-modal-subtitle {
+  color: #94A3B8 !important;
+}
+
+/* Steps Indicator Dark Mode */
+html.dark-theme #ctc-booking-modal .wizard-steps-indicator,
+body.dark-theme #ctc-booking-modal .wizard-steps-indicator,
+html.dark #ctc-booking-modal .wizard-steps-indicator,
+body.dark #ctc-booking-modal .wizard-steps-indicator,
+body[data-theme="dark"] #ctc-booking-modal .wizard-steps-indicator,
+body.dark-mode #ctc-booking-modal .wizard-steps-indicator,
+body[data-bs-theme="dark"] #ctc-booking-modal .wizard-steps-indicator,
+.dark #ctc-booking-modal .wizard-steps-indicator,
+[data-theme="dark"] #ctc-booking-modal .wizard-steps-indicator {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step,
+body.dark-theme #ctc-booking-modal .wiz-step,
+html.dark #ctc-booking-modal .wiz-step,
+body.dark #ctc-booking-modal .wiz-step,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step,
+body.dark-mode #ctc-booking-modal .wiz-step,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step,
+.dark #ctc-booking-modal .wiz-step {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step-num,
+body.dark-theme #ctc-booking-modal .wiz-step-num,
+html.dark #ctc-booking-modal .wiz-step-num,
+body.dark #ctc-booking-modal .wiz-step-num,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step-num,
+body.dark-mode #ctc-booking-modal .wiz-step-num,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step-num,
+.dark #ctc-booking-modal .wiz-step-num {
+  background: #334155 !important;
+  color: #94A3B8 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step.active .wiz-step-num,
+body.dark-theme #ctc-booking-modal .wiz-step.active .wiz-step-num,
+html.dark #ctc-booking-modal .wiz-step.active .wiz-step-num,
+body.dark #ctc-booking-modal .wiz-step.active .wiz-step-num,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step.active .wiz-step-num,
+body.dark-mode #ctc-booking-modal .wiz-step.active .wiz-step-num,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step.active .wiz-step-num,
+.dark #ctc-booking-modal .wiz-step.active .wiz-step-num {
+  background: #0F766E !important;
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step.active,
+body.dark-theme #ctc-booking-modal .wiz-step.active,
+html.dark #ctc-booking-modal .wiz-step.active,
+body.dark #ctc-booking-modal .wiz-step.active,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step.active,
+body.dark-mode #ctc-booking-modal .wiz-step.active,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step.active,
+html.dark-theme #ctc-booking-modal .wiz-step.active .wiz-step-label,
+body.dark-theme #ctc-booking-modal .wiz-step.active .wiz-step-label,
+html.dark #ctc-booking-modal .wiz-step.active .wiz-step-label,
+body.dark #ctc-booking-modal .wiz-step.active .wiz-step-label,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step.active .wiz-step-label,
+body.dark-mode #ctc-booking-modal .wiz-step.active .wiz-step-label,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step.active .wiz-step-label,
+.dark #ctc-booking-modal .wiz-step.active .wiz-step-label {
+  color: #2DD4BF !important;
+  font-weight: 700 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step.completed .wiz-step-num,
+body.dark-theme #ctc-booking-modal .wiz-step.completed .wiz-step-num,
+html.dark #ctc-booking-modal .wiz-step.completed .wiz-step-num,
+body.dark #ctc-booking-modal .wiz-step.completed .wiz-step-num,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step.completed .wiz-step-num,
+body.dark-mode #ctc-booking-modal .wiz-step.completed .wiz-step-num,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step.completed .wiz-step-num {
+  background: #0D9488 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step.completed,
+body.dark-theme #ctc-booking-modal .wiz-step.completed,
+html.dark #ctc-booking-modal .wiz-step.completed,
+body.dark #ctc-booking-modal .wiz-step.completed,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step.completed,
+body.dark-mode #ctc-booking-modal .wiz-step.completed,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step.completed,
+html.dark-theme #ctc-booking-modal .wiz-step.completed .wiz-step-label,
+body.dark-theme #ctc-booking-modal .wiz-step.completed .wiz-step-label,
+html.dark #ctc-booking-modal .wiz-step.completed .wiz-step-label,
+body.dark #ctc-booking-modal .wiz-step.completed .wiz-step-label,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step.completed .wiz-step-label,
+body.dark-mode #ctc-booking-modal .wiz-step.completed .wiz-step-label,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step.completed .wiz-step-label {
+  color: #5EEAD4 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-step-divider,
+body.dark-theme #ctc-booking-modal .wiz-step-divider,
+html.dark #ctc-booking-modal .wiz-step-divider,
+body.dark #ctc-booking-modal .wiz-step-divider,
+body[data-theme="dark"] #ctc-booking-modal .wiz-step-divider,
+body.dark-mode #ctc-booking-modal .wiz-step-divider,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-step-divider,
+.dark #ctc-booking-modal .wiz-step-divider {
+  background: #334155 !important;
+}
+
+/* Hospital Cards Dark Mode */
+html.dark-theme #ctc-booking-modal .hospital-select-card,
+body.dark-theme #ctc-booking-modal .hospital-select-card,
+html.dark #ctc-booking-modal .hospital-select-card,
+body.dark #ctc-booking-modal .hospital-select-card,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card,
+body.dark-mode #ctc-booking-modal .hospital-select-card,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card,
+.dark #ctc-booking-modal .hospital-select-card {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.dark-theme #ctc-booking-modal .hospital-select-card:hover,
+body.dark-theme #ctc-booking-modal .hospital-select-card:hover,
+html.dark #ctc-booking-modal .hospital-select-card:hover,
+body.dark #ctc-booking-modal .hospital-select-card:hover,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card:hover,
+body.dark-mode #ctc-booking-modal .hospital-select-card:hover,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card:hover {
+  border-color: #0D9488 !important;
+  background: #1E293B !important;
+}
+
+html.dark-theme #ctc-booking-modal .hospital-select-card.selected,
+body.dark-theme #ctc-booking-modal .hospital-select-card.selected,
+html.dark #ctc-booking-modal .hospital-select-card.selected,
+body.dark #ctc-booking-modal .hospital-select-card.selected,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card.selected,
+body.dark-mode #ctc-booking-modal .hospital-select-card.selected,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card.selected,
+.dark #ctc-booking-modal .hospital-select-card.selected {
+  border-color: #0D9488 !important;
+  background: rgba(15, 118, 110, 0.22) !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.3) !important;
+}
+
+html.dark-theme #ctc-booking-modal .hospital-select-card-title,
+body.dark-theme #ctc-booking-modal .hospital-select-card-title,
+html.dark #ctc-booking-modal .hospital-select-card-title,
+body.dark #ctc-booking-modal .hospital-select-card-title,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card-title,
+body.dark-mode #ctc-booking-modal .hospital-select-card-title,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card-title,
+html.dark-theme #ctc-booking-modal .hospital-select-card h4,
+body.dark-theme #ctc-booking-modal .hospital-select-card h4,
+html.dark #ctc-booking-modal .hospital-select-card h4,
+body.dark #ctc-booking-modal .hospital-select-card h4,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card h4,
+body.dark-mode #ctc-booking-modal .hospital-select-card h4,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card h4 {
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .hospital-select-card-city,
+body.dark-theme #ctc-booking-modal .hospital-select-card-city,
+html.dark #ctc-booking-modal .hospital-select-card-city,
+body.dark #ctc-booking-modal .hospital-select-card-city,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card-city,
+body.dark-mode #ctc-booking-modal .hospital-select-card-city,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card-city {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme #ctc-booking-modal .hospital-select-card-meta,
+body.dark-theme #ctc-booking-modal .hospital-select-card-meta,
+html.dark #ctc-booking-modal .hospital-select-card-meta,
+body.dark #ctc-booking-modal .hospital-select-card-meta,
+body[data-theme="dark"] #ctc-booking-modal .hospital-select-card-meta,
+body.dark-mode #ctc-booking-modal .hospital-select-card-meta,
+body[data-bs-theme="dark"] #ctc-booking-modal .hospital-select-card-meta {
+  color: #2DD4BF !important;
+}
+
+/* Package Cards Dark Mode */
+html.dark-theme #ctc-booking-modal .wiz-package-card,
+body.dark-theme #ctc-booking-modal .wiz-package-card,
+html.dark #ctc-booking-modal .wiz-package-card,
+body.dark #ctc-booking-modal .wiz-package-card,
+body[data-theme="dark"] #ctc-booking-modal .wiz-package-card,
+body.dark-mode #ctc-booking-modal .wiz-package-card,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-package-card,
+.dark #ctc-booking-modal .wiz-package-card {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-package-card:hover,
+body.dark-theme #ctc-booking-modal .wiz-package-card:hover,
+html.dark #ctc-booking-modal .wiz-package-card:hover,
+body.dark #ctc-booking-modal .wiz-package-card:hover,
+body[data-theme="dark"] #ctc-booking-modal .wiz-package-card:hover,
+body.dark-mode #ctc-booking-modal .wiz-package-card:hover,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-package-card:hover {
+  border-color: #0D9488 !important;
+  background: #1E293B !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-package-card.selected,
+body.dark-theme #ctc-booking-modal .wiz-package-card.selected,
+html.dark #ctc-booking-modal .wiz-package-card.selected,
+body.dark #ctc-booking-modal .wiz-package-card.selected,
+body[data-theme="dark"] #ctc-booking-modal .wiz-package-card.selected,
+body.dark-mode #ctc-booking-modal .wiz-package-card.selected,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-package-card.selected,
+.dark #ctc-booking-modal .wiz-package-card.selected {
+  border-color: #0D9488 !important;
+  background: rgba(15, 118, 110, 0.22) !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.3) !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-pkg-name,
+body.dark-theme #ctc-booking-modal .wiz-pkg-name,
+html.dark #ctc-booking-modal .wiz-pkg-name,
+body.dark #ctc-booking-modal .wiz-pkg-name,
+body[data-theme="dark"] #ctc-booking-modal .wiz-pkg-name,
+body.dark-mode #ctc-booking-modal .wiz-pkg-name,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-pkg-name,
+.dark #ctc-booking-modal .wiz-pkg-name {
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-pkg-badge,
+body.dark-theme #ctc-booking-modal .wiz-pkg-badge,
+html.dark #ctc-booking-modal .wiz-pkg-badge,
+body.dark #ctc-booking-modal .wiz-pkg-badge,
+body[data-theme="dark"] #ctc-booking-modal .wiz-pkg-badge,
+body.dark-mode #ctc-booking-modal .wiz-pkg-badge,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-pkg-badge,
+.dark #ctc-booking-modal .wiz-pkg-badge {
+  background: rgba(20, 184, 166, 0.2) !important;
+  color: #2DD4BF !important;
+  border: 1px solid rgba(45, 212, 191, 0.3) !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-pkg-price,
+body.dark-theme #ctc-booking-modal .wiz-pkg-price,
+html.dark #ctc-booking-modal .wiz-pkg-price,
+body.dark #ctc-booking-modal .wiz-pkg-price,
+body[data-theme="dark"] #ctc-booking-modal .wiz-pkg-price,
+body.dark-mode #ctc-booking-modal .wiz-pkg-price,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-pkg-price,
+.dark #ctc-booking-modal .wiz-pkg-price {
+  color: #2DD4BF !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-pricing-cta-btn,
+body.dark-theme #ctc-booking-modal .wiz-pricing-cta-btn,
+html.dark #ctc-booking-modal .wiz-pricing-cta-btn,
+body.dark #ctc-booking-modal .wiz-pricing-cta-btn,
+body[data-theme="dark"] #ctc-booking-modal .wiz-pricing-cta-btn,
+body.dark-mode #ctc-booking-modal .wiz-pricing-cta-btn,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-pricing-cta-btn,
+.dark #ctc-booking-modal .wiz-pricing-cta-btn {
+  background: #1E293B !important;
+  border-color: #0D9488 !important;
+  color: #2DD4BF !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-pricing-cta-btn:hover,
+body.dark-theme #ctc-booking-modal .wiz-pricing-cta-btn:hover,
+html.dark #ctc-booking-modal .wiz-pricing-cta-btn:hover,
+body.dark #ctc-booking-modal .wiz-pricing-cta-btn:hover,
+body[data-theme="dark"] #ctc-booking-modal .wiz-pricing-cta-btn:hover,
+body.dark-mode #ctc-booking-modal .wiz-pricing-cta-btn:hover,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-pricing-cta-btn:hover {
+  background: #0D9488 !important;
+  color: #FFFFFF !important;
+}
+
+html.dark-theme #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select,
+body.dark-theme #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select,
+html.dark #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select,
+body.dark #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select,
+body[data-theme="dark"] #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select,
+body.dark-mode #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select,
+body[data-bs-theme="dark"] #ctc-booking-modal .ctc-phone-group-wrapper select.ctc-country-select {
+  border-right-color: #334155 !important;
+  color: #F8FAFC !important;
+  background: transparent !important;
+}
+
+html.dark-theme #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+body.dark-theme #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+html.dark #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+body.dark #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+body[data-theme="dark"] #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+body.dark-mode #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input,
+body[data-bs-theme="dark"] #ctc-booking-modal .ctc-phone-group-wrapper input.ctc-phone-input {
+  color: #F8FAFC !important;
+  background: transparent !important;
+}
+
+html.dark-theme #ctc-booking-modal .form-input,
+body.dark-theme #ctc-booking-modal .form-input,
+html.dark #ctc-booking-modal .form-input,
+body.dark #ctc-booking-modal .form-input,
+body[data-theme="dark"] #ctc-booking-modal .form-input,
+body.dark-mode #ctc-booking-modal .form-input,
+body[data-bs-theme="dark"] #ctc-booking-modal .form-input,
+html.dark-theme #ctc-booking-modal .form-select,
+body.dark-theme #ctc-booking-modal .form-select,
+html.dark #ctc-booking-modal .form-select,
+body.dark #ctc-booking-modal .form-select,
+body[data-theme="dark"] #ctc-booking-modal .form-select,
+body.dark-mode #ctc-booking-modal .form-select,
+body[data-bs-theme="dark"] #ctc-booking-modal .form-select,
+html.dark-theme #ctc-booking-modal .ctc-phone-group-wrapper,
+body.dark-theme #ctc-booking-modal .ctc-phone-group-wrapper,
+body[data-theme="dark"] #ctc-booking-modal .ctc-phone-group-wrapper,
+body.dark-mode #ctc-booking-modal .ctc-phone-group-wrapper {
+  background: #1E293B !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark-theme #ctc-booking-modal .form-label,
+body.dark-theme #ctc-booking-modal .form-label,
+html.dark #ctc-booking-modal .form-label,
+body.dark #ctc-booking-modal .form-label,
+body[data-theme="dark"] #ctc-booking-modal .form-label,
+body.dark-mode #ctc-booking-modal .form-label,
+body[data-bs-theme="dark"] #ctc-booking-modal .form-label,
+html.dark-theme #ctc-booking-modal .wiz-plan-title,
+body.dark-theme #ctc-booking-modal .wiz-plan-title,
+html.dark #ctc-booking-modal .wiz-plan-title,
+body.dark #ctc-booking-modal .wiz-plan-title,
+body[data-theme="dark"] #ctc-booking-modal .wiz-plan-title,
+body.dark-mode #ctc-booking-modal .wiz-plan-title,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-plan-title {
+  color: #CBD5E1 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-plan-subtext,
+body.dark-theme #ctc-booking-modal .wiz-plan-subtext,
+html.dark #ctc-booking-modal .wiz-plan-subtext,
+body.dark #ctc-booking-modal .wiz-plan-subtext,
+body[data-theme="dark"] #ctc-booking-modal .wiz-plan-subtext,
+body.dark-mode #ctc-booking-modal .wiz-plan-subtext,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-plan-subtext {
+  color: #94A3B8 !important;
+}
+
+html.dark-theme #ctc-booking-modal .wiz-action-footer,
+body.dark-theme #ctc-booking-modal .wiz-action-footer,
+html.dark #ctc-booking-modal .wiz-action-footer,
+body.dark #ctc-booking-modal .wiz-action-footer,
+body[data-theme="dark"] #ctc-booking-modal .wiz-action-footer,
+body.dark-mode #ctc-booking-modal .wiz-action-footer,
+body[data-bs-theme="dark"] #ctc-booking-modal .wiz-action-footer {
+  border-top-color: #334155 !important;
+  background: inherit !important;
+}
+
+html.dark-theme #ctc-booking-modal .btn-wiz-secondary,
+body.dark-theme #ctc-booking-modal .btn-wiz-secondary,
+html.dark #ctc-booking-modal .btn-wiz-secondary,
+body.dark #ctc-booking-modal .btn-wiz-secondary,
+body[data-theme="dark"] #ctc-booking-modal .btn-wiz-secondary,
+body.dark-mode #ctc-booking-modal .btn-wiz-secondary,
+body[data-bs-theme="dark"] #ctc-booking-modal .btn-wiz-secondary {
+  background: #1E293B !important;
+  color: #CBD5E1 !important;
+  border: 1px solid #334155 !important;
+}
+
+html.dark-theme #ctc-booking-modal .btn-wiz-secondary:hover,
+body.dark-theme #ctc-booking-modal .btn-wiz-secondary:hover,
+html.dark #ctc-booking-modal .btn-wiz-secondary:hover,
+body.dark #ctc-booking-modal .btn-wiz-secondary:hover,
+body[data-theme="dark"] #ctc-booking-modal .btn-wiz-secondary:hover,
+body.dark-mode #ctc-booking-modal .btn-wiz-secondary:hover,
+body[data-bs-theme="dark"] #ctc-booking-modal .btn-wiz-secondary:hover {
+  background: #334155 !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   LAPTOP & TABLET LANDSCAPE DEDICATED RESPONSIVENESS (FOOTER ALWAYS VISIBLE)
+   ========================================================================== */
+@media (min-width: 601px) and (max-height: 950px),
+(orientation: landscape) and (min-width: 601px) {
+  #ctc-booking-modal .ctc-booking-modal-container {
+    max-height: 94vh !important;
+    max-height: 94dvh !important;
+    padding: 16px 22px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  #ctc-booking-modal .ctc-booking-modal-close {
+    top: 10px !important;
+    right: 10px !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    aspect-ratio: 1 / 1 !important;
+    padding: 0 !important;
+    font-size: 18px !important;
+  }
+
+  /* 1. Header Text Gaps on Laptop / Tab Landscape */
+  #ctc-booking-modal .wiz-header {
+    margin-bottom: 12px !important;
+    padding: 0 8px !important;
+  }
+
+  #ctc-booking-modal .wiz-brand-logo-wrap {
+    margin-bottom: 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-brand-logo {
+    max-height: 28px !important;
+    max-width: 140px !important;
+  }
+
+  #ctc-badge-pill,
+  #ctc-booking-modal .ctc-badge-pill {
+    padding: 4px 12px !important;
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+    gap: 5px !important;
+  }
+
+  #ctc-booking-modal .wiz-modal-title {
+    font-size: 17px !important;
+    font-weight: 800 !important;
+    margin: 0 0 6px 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  #ctc-booking-modal .wiz-modal-subtitle {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    max-width: 540px !important;
+    margin: 0 auto !important;
+  }
+
+  /* 2. Steps Section Spacing on Laptop / Tab Landscape */
+  #ctc-booking-modal .wizard-steps-indicator {
+    padding: 8px 14px !important;
+    margin-top: 2px !important;
+    margin-bottom: 12px !important;
+    gap: 6px !important;
+    border-radius: 10px !important;
+  }
+
+  #ctc-booking-modal .wiz-step {
+    font-size: 11.5px !important;
+    padding: 2px 6px !important;
+    gap: 5px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-num {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    font-size: 10.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-label {
+    font-size: 11.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-filters {
+    margin-bottom: 8px !important;
+    gap: 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-filters input.form-input,
+  #ctc-booking-modal .wiz-step-filters input#wiz-hospital-search,
+  #ctc-booking-modal .wiz-step-filters select.form-select,
+  #ctc-booking-modal .wiz-step-filters select#wiz-hospital-city-filter {
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-hospital-grid {
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+    min-height: 60px !important;
+    max-height: none !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card {
+    min-height: 52px !important;
+    padding: 6px 10px !important;
+    border-radius: 10px !important;
+    gap: 8px !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-img,
+  #ctc-booking-modal .hospital-select-card img {
+    width: 54px !important;
+    height: 40px !important;
+    min-width: 54px !important;
+    min-height: 40px !important;
+    border-radius: 6px !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-title,
+  #ctc-booking-modal .hospital-select-card h4 {
+    font-size: 12px !important;
+    margin-bottom: 1px !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-city {
+    font-size: 10.5px !important;
+    margin-bottom: 1px !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-meta {
+    font-size: 9.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-plan-title {
+    font-size: 12px !important;
+    margin-bottom: 2px !important;
+  }
+
+  #ctc-booking-modal .wiz-plan-subtext {
+    font-size: 11px !important;
+    margin-bottom: 6px !important;
+    line-height: 1.3 !important;
+  }
+
+  #ctc-booking-modal .wiz-packages-grid {
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+    min-height: 60px !important;
+    max-height: none !important;
+  }
+
+  #ctc-booking-modal .wiz-package-card {
+    min-height: 42px !important;
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-name {
+    font-size: 13px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-price {
+    font-size: 13px !important;
+  }
+
+  #ctc-booking-modal .wiz-pricing-cta-wrap {
+    margin-top: 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-pricing-cta-btn {
+    font-size: 11.5px !important;
+    padding: 5px 12px !important;
+  }
+
+  /* 3. Step 3 Labels & Textarea on Laptop / Tab Landscape */
+  #ctc-booking-modal .wiz-step3-fields-scroll {
+    min-height: 60px !important;
+    max-height: none !important;
+    margin-bottom: 6px !important;
+    padding-right: 4px !important;
+  }
+
+  #ctc-booking-modal .form-label {
+    font-size: 11.5px !important;
+    margin-bottom: 5px !important;
+  }
+
+  #ctc-booking-modal input.form-input:not(.ctc-phone-input),
+  #ctc-booking-modal .form-input:not(.ctc-phone-input):not(textarea),
+  #ctc-booking-modal .form-select:not(.ctc-country-select),
+  #ctc-booking-modal select.form-select:not(.ctc-country-select),
+  #ctc-booking-modal .ctc-phone-group-wrapper {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+  }
+
+  #ctc-booking-modal textarea.form-input,
+  #ctc-booking-modal textarea#wiz_quote_details {
+    height: auto !important;
+    min-height: 56px !important;
+    max-height: 110px !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  #ctc-booking-modal .ctc-form-grid-2 {
+    gap: 6px 10px !important;
+    margin-bottom: 6px !important;
+  }
+
+  #ctc-booking-modal .form-group {
+    margin-bottom: 5px !important;
+  }
+
+  #ctc-booking-modal .wiz-action-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-top: auto !important;
+    padding-top: 8px !important;
+    flex-shrink: 0 !important;
+    border-top: 1px solid #E2E8F0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    background: inherit !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  #ctc-booking-modal .wiz-action-footer .ctc-solid-btn,
+  #ctc-booking-modal .wiz-action-footer button,
+  #ctc-booking-modal .btn-wiz-primary,
+  #ctc-booking-modal .btn-wiz-secondary,
+  #ctc-booking-modal #ctc-wizard-submit-btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    padding: 4px 14px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    flex: 1 1 0% !important;
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* EXTRA SHORT HEIGHT SCREENS (LAPTOPS / TABLETS IN SHORT VIEWPORT HEIGHT <= 680px) */
+@media (max-height: 680px) and (min-width: 601px),
+(orientation: landscape) and (max-height: 680px) and (min-width: 601px) {
+  #ctc-booking-modal .wiz-header .wiz-brand-logo-wrap {
+    display: none !important;
+  }
+
+  #ctc-booking-modal .wiz-header .wiz-modal-subtitle {
+    display: none !important;
+  }
+
+  #ctc-booking-modal .wiz-header {
+    margin-bottom: 6px !important;
+  }
+
+  #ctc-booking-modal .ctc-booking-modal-container {
+    padding: 12px 18px 10px !important;
+    max-height: 96vh !important;
+    max-height: 96dvh !important;
+  }
+
+  #ctc-booking-modal .wizard-steps-indicator {
+    padding: 6px 12px !important;
+    margin-top: 2px !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+/* ==========================================================================
+   MOBILE LANDSCAPE DEDICATED STYLING (HEIGHT <= 520px)
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 520px),
+(max-height: 520px) and (max-width: 950px) {
+  #ctc-booking-modal.ctc-booking-modal-overlay {
+    padding: 4px 6px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #ctc-booking-modal .ctc-booking-modal-container {
+    width: 98% !important;
+    max-width: 640px !important;
+    max-height: 98vh !important;
+    max-height: 98dvh !important;
+    padding: 6px 12px 6px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  #ctc-booking-modal .ctc-booking-modal-close {
+    top: 5px !important;
+    right: 5px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    aspect-ratio: 1 / 1 !important;
+    padding: 0 !important;
+    font-size: 16px !important;
+  }
+
+  /* 1. Header Text Gaps on Mobile Landscape */
+  #ctc-booking-modal .wiz-header {
+    margin-bottom: 4px !important;
+    padding: 0 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-header .wiz-brand-logo-wrap,
+  #ctc-booking-modal .wiz-header .wiz-modal-subtitle {
+    display: none !important;
+  }
+
+  #ctc-badge-pill,
+  #ctc-booking-modal .ctc-badge-pill {
+    padding: 2px 8px !important;
+    font-size: 9.5px !important;
+    margin-bottom: 3px !important;
+    gap: 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-modal-title {
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* 2. Steps Section Spacing on Mobile Landscape */
+  #ctc-booking-modal .wizard-steps-indicator {
+    padding: 4px 8px !important;
+    margin-top: 1px !important;
+    margin-bottom: 5px !important;
+    gap: 4px !important;
+    border-radius: 8px !important;
+  }
+
+  #ctc-booking-modal .wiz-step {
+    font-size: 9.5px !important;
+    padding: 1px 3px !important;
+    gap: 3px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-num {
+    width: 15px !important;
+    height: 15px !important;
+    min-width: 15px !important;
+    font-size: 9px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-label {
+    font-size: 9.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-divider {
+    min-width: 4px !important;
+    max-width: 14px !important;
+    height: 1.5px !important;
+  }
+
+  /* Step 1 in Mobile Landscape */
+  #ctc-booking-modal .wiz-step-filters {
+    margin-bottom: 4px !important;
+    gap: 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-step-filters input.form-input,
+  #ctc-booking-modal .wiz-step-filters input#wiz-hospital-search,
+  #ctc-booking-modal .wiz-step-filters select.form-select,
+  #ctc-booking-modal .wiz-step-filters select#wiz-hospital-city-filter {
+    height: 26px !important;
+    min-height: 26px !important;
+    padding: 2px 6px !important;
+    font-size: 10.5px !important;
+    border-radius: 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-hospital-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin-bottom: 4px !important;
+    min-height: 50px !important;
+    max-height: none !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card {
+    min-height: 40px !important;
+    padding: 4px 6px !important;
+    border-radius: 8px !important;
+    gap: 6px !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-img,
+  #ctc-booking-modal .hospital-select-card img {
+    width: 44px !important;
+    height: 32px !important;
+    min-width: 44px !important;
+    min-height: 32px !important;
+    border-radius: 4px !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-title,
+  #ctc-booking-modal .hospital-select-card h4 {
+    font-size: 11px !important;
+    margin-bottom: 0 !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-city {
+    font-size: 9.5px !important;
+    margin-bottom: 0 !important;
+  }
+
+  #ctc-booking-modal .hospital-select-card-meta {
+    font-size: 8.5px !important;
+  }
+
+  /* Step 2 in Mobile Landscape */
+  #ctc-booking-modal .wiz-plan-title {
+    font-size: 11px !important;
+    margin-bottom: 1px !important;
+  }
+
+  #ctc-booking-modal .wiz-plan-subtext {
+    display: none !important;
+  }
+
+  #ctc-booking-modal .wiz-packages-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    display: grid !important;
+    gap: 4px !important;
+    margin-bottom: 4px !important;
+    min-height: 46px !important;
+    max-height: none !important;
+  }
+
+  #ctc-booking-modal .wiz-package-card {
+    min-height: 36px !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-name {
+    font-size: 11px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-badge {
+    font-size: 8px !important;
+    padding: 1px 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-price {
+    font-size: 11px !important;
+  }
+
+  #ctc-booking-modal .wiz-pricing-cta-wrap {
+    display: block !important;
+    margin-top: 3px !important;
+  }
+
+  #ctc-booking-modal .wiz-pricing-cta-btn {
+    height: 24px !important;
+    font-size: 10px !important;
+    padding: 1px 8px !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+  }
+
+  /* 3. Step 3 Labels & Textarea in Mobile Landscape */
+  #ctc-booking-modal .wiz-step3-fields-scroll {
+    min-height: 50px !important;
+    max-height: none !important;
+    margin-bottom: 4px !important;
+    padding-right: 2px !important;
+  }
+
+  #ctc-booking-modal .form-label {
+    font-size: 10px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #ctc-booking-modal input.form-input:not(.ctc-phone-input),
+  #ctc-booking-modal .form-input:not(.ctc-phone-input):not(textarea),
+  #ctc-booking-modal .form-select:not(.ctc-country-select),
+  #ctc-booking-modal select.form-select:not(.ctc-country-select),
+  #ctc-booking-modal .ctc-phone-group-wrapper {
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    padding: 2px 6px !important;
+    font-size: 10.5px !important;
+    border-radius: 6px !important;
+  }
+
+  #ctc-booking-modal textarea.form-input,
+  #ctc-booking-modal textarea#wiz_quote_details {
+    height: auto !important;
+    min-height: 44px !important;
+    max-height: 75px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    border-radius: 6px !important;
+  }
+
+  #ctc-booking-modal .ctc-form-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px 6px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #ctc-booking-modal .form-group {
+    margin-bottom: 3px !important;
+  }
+
+  /* Footer in Mobile Landscape: Always Horizontal and Compact */
+  #ctc-booking-modal .wiz-action-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-top: auto !important;
+    padding-top: 4px !important;
+    flex-shrink: 0 !important;
+    border-top: 1px solid #E2E8F0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  #ctc-booking-modal .wiz-action-footer .ctc-solid-btn,
+  #ctc-booking-modal .wiz-action-footer button,
+  #ctc-booking-modal .btn-wiz-primary,
+  #ctc-booking-modal .btn-wiz-secondary,
+  #ctc-booking-modal #ctc-wizard-submit-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 2px 8px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    flex: 1 1 0% !important;
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* ==========================================================================
+   MOBILE PORTRAIT DEDICATED STYLING (REDUCED MODAL PADDING & VERTICAL FOOTER)
+   ========================================================================== */
+@media (max-width: 600px) and (orientation: portrait),
+(max-width: 500px) and (min-height: 521px) {
+  #ctc-booking-modal.ctc-booking-modal-overlay {
+    padding: 10px 8px !important;
+  }
+
+  #ctc-booking-modal .ctc-booking-modal-container {
+    width: 96% !important;
+    max-width: 480px !important;
+    padding: 14px 14px 12px !important;
+    border-radius: 14px !important;
+    max-height: 95vh !important;
+    max-height: 95dvh !important;
+  }
+
+  #ctc-booking-modal .ctc-booking-modal-close {
+    top: 8px !important;
+    right: 8px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+    aspect-ratio: 1 / 1 !important;
+    padding: 0 !important;
+    font-size: 16px !important;
+  }
+
+  #ctc-booking-modal .wiz-header {
+    margin-bottom: 8px !important;
+    padding: 0 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-brand-logo-wrap {
+    margin-bottom: 4px !important;
+  }
+
+  #ctc-booking-modal .wiz-brand-logo {
+    max-height: 24px !important;
+    max-width: 120px !important;
+  }
+
+  #ctc-booking-modal .ctc-badge-pill {
+    margin-bottom: 5px !important;
+    padding: 3px 10px !important;
+    font-size: 10.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-modal-title {
+    font-size: 16px !important;
+    margin: 0 0 4px 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  #ctc-booking-modal .wiz-modal-subtitle {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+    max-width: 100% !important;
+  }
+
+  #ctc-booking-modal .wizard-steps-indicator {
+    margin-top: 2px !important;
+    margin-bottom: 8px !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Step 2 on Mobile Portrait */
+  #ctc-booking-modal .wiz-packages-grid {
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-package-card {
+    padding: 8px 12px !important;
+    min-height: 40px !important;
+    border-radius: 10px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-name {
+    font-size: 12.5px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-pkg-price {
+    font-size: 13px !important;
+  }
+
+  #ctc-booking-modal .wiz-pricing-cta-wrap {
+    display: block !important;
+    margin-top: 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-pricing-cta-btn {
+    display: flex !important;
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 11px !important;
+  }
+
+  #ctc-booking-modal .form-label {
+    margin-bottom: 4px !important;
+    font-size: 11.5px !important;
+  }
+
+  #ctc-booking-modal textarea.form-input,
+  #ctc-booking-modal textarea#wiz_quote_details {
+    height: auto !important;
+    min-height: 56px !important;
+    max-height: 100px !important;
+    padding: 6px 10px !important;
+    line-height: 1.4 !important;
+  }
+
+  #ctc-booking-modal .wiz-action-footer {
+    flex-direction: column-reverse !important;
+    gap: 6px !important;
+    padding-top: 6px !important;
+  }
+
+  #ctc-booking-modal .wiz-action-footer .ctc-solid-btn,
+  #ctc-booking-modal .wiz-action-footer button,
+  #ctc-booking-modal .btn-wiz-primary,
+  #ctc-booking-modal .btn-wiz-secondary,
+  #ctc-booking-modal #ctc-wizard-submit-btn {
+    width: 100% !important;
+    flex: none !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
 }

@@ -307,7 +307,14 @@ class CareToChina_Booking_Auth {
                         <div class="ctc-form-grid-2">
                             <div class="form-group">
                                 <label class="form-label"><?php esc_html_e('Phone Number *', 'caretochina-medical'); ?></label>
-                                <?php if (class_exists('CareToChina_Country_Helper')) { echo CareToChina_Country_Helper::render_phone_input_group('user_phone', $prefill_phone, true, '+1 (800) 555-0199', 'reg_user_phone'); } else { echo '<input type="tel" name="user_phone" class="form-input" value="' . esc_attr($prefill_phone) . '" placeholder="+1 (800) 555-0199" required>'; } ?>
+                                <?php 
+                                if (class_exists('CareToChina_Country_Helper')) { 
+                                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped HTML from CareToChina_Country_Helper.
+                                    echo CareToChina_Country_Helper::render_phone_input_group('user_phone', $prefill_phone, true, '+1 (800) 555-0199', 'reg_user_phone'); 
+                                } else { 
+                                    echo '<input type="tel" name="user_phone" class="form-input" value="' . esc_attr($prefill_phone) . '" placeholder="+1 (800) 555-0199" required>'; 
+                                } 
+                                ?>
                             </div>
                             <div class="form-group">
                                 <label class="form-label"><?php esc_html_e('Age', 'caretochina-medical'); ?></label>
@@ -358,7 +365,14 @@ class CareToChina_Booking_Auth {
                         <div class="ctc-form-grid-2">
                             <div class="form-group">
                                 <label class="form-label"><?php esc_html_e('WhatsApp', 'caretochina-medical'); ?></label>
-                                <?php if (class_exists('CareToChina_Country_Helper')) { echo CareToChina_Country_Helper::render_phone_input_group('user_whatsapp', $prefill_whatsapp, false, '+1 (800) 555-0199', 'reg_user_whatsapp'); } else { echo '<input type="tel" name="user_whatsapp" class="form-input" value="' . esc_attr($prefill_whatsapp) . '" placeholder="+1 (800) 555-0199">'; } ?>
+                                <?php 
+                                if (class_exists('CareToChina_Country_Helper')) { 
+                                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped HTML from CareToChina_Country_Helper.
+                                    echo CareToChina_Country_Helper::render_phone_input_group('user_whatsapp', $prefill_whatsapp, false, '+1 (800) 555-0199', 'reg_user_whatsapp'); 
+                                } else { 
+                                    echo '<input type="tel" name="user_whatsapp" class="form-input" value="' . esc_attr($prefill_whatsapp) . '" placeholder="+1 (800) 555-0199">'; 
+                                } 
+                                ?>
                             </div>
                             <div class="form-group">
                                 <label class="form-label"><?php esc_html_e('WeChat', 'caretochina-medical'); ?></label>
@@ -493,7 +507,9 @@ class CareToChina_Booking_Auth {
         $wechat       = isset($_POST['user_wechat']) ? sanitize_text_field(wp_unslash($_POST['user_wechat'])) : '';
         $messenger    = isset($_POST['user_messenger']) ? sanitize_text_field(wp_unslash($_POST['user_messenger'])) : '';
         $linkedin     = isset($_POST['user_linkedin']) ? sanitize_text_field(wp_unslash($_POST['user_linkedin'])) : '';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Passwords must preserve special characters and are hashed securely.
         $pass         = isset($_POST['user_pass']) ? wp_unslash($_POST['user_pass']) : '';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Passwords must preserve special characters and are hashed securely.
         $pass_confirm = isset($_POST['user_pass_confirm']) ? wp_unslash($_POST['user_pass_confirm']) : '';
 
         if (empty($name) || empty($email) || empty($phone) || empty($gender) || empty($pass)) {

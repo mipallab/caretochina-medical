@@ -150,6 +150,7 @@ class CareToChina_Hospitals_Plugin {
     public function render_hospital_metabox($post) {
         wp_nonce_field('save_hospital_meta', 'hospital_meta_nonce');
 
+        $sub_heading        = get_post_meta($post->ID, '_hospital_sub_heading', true);
         $type               = get_post_meta($post->ID, '_hospital_type', true);
         $location           = get_post_meta($post->ID, '_hospital_location', true);
         $rating             = get_post_meta($post->ID, '_hospital_rating', true);
@@ -178,6 +179,11 @@ class CareToChina_Hospitals_Plugin {
         <div class="ctc-mb-section">
             <div class="ctc-mb-sec-title"><i class="fas fa-hospital-alt"></i> <?php esc_html_e('Hospital Profile & Badges', 'caretochina-medical'); ?></div>
             <div class="ctc-mb-grid">
+                <div class="ctc-mb-field full">
+                    <label><?php esc_html_e('Hospital Sub Heading / Tagline', 'caretochina-medical'); ?></label>
+                    <input type="text" name="hospital_sub_heading" value="<?php echo esc_attr($sub_heading); ?>" placeholder="<?php esc_attr_e('e.g. World-Class Tertiary Medical Care & Advanced Research Center', 'caretochina-medical'); ?>">
+                    <span class="ctc-mb-hint"><?php esc_html_e('Subtitle displayed directly under the main title on the single hospital page.', 'caretochina-medical'); ?></span>
+                </div>
                 <div class="ctc-mb-field">
                     <label><?php esc_html_e('Hospital Type', 'caretochina-medical'); ?></label>
                     <input type="text" name="hospital_type" value="<?php echo esc_attr($type); ?>" placeholder="e.g. JCI Accredited Multi-Specialty Hospital Center">
@@ -246,6 +252,7 @@ class CareToChina_Hospitals_Plugin {
         if (!current_user_can('edit_post', $post_id)) return;
 
         $fields = [
+            'hospital_sub_heading'   => '_hospital_sub_heading',
             'hospital_type'          => '_hospital_type',
             'hospital_location'      => '_hospital_location',
             'hospital_rating'        => '_hospital_rating',
@@ -316,7 +323,7 @@ class CareToChina_Hospitals_Plugin {
         $whatsapp_url = '';
         if (!empty($final_whatsapp)) {
             $clean_phone = preg_replace('/[^0-9]/', '', $final_whatsapp);
-            $raw_msg = $settings['whatsapp_message'] ?? 'Hello CareToChina Concierge, I want to inquire and confirm my booking at {hospital_name}.';
+            $raw_msg = $settings['whatsapp_message'] ?? 'Hello CareToChina Service, I want to inquire and confirm my booking at {hospital_name}.';
             $resolved_msg = str_replace('{hospital_name}', $hospital_title, $raw_msg);
             $whatsapp_url = 'https://api.whatsapp.com/send?phone=' . urlencode($clean_phone) . '&text=' . rawurlencode($resolved_msg);
         }
@@ -344,7 +351,7 @@ class CareToChina_Hospitals_Plugin {
         }
 
         return [
-            'title'               => !empty($settings['concierge_title']) ? $settings['concierge_title'] : __('CareToChina Concierge', 'caretochina-medical'),
+            'title'               => !empty($settings['concierge_title']) ? $settings['concierge_title'] : __('CareToChina Service', 'caretochina-medical'),
             'subtitle'            => $settings['concierge_subtitle'] ?? '',
             'badge'               => $settings['concierge_badge'] ?? __('24/7 Dedicated Support', 'caretochina-medical'),
             'services'            => $settings['services'] ?? [],
@@ -371,7 +378,7 @@ class CareToChina_Hospitals_Plugin {
             'email'               => [
                 'address' => $final_email,
                 'url'     => $email_url,
-                'label'   => $settings['email_label'] ?? __('Direct Email Concierge', 'caretochina-medical'),
+                'label'   => $settings['email_label'] ?? __('Direct Email Service', 'caretochina-medical'),
             ],
             'facebook'            => [
                 'url'   => $final_facebook,

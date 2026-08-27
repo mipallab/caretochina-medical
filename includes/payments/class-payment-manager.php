@@ -20,6 +20,7 @@ class CareToChina_Payment_Manager {
     public function get_booking($booking_id) {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", intval($booking_id)));
     }
 
@@ -118,6 +119,7 @@ class CareToChina_Payment_Manager {
         // Update denormalized cache on caretochina_bookings
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update($table_bookings, [
             'wc_order_id'     => $order->get_id(),
             'amount'          => $amount,
@@ -138,6 +140,7 @@ class CareToChina_Payment_Manager {
         $table_events = $wpdb->prefix . 'caretochina_processed_webhook_events';
 
         // Atomic Event-ID Deduplication: INSERT IGNORE
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $inserted = $wpdb->query($wpdb->prepare(
             "INSERT IGNORE INTO {$wpdb->prefix}caretochina_processed_webhook_events (event_id, gateway, event_type) VALUES (%s, %s, %s)",
             $event_id,
@@ -170,8 +173,8 @@ class CareToChina_Payment_Manager {
 
         if (!$booking_id && !empty($transaction_id)) {
             // Attempt to resolve booking ID from WooCommerce order meta
-            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
             $orders = wc_get_orders([
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
                 'meta_key'   => '_caretochina_booking_id',
                 'limit'      => 1,
             ]);
@@ -233,6 +236,7 @@ class CareToChina_Payment_Manager {
         // Write denormalized cache back to caretochina_bookings
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update($table_bookings, [
             'status'          => 'confirmed',
             'invoice_status'  => 'Paid / Confirmed',
@@ -245,7 +249,9 @@ class CareToChina_Payment_Manager {
 
         // If booking was converted from a chat payment request, mark that request as accepted_paid
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_requests))) === $table_requests) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update(
                 $table_requests,
                 ['status' => 'accepted_paid'],
@@ -284,6 +290,7 @@ class CareToChina_Payment_Manager {
 
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update($table_bookings, [
             'status'         => 'payment_failed',
             'invoice_status' => 'Payment Failed',
@@ -370,6 +377,7 @@ class CareToChina_Payment_Manager {
             // Write denormalized cache back to caretochina_bookings immediately
             global $wpdb;
             $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_bookings, [
                 'status'         => $new_status,
                 'invoice_status' => $invoice_status,
@@ -414,6 +422,7 @@ class CareToChina_Payment_Manager {
 
             global $wpdb;
             $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_bookings, [
                 'status'         => 'cancelled',
                 'invoice_status' => 'Cancelled',
@@ -436,6 +445,7 @@ class CareToChina_Payment_Manager {
 
             global $wpdb;
             $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_bookings, [
                 'status'         => 'cancelled',
                 'invoice_status' => 'Cancelled (No Refund)',
@@ -457,6 +467,7 @@ class CareToChina_Payment_Manager {
     public function add_audit_log($booking_id, $wc_order_id, $actor_id, $action, $amount, $notes) {
         global $wpdb;
         $table_logs = $wpdb->prefix . 'caretochina_payment_audit_logs';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->insert($table_logs, [
             'booking_id'  => intval($booking_id),
             'wc_order_id' => intval($wc_order_id),

@@ -133,9 +133,18 @@ class CareToChina_Data_Exporter {
 
         // Dump Plugin Options (Values remain encrypted as ciphertext, never decrypted)
         $option_names = self::get_plugin_option_names();
-        $escaped_options = "'" . implode("', '", array_map('esc_sql', $option_names)) . "'";
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-        $options_rows = $wpdb->get_results("SELECT option_name, option_value, autoload FROM {$wpdb->options} WHERE option_name IN ($escaped_options)", ARRAY_A);
+        $options_rows = [];
+        foreach ($option_names as $opt_key) {
+            $val = get_option($opt_key, null);
+            if ($val !== null) {
+                $val_str = is_scalar($val) ? (string) $val : maybe_serialize($val);
+                $options_rows[] = [
+                    'option_name'  => $opt_key,
+                    'option_value' => $val_str,
+                    'autoload'     => 'yes',
+                ];
+            }
+        }
 
         if (!empty($options_rows)) {
             $sql .= "-- -------------------------------------------------------------------------\n";

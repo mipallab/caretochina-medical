@@ -3,10 +3,10 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, Coordinator Portal, and Headless WooCommerce Payments.
- * Version: 2.2.0
+ * Version: 2.2.2
  * Requires at least: 6.0
  * Requires PHP: 7.4
- * Tested up to: 6.7.2
+ * Tested up to: 7.1
  * Author: CareToChina Team
  * Author URI: https://caretochina.com
  * License: GPLv2 or later
@@ -38,7 +38,7 @@ if (isset($wp_version) && version_compare($wp_version, '6.0', '<')) {
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '2.2.0');
+define('CARETOCHINA_MEDICAL_VERSION', '2.2.2');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
 

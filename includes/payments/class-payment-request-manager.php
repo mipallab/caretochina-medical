@@ -62,6 +62,7 @@ class CareToChina_Payment_Request_Manager {
             wp_send_json_error(['message' => __('Invalid booking/thread context.', 'caretochina-medical')]);
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $chat_thread_booking_id));
         if (!$thread_booking) {
             wp_send_json_error(['message' => __('Chat thread booking not found.', 'caretochina-medical')]);
@@ -72,6 +73,7 @@ class CareToChina_Payment_Request_Manager {
             $user = get_user_by('email', $thread_booking->email);
             if ($user) {
                 $patient_id = $user->ID;
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->update($table_bookings, ['patient_id' => $patient_id, 'is_guest' => 0], ['id' => $chat_thread_booking_id]);
             }
         }
@@ -192,6 +194,7 @@ class CareToChina_Payment_Request_Manager {
         ]);
 
         $message_id = $wpdb->insert_id;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->update($table_requests, ['chat_message_id' => $message_id], ['id' => $request_id]);
 
         // Send Branded Email Notification to Patient
@@ -261,6 +264,7 @@ class CareToChina_Payment_Request_Manager {
             wp_send_json_error(['message' => __('Invalid payment request ID.', 'caretochina-medical')]);
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_payment_requests WHERE id = %d", $request_id));
         if (!$request) {
             wp_send_json_error(['message' => __('Payment request not found.', 'caretochina-medical')]);
@@ -272,6 +276,7 @@ class CareToChina_Payment_Request_Manager {
         }
 
         // Atomic update status to cancelled
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $updated = $wpdb->query($wpdb->prepare(
             "UPDATE {$wpdb->prefix}caretochina_payment_requests SET status = 'cancelled' WHERE id = %d AND status IN ('pending', 'processing')",
             $request_id
@@ -313,6 +318,7 @@ class CareToChina_Payment_Request_Manager {
             wp_send_json_error(['message' => __('Invalid payment request ID.', 'caretochina-medical')]);
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_payment_requests WHERE id = %d", $request_id));
         if (!$request) {
             wp_send_json_error(['message' => __('Payment request not found.', 'caretochina-medical')]);
@@ -320,6 +326,7 @@ class CareToChina_Payment_Request_Manager {
 
         // SECURITY CHECK: Dual-layer patient ownership verification
         $current_patient_id = get_current_user_id();
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
         
         $is_owner = (intval($request->patient_id) === $current_patient_id);
@@ -328,8 +335,10 @@ class CareToChina_Payment_Request_Manager {
             if ($current_user->exists() && (intval($thread_booking->patient_id) === $current_patient_id || strcasecmp($current_user->user_email, $thread_booking->email) === 0)) {
                 $is_owner = true;
                 // Auto-link to current user
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->update($table_requests, ['patient_id' => $current_patient_id], ['id' => $request_id]);
                 if (intval($thread_booking->patient_id) === 0) {
+                    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                     $wpdb->update($table_bookings, ['patient_id' => $current_patient_id, 'is_guest' => 0], ['id' => $thread_booking->id]);
                 }
             }
@@ -348,6 +357,7 @@ class CareToChina_Payment_Request_Manager {
         }
 
         // ATOMIC COMPARE-AND-SWAP DUPLICATE-ACCEPT IDEMPOTENCY LOCK
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $affected = $wpdb->query($wpdb->prepare(
             "UPDATE {$wpdb->prefix}caretochina_payment_requests SET status = 'processing' WHERE id = %d AND status = 'pending'",
             $request_id
@@ -360,12 +370,14 @@ class CareToChina_Payment_Request_Manager {
             $patient_user = wp_get_current_user();
             $booking_code = 'BK-' . strtoupper(wp_generate_password(8, false, false));
 
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $thread_booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", intval($request->chat_thread_booking_id)));
 
             $full_name = $patient_user->display_name ?: ($thread_booking ? $thread_booking->full_name : 'Patient');
             $email     = $patient_user->user_email ?: ($thread_booking ? $thread_booking->email : '');
             $phone     = get_user_meta($current_patient_id, 'patient_phone', true) ?: ($thread_booking ? $thread_booking->phone : '');
 
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->insert($table_bookings, [
                 'booking_code'     => $booking_code,
                 'patient_id'       => $current_patient_id,
@@ -388,6 +400,7 @@ class CareToChina_Payment_Request_Manager {
             ]);
 
             $converted_booking_id = $wpdb->insert_id;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_requests, ['converted_booking_id' => $converted_booking_id], ['id' => $request_id]);
         }
 
@@ -406,6 +419,7 @@ class CareToChina_Payment_Request_Manager {
     public static function render_card($request_id, $is_staff = false) {
         global $wpdb;
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $req = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_payment_requests WHERE id = %d", $request_id));
 
         if (!$req) {

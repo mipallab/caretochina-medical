@@ -71,11 +71,13 @@ class CareToChina_Staff_Portal {
 
         $pending_bookings = 0;
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_bookings = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
         }
 
         $unread_messages = 0;
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_messages = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
         }
 
@@ -414,6 +416,7 @@ class CareToChina_Staff_Portal {
 
         $pending_bookings_count = 0;
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
         }
 
@@ -428,6 +431,7 @@ class CareToChina_Staff_Portal {
         }
 
         $chat_conversations = $this->get_chat_conversations(30);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $all_bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 10));
         $bookings = !empty($all_bookings) ? $all_bookings : [];
 
@@ -961,6 +965,7 @@ class CareToChina_Staff_Portal {
 
         // 1. Pending Bookings (New Bookings requiring approval)
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 6));
             if (!empty($pending_list)) {
                 foreach ($pending_list as $b) {
@@ -981,6 +986,7 @@ class CareToChina_Staff_Portal {
 
         // 2. Unread Messages from Patients
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_msg_list = $wpdb->get_results($wpdb->prepare("
                 SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
                 FROM {$wpdb->prefix}caretochina_messages m 
@@ -1058,15 +1064,18 @@ class CareToChina_Staff_Portal {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) !== $table_bookings) {
             return [];
         }
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $has_messages = ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages);
 
         if ($has_messages) {
-            $query = "
-                SELECT b.*,
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return $wpdb->get_results($wpdb->prepare(
+                "SELECT b.*,
                        m.message as last_msg_text,
                        m.attachment_type as last_msg_att_type,
                        m.attachment_name as last_msg_att_name,
@@ -1080,10 +1089,11 @@ class CareToChina_Staff_Portal {
                 )
                 WHERE b.status IN ('confirmed', 'completed', 'waiting')
                 ORDER BY COALESCE(m.created_at, b.created_at) DESC
-                LIMIT %d
-            ";
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            return $wpdb->get_results($wpdb->prepare($query, 'patient', 0, $limit));
+                LIMIT %d",
+                'patient',
+                0,
+                $limit
+            ));
         } else {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             return $wpdb->get_results($wpdb->prepare("SELECT b.*, NULL as last_msg_text, NULL as last_msg_att_type, NULL as last_msg_att_name, NULL as last_msg_sender, NULL as last_msg_type, NULL as last_msg_time, 0 as unread_count FROM {$wpdb->prefix}caretochina_bookings b WHERE b.status IN ('confirmed', 'completed', 'waiting') ORDER BY b.id DESC LIMIT %d", $limit));
@@ -1250,7 +1260,9 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $count = intval($wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings"));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $latest = $wpdb->get_row($wpdb->prepare("SELECT booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 1));
         
         wp_send_json_success([
@@ -1281,6 +1293,7 @@ class CareToChina_Staff_Portal {
         }
 
         $username = isset($_POST['username']) ? sanitize_text_field(wp_unslash($_POST['username'])) : '';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Passwords must preserve special characters.
         $password = isset($_POST['password']) ? wp_unslash($_POST['password']) : '';
 
         $user = wp_signon(['user_login' => $username, 'user_password' => $password, 'remember' => true], is_ssl());
@@ -1309,6 +1322,7 @@ class CareToChina_Staff_Portal {
         $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
         $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
         $username = isset($_POST['username']) ? sanitize_user(wp_unslash($_POST['username'])) : '';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Passwords must preserve special characters.
         $password = isset($_POST['password']) ? wp_unslash($_POST['password']) : '';
 
         if (empty($name) || empty($email) || empty($username) || empty($password)) {
@@ -1355,6 +1369,7 @@ class CareToChina_Staff_Portal {
         $status = isset($_POST['status']) ? sanitize_key(wp_unslash($_POST['status'])) : 'pending';
 
         if ($id > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_bookings, ['status' => $status], ['id' => $id]);
             wp_send_json_success(['status' => strtoupper($status)]);
         }
@@ -1374,12 +1389,14 @@ class CareToChina_Staff_Portal {
         $id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
 
         if ($id > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
             if (!$booking) {
                 wp_send_json_error(['message' => __('Booking not found.', 'caretochina-medical')]);
             }
 
             // 1. Update status to confirmed
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($table_bookings, ['status' => 'confirmed'], ['id' => $id]);
 
             // 2. Send default message in chat
@@ -1443,8 +1460,10 @@ class CareToChina_Staff_Portal {
         global $wpdb;
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->query($wpdb->prepare("UPDATE {$wpdb->prefix}caretochina_messages SET is_read = %d WHERE booking_id = %d AND sender_type = %s", 1, $booking_id, 'patient'));
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $messages = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = %d ORDER BY id ASC", $booking_id));
 
         $chat_html = '';
@@ -1516,6 +1535,7 @@ class CareToChina_Staff_Portal {
 
         // Check if booking exists and is approved (confirmed/completed)
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
         if (!$booking) {
             wp_send_json_error(['message' => __('Patient booking record not found.', 'caretochina-medical')]);
@@ -1533,6 +1553,7 @@ class CareToChina_Staff_Portal {
         $attachment_type = '';
 
         if (!empty($_FILES['attachment']) && !empty($_FILES['attachment']['name'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $file = $_FILES['attachment'];
 
             // 1. Check size (max 2MB = 2097152 bytes)
@@ -1761,9 +1782,11 @@ class CareToChina_Staff_Portal {
         $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $booking_id));
             if ($booking) {
                 // Delete messages for this booking
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->delete($table_messages, ['booking_id' => $booking_id]);
 
                 // Delete booking itself
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->delete($table_bookings, ['id' => $booking_id]);
 
                 // Delete patient WP User account if exists and has the role 'patient'
@@ -1805,19 +1828,23 @@ class CareToChina_Staff_Portal {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
         // 1. Get total and pending bookings count
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $bookings_count = intval($wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings"));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $latest_booking = $wpdb->get_row($wpdb->prepare("SELECT booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 1));
 
         // 2. Get unread messages count
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $unread_messages_count = intval($wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d",
-                'patient',
-                0
-            )));
+        $unread_messages_count = intval($wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d",
+            'patient',
+            0
+        )));
 
         // 3. Get latest unread message from a patient
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $latest_message = $wpdb->get_row($wpdb->prepare("
             SELECT m.*, b.booking_code, b.full_name as patient_name 
             FROM {$wpdb->prefix}caretochina_messages m 
@@ -1830,6 +1857,7 @@ class CareToChina_Staff_Portal {
         
         // Fetch pending bookings list
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 5));
             foreach ($pending_list as $item) {
                 $unread_items[] = [
@@ -1847,6 +1875,7 @@ class CareToChina_Staff_Portal {
 
         // Fetch unread messages list
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_msg_list = $wpdb->get_results($wpdb->prepare("
                 SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
                 FROM {$wpdb->prefix}caretochina_messages m 
@@ -1918,6 +1947,7 @@ class CareToChina_Staff_Portal {
 
             // 1. Fetch pending bookings
             if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 3));
                 foreach ($pending_list as $item) {
                     $wp_admin_bar->add_node([
@@ -1931,6 +1961,7 @@ class CareToChina_Staff_Portal {
 
             // 2. Fetch unread patient messages
             if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $unread_msg_list = $wpdb->get_results($wpdb->prepare("
                     SELECT m.id, m.booking_id, m.message, b.booking_code, b.full_name as patient_name 
                     FROM {$wpdb->prefix}caretochina_messages m 
@@ -1999,6 +2030,7 @@ class CareToChina_Staff_Portal {
         
         $id = isset($_POST['booking_id']) ? absint($_POST['booking_id']) : 0;
         if ($id > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $b = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $id));
             if ($b) {
                 wp_send_json_success([
@@ -2099,6 +2131,7 @@ class CareToChina_Staff_Portal {
 
         global $wpdb;
         $table_logs = $wpdb->prefix . 'caretochina_payment_audit_logs';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $logs = $wpdb->get_results($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}caretochina_payment_audit_logs WHERE booking_id = %d ORDER BY id DESC LIMIT %d",
             $booking_id,

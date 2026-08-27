@@ -104,6 +104,7 @@ class CareToChina_Google_Login {
         // Check for OAuth error response
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (!empty($_GET['error'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $error_desc = isset($_GET['error_description']) ? sanitize_text_field(wp_unslash($_GET['error_description'])) : (isset($_GET['error']) ? sanitize_text_field(wp_unslash($_GET['error'])) : '');
             /* translators: %s: Error description */
             $this->redirect_with_error(sprintf(__('Google authentication failed: %s', 'caretochina-medical'), $error_desc));
@@ -199,12 +200,13 @@ class CareToChina_Google_Login {
         }
 
         // 1. Check if user exists by Google Sub meta (already linked)
-        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+        // phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
         $sub_query = get_users([
             'meta_key'   => '_ctc_google_sub',
             'meta_value' => $google_sub,
             'number'     => 1,
         ]);
+        // phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 
         if (!empty($sub_query)) {
             $user = $sub_query[0];

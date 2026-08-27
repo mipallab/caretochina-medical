@@ -176,6 +176,7 @@ class CareToChina_Transaction_CPT {
     public static function sync_transaction($booking_id, $wc_order_id, $action, $amount, $notes = '') {
         global $wpdb;
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $booking = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE id = %d", $booking_id));
 
         if (!$booking) {
@@ -183,7 +184,7 @@ class CareToChina_Transaction_CPT {
         }
 
         // Check if transaction post already exists for this booking/order
-        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+        // phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
         $existing_posts = get_posts([
             'post_type'      => 'ctc_transaction',
             'post_status'    => 'any',
@@ -191,6 +192,7 @@ class CareToChina_Transaction_CPT {
             'meta_key'       => '_ctc_booking_id',
             'meta_value'     => $booking_id,
         ]);
+        // phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 
         $status = $booking->status;
         if ($action === 'refund_full') $status = 'refund_full';

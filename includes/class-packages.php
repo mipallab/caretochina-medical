@@ -362,7 +362,7 @@ class CareToChina_Packages {
                 <i class="dashicons dashicons-lock" style="vertical-align:middle; margin-right:4px;"></i>
                 <?php
                 /* translators: %d: Reference count */
-                printf(esc_html__('Locked Deletion: This package is currently referenced by %d booking(s) and/or payment request(s). It cannot be permanently deleted (deactivate to hide from new bookings).', 'caretochina-medical'), $ref_count);
+                echo esc_html(sprintf(__('Locked Deletion: This package is currently referenced by %d booking(s) and/or payment request(s). It cannot be permanently deleted (deactivate to hide from new bookings).', 'caretochina-medical'), absint($ref_count)));
                 ?>
             </div>
         <?php endif; ?>
@@ -676,12 +676,13 @@ class CareToChina_Packages {
                     <span class="dashicons dashicons-warning" style="vertical-align:middle; margin-right:4px;"></span>
                     <strong><?php esc_html_e('Action Required:', 'caretochina-medical'); ?></strong>
                     <?php
-                    /* translators: 1: Currency code, 2: Packages list */
-                    printf(
-                        esc_html__('The following package(s) currently have a price of 0.00 and are inactive: %2$s. Please edit each package, configure its price in your store currency (%1$s), and activate it for patient booking.', 'caretochina-medical'),
+                    $zero_pkg_notice = sprintf(
+                        /* translators: 1: Currency code, 2: Packages list */
+                        __('The following package(s) currently have a price of 0.00 and are inactive: %2$s. Please edit each package, configure its price in your store currency (%1$s), and activate it for patient booking.', 'caretochina-medical'),
                         '<strong>' . esc_html($currency) . '</strong>',
                         '<strong>' . esc_html(implode(', ', $zero_price_pkgs)) . '</strong>'
                     );
+                    echo wp_kses_post($zero_pkg_notice);
                     ?>
                 </p>
             </div>

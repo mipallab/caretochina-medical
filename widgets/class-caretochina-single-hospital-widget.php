@@ -109,6 +109,7 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
 
         $post_id       = $post->ID;
         $title         = get_the_title($post_id);
+        $sub_heading   = get_post_meta($post_id, '_hospital_sub_heading', true);
         $type          = get_post_meta($post_id, '_hospital_type', true) ?: __('JCI Accredited Multi-Specialty Hospital Center', 'caretochina-medical');
         $location      = get_post_meta($post_id, '_hospital_location', true) ?: 'Shanghai, China';
         $rating        = get_post_meta($post_id, '_hospital_rating', true) ?: '4.9 (1,240 Reviews)';
@@ -149,6 +150,9 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
                         <span class="ctc-hero-rating"><i class="fa fa-star"></i> <?php echo esc_html($rating); ?></span>
                     </div>
                     <h1 class="cy-heading ctc-hero-title"><?php echo esc_html($title); ?></h1>
+                    <?php if (!empty($sub_heading)) : ?>
+                        <p class="cy-subheading ctc-hero-subtitle"><?php echo esc_html($sub_heading); ?></p>
+                    <?php endif; ?>
 
                     <?php if ($settings['show_quote_btn'] === 'yes') : ?>
                         <div class="ctc-hero-cta-row">
@@ -523,7 +527,15 @@ sprintf(__('Visit CareToChina on %s', 'caretochina-medical'), $csoc_title)); ?>"
                 font-size: 2.2rem;
                 font-weight: 800;
                 color: #0f172a;
-                margin: 0 0 10px 0;
+                margin: 0 0 8px 0;
+            }
+            .ctc-hero-subtitle {
+                font-family: 'Manrope', sans-serif;
+                font-size: 1.05rem;
+                font-weight: 500;
+                color: #475569;
+                margin: 0 0 18px 0;
+                line-height: 1.5;
             }
             .ctc-hero-address {
                 color: #64748b;
@@ -866,6 +878,9 @@ sprintf(__('Visit CareToChina on %s', 'caretochina-medical'), $csoc_title)); ?>"
             html.dark-theme .ctc-box-title, body.dark-theme .ctc-box-title,
             html.dark-theme .ctc-sidebar-title, body.dark-theme .ctc-sidebar-title {
                 color: #f8fafc !important;
+            }
+            html.dark-theme .ctc-hero-subtitle, body.dark-theme .ctc-hero-subtitle {
+                color: #94a3b8 !important;
             }
             html.dark-theme .ctc-hero-address, body.dark-theme .ctc-hero-address,
             html.dark-theme .ctc-box-body, body.dark-theme .ctc-box-body {
