@@ -209,6 +209,26 @@ class CareToChina_Packages {
                 'companion'   => '1 companion for health check + TCM pulse diagnosis for 2 + 15-day TCM herbal regimen for 2 + Male (TCM therapy) + Female (beauty & wellness)',
                 'travel'      => 'Full Guangzhou landmark experience: Canton Tower summit tour + luxury Pearl River night cruise + in-depth Beijing Road night tour + Shamian Island + Five Rams Statue photo stop + Chimelong Circus + Chimelong Safari Park + Chimelong Ocean Kingdom',
                 'positioning' => 'The highest-tier, one-stop premium medical escort experience, with dedicated vehicle, accommodation, and travel/leisure services all included, with English interpretation throughout. Ideal for high-net-worth overseas patients and premium families seeking a fully customized medical journey.',
+                'matrix'      => [
+                    'med_report'       => 'Full',
+                    'hosp_recom'       => 'Yes',
+                    'treatment_plan'   => 'Yes',
+                    'video_consult'    => '1',
+                    'doc_visa'         => 'Full',
+                    'priority_sched'   => '✓',
+                    'hospitalization'  => '1',
+                    'post_op'          => '1',
+                    'vip_fasttrack'    => '1',
+                    'vehicle'          => 'Luxury business',
+                    'interpreter'      => 'Full professional',
+                    'airport_transfer' => '1',
+                    'accommodation'    => 'Luxury suite · 2 nights',
+                    'dining'           => 'Custom menu for 2',
+                    'companion'        => '1 companion + TCM & wellness',
+                    'travel'           => 'Full Guangzhou landmarks',
+                    'support_247'      => '✓ (24/7 Dedicated)',
+                    'connectivity'     => '1',
+                ],
             ],
             [
                 'title'       => 'Plan B: Premium Exclusive Package',
@@ -225,6 +245,26 @@ class CareToChina_Packages {
                 'companion'   => '1 companion for health check + TCM pulse diagnosis for 2 + 7-day TCM herbal regimen for 2',
                 'travel'      => 'Full Guangzhou landmark experience: Canton Tower summit tour + Pearl River night cruise + Beijing Road night tour + Chimelong Safari Park + Shamian Island + Five Rams Statue photo stop',
                 'positioning' => 'A comprehensive upgrade to dining, accommodation, and leisure for a premium medical escort experience — ideal for families seeking comfort and a high quality of life during treatment.',
+                'matrix'      => [
+                    'med_report'       => 'Yes',
+                    'hosp_recom'       => 'Yes',
+                    'treatment_plan'   => 'Yes',
+                    'video_consult'    => '0',
+                    'doc_visa'         => 'Yes',
+                    'priority_sched'   => '✓',
+                    'hospitalization'  => '1',
+                    'post_op'          => '1',
+                    'vip_fasttrack'    => '0',
+                    'vehicle'          => 'Premium business',
+                    'interpreter'      => 'Professional',
+                    'airport_transfer' => '1',
+                    'accommodation'    => 'Quality hotel · 2 nights',
+                    'dining'           => 'Custom menu · 2 meals',
+                    'companion'        => '1 companion + TCM benefits',
+                    'travel'           => 'Full Guangzhou landmarks',
+                    'support_247'      => 'Business hours',
+                    'connectivity'     => '1',
+                ],
             ],
             [
                 'title'       => 'Plan C: Essential Select Package',
@@ -241,6 +281,26 @@ class CareToChina_Packages {
                 'companion'   => '',
                 'travel'      => 'Optional: Pearl River night cruise, Beijing Road night tour (interpreter provided)',
                 'positioning' => 'A great-value option combining reliable medical escort service with a light cultural city experience — ideal for overseas patients on shorter visits who prefer simple, comfortable service.',
+                'matrix'      => [
+                    'med_report'       => 'Yes',
+                    'hosp_recom'       => 'Yes',
+                    'treatment_plan'   => '—',
+                    'video_consult'    => '0',
+                    'doc_visa'         => 'Yes',
+                    'priority_sched'   => 'Scheduled',
+                    'hospitalization'  => '1',
+                    'post_op'          => '0',
+                    'vip_fasttrack'    => '0',
+                    'vehicle'          => 'Business + driver',
+                    'interpreter'      => 'Interpreter + device',
+                    'airport_transfer' => '1',
+                    'accommodation'    => 'Select hotel · 2 nights',
+                    'dining'           => 'Standard · 2 meals',
+                    'companion'        => '—',
+                    'travel'           => 'Optional city experiences',
+                    'support_247'      => '—',
+                    'connectivity'     => '1',
+                ],
             ],
             [
                 'title'       => 'Plan D: Convenient Select Package',
@@ -257,6 +317,26 @@ class CareToChina_Packages {
                 'companion'   => '',
                 'travel'      => 'No travel & leisure add-ons',
                 'positioning' => 'Streamlined, efficient, and great value — focused on core medical escort needs, ideal for overseas patients who require specific treatment only, without additional travel or leisure activities.',
+                'matrix'      => [
+                    'med_report'       => 'Basic',
+                    'hosp_recom'       => 'Basic',
+                    'treatment_plan'   => '—',
+                    'video_consult'    => '0',
+                    'doc_visa'         => 'Basic guidance',
+                    'priority_sched'   => 'Booking assistance',
+                    'hospitalization'  => '0',
+                    'post_op'          => '0',
+                    'vip_fasttrack'    => '0',
+                    'vehicle'          => 'Business + driver',
+                    'interpreter'      => 'Translation device',
+                    'airport_transfer' => '1',
+                    'accommodation'    => 'No accommodation',
+                    'dining'           => 'No dining',
+                    'companion'        => '—',
+                    'travel'           => 'No add-ons',
+                    'support_247'      => '—',
+                    'connectivity'     => '1',
+                ],
             ],
         ];
 
@@ -282,6 +362,12 @@ class CareToChina_Packages {
                 update_post_meta($post_id, '_ctc_pkg_positioning', $data['positioning']);
                 update_post_meta($post_id, '_ctc_pkg_timeline', $data['timeline']);
                 update_post_meta($post_id, '_ctc_pkg_is_active', 0);
+
+                if (!empty($data['matrix']) && is_array($data['matrix'])) {
+                    foreach ($data['matrix'] as $m_key => $m_val) {
+                        update_post_meta($post_id, '_ctc_pkg_matrix_' . $m_key, $m_val);
+                    }
+                }
             }
         }
 
@@ -450,6 +536,111 @@ class CareToChina_Packages {
                 <textarea name="ctc_pkg_medical_coordination" id="ctc_pkg_medical_coordination" rows="6" placeholder="• Medical Report Assessment&#10;• Video Consultation&#10;• VIP Fast-Track Access"><?php echo esc_textarea($coordination); ?></textarea>
                 <span class="ctc-pkg-hint"><?php esc_html_e('Enter bullet points or lines describing medical coordination procedures and doctor consultation benefits.', 'caretochina-medical'); ?></span>
             </div>
+
+            <!-- Comparison Table Matrix Configuration -->
+            <div class="ctc-pkg-admin-field full" style="margin-top: 15px; border-top: 2px solid #E2E8F0; padding-top: 20px;">
+                <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:800; color:#0F766E; display:flex; align-items:center; gap:8px;">
+                    <span class="dashicons dashicons-editor-table"></span>
+                    <?php esc_html_e('Comparison Matrix Table Row Settings', 'caretochina-medical'); ?>
+                </h3>
+                <p style="margin:0 0 16px 0; font-size:12px; color:#64748B;">
+                    <?php esc_html_e('Configure structured row values displayed for this package in the public Comparison Table (Leave empty to use automatic tier defaults).', 'caretochina-medical'); ?>
+                </p>
+
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:18px;">
+                    <div style="font-weight:700; font-size:12px; color:#0F766E; text-transform:uppercase; margin-bottom:10px;"><?php esc_html_e('1. Medical Coordination Rows', 'caretochina-medical'); ?></div>
+                    <div class="ctc-pkg-admin-grid">
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Medical report assessment', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_med_report" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_med_report', true)); ?>" placeholder="e.g. Full / Yes / Basic">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Hospital & specialist recommendations', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_hosp_recom" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_hosp_recom', true)); ?>" placeholder="e.g. Yes / Basic">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Treatment plan & cost estimate', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_treatment_plan" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_treatment_plan', true)); ?>" placeholder="e.g. Yes / —">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Pre-departure video consultation', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_video_consult" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_video_consult', true)); ?>" placeholder="e.g. ✓ / —">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Medical documents & visa assistance', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_doc_visa" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_doc_visa', true)); ?>" placeholder="e.g. Full / Yes / Basic guidance">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Priority consultation scheduling', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_priority_sched" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_priority_sched', true)); ?>" placeholder="e.g. ✓ / Scheduled / Booking assistance">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Hospitalization coordination', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_hospitalization" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_hospitalization', true)); ?>" placeholder="e.g. ✓ / —">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Post-operative follow-up', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_post_op" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_post_op', true)); ?>" placeholder="e.g. ✓ / —">
+                        </div>
+                        <div class="ctc-pkg-admin-field full">
+                            <label><?php esc_html_e('VIP fast-track access', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_vip_fasttrack" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_vip_fasttrack', true)); ?>" placeholder="e.g. ✓ / —">
+                        </div>
+                    </div>
+
+                    <div style="font-weight:700; font-size:12px; color:#0F766E; text-transform:uppercase; margin:16px 0 10px 0;"><?php esc_html_e('2. Transport & Language Rows', 'caretochina-medical'); ?></div>
+                    <div class="ctc-pkg-admin-grid">
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Dedicated vehicle', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_vehicle" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_vehicle', true)); ?>" placeholder="e.g. Luxury business / Premium business / Business + driver">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Bilingual interpreter / device', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_interpreter" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_interpreter', true)); ?>" placeholder="e.g. Full professional / Professional / Interpreter + device">
+                        </div>
+                        <div class="ctc-pkg-admin-field full">
+                            <label><?php esc_html_e('Airport transfer support', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_airport_transfer" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_airport_transfer', true)); ?>" placeholder="e.g. ✓ / —">
+                        </div>
+                    </div>
+
+                    <div style="font-weight:700; font-size:12px; color:#0F766E; text-transform:uppercase; margin:16px 0 10px 0;"><?php esc_html_e('3. Accommodation & Dining Rows', 'caretochina-medical'); ?></div>
+                    <div class="ctc-pkg-admin-grid">
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Accommodation', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_accommodation" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_accommodation', true)); ?>" placeholder="e.g. Luxury suite · 2 nights / Quality hotel · 2 nights / No accommodation">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Dining', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_dining" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_dining', true)); ?>" placeholder="e.g. Custom menu for 2 / Standard · 2 meals / No dining">
+                        </div>
+                    </div>
+
+                    <div style="font-weight:700; font-size:12px; color:#0F766E; text-transform:uppercase; margin:16px 0 10px 0;"><?php esc_html_e('4. Companion & Leisure Rows', 'caretochina-medical'); ?></div>
+                    <div class="ctc-pkg-admin-grid">
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Patient companion benefits', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_companion" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_companion', true)); ?>" placeholder="e.g. 1 companion + TCM & wellness / —">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('Travel & leisure', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_travel" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_travel', true)); ?>" placeholder="e.g. Full Guangzhou landmarks / Optional city experiences / No add-ons">
+                        </div>
+                    </div>
+
+                    <div style="font-weight:700; font-size:12px; color:#0F766E; text-transform:uppercase; margin:16px 0 10px 0;"><?php esc_html_e('5. Additional Support Rows', 'caretochina-medical'); ?></div>
+                    <div class="ctc-pkg-admin-grid">
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('24/7 service support', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_support_247" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_support_247', true)); ?>" placeholder="e.g. ✓ (24/7 Dedicated) / Business hours / —">
+                        </div>
+                        <div class="ctc-pkg-admin-field">
+                            <label><?php esc_html_e('International connectivity', 'caretochina-medical'); ?></label>
+                            <input type="text" name="ctc_pkg_matrix_connectivity" value="<?php echo esc_attr(get_post_meta($post->ID, '_ctc_pkg_matrix_connectivity', true)); ?>" placeholder="e.g. ✓ / —">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -492,6 +683,23 @@ class CareToChina_Packages {
         $travel        = isset($_POST['ctc_pkg_travel']) ? sanitize_textarea_field(wp_unslash($_POST['ctc_pkg_travel'])) : '';
         $positioning   = isset($_POST['ctc_pkg_positioning']) ? sanitize_textarea_field(wp_unslash($_POST['ctc_pkg_positioning'])) : '';
         $coordination  = isset($_POST['ctc_pkg_medical_coordination']) ? sanitize_textarea_field(wp_unslash($_POST['ctc_pkg_medical_coordination'])) : '';
+
+        // Matrix Meta fields
+        $matrix_fields = [
+            'med_report', 'hosp_recom', 'treatment_plan', 'video_consult',
+            'doc_visa', 'priority_sched', 'hospitalization', 'post_op', 'vip_fasttrack',
+            'vehicle', 'interpreter', 'airport_transfer',
+            'accommodation', 'dining', 'companion', 'travel',
+            'support_247', 'connectivity'
+        ];
+
+        foreach ($matrix_fields as $field_key) {
+            $post_key = 'ctc_pkg_matrix_' . $field_key;
+            $meta_key = '_ctc_pkg_matrix_' . $field_key;
+            if (isset($_POST[$post_key])) {
+                update_post_meta($post_id, $meta_key, sanitize_text_field(wp_unslash($_POST[$post_key])));
+            }
+        }
 
         update_post_meta($post_id, '_ctc_pkg_price', $price);
         update_post_meta($post_id, '_ctc_pkg_currency', self::get_store_currency());
@@ -618,14 +826,55 @@ class CareToChina_Packages {
         return $this->format_package_object($post);
     }
 
-    /**
-     * Format post into a clean Package object
-     */
     private function format_package_object($post) {
         $id       = $post->ID;
         $price    = floatval(get_post_meta($id, '_ctc_pkg_price', true));
         $currency = self::get_store_currency();
         $symbol   = self::get_currency_symbol($currency);
+
+        $matrix_fields = [
+            'med_report', 'hosp_recom', 'treatment_plan', 'video_consult',
+            'doc_visa', 'priority_sched', 'hospitalization', 'post_op', 'vip_fasttrack',
+            'vehicle', 'interpreter', 'airport_transfer',
+            'accommodation', 'dining', 'companion', 'travel',
+            'support_247', 'connectivity'
+        ];
+
+        $matrix = [];
+        foreach ($matrix_fields as $mk) {
+            $matrix[$mk] = get_post_meta($id, '_ctc_pkg_matrix_' . $mk, true);
+        }
+
+        // Tier fallback derivation for unset matrix keys
+        $title_lower = strtolower($post->post_title);
+        $order = intval($post->menu_order);
+        $is_plan_a = ($order === 1 || strpos($title_lower, 'plan a') !== false || strpos($title_lower, 'ultimate') !== false);
+        $is_plan_b = ($order === 2 || strpos($title_lower, 'plan b') !== false || strpos($title_lower, 'premium') !== false);
+        $is_plan_c = ($order === 3 || strpos($title_lower, 'plan c') !== false || strpos($title_lower, 'essential') !== false);
+        $is_plan_d = ($order === 4 || strpos($title_lower, 'plan d') !== false || strpos($title_lower, 'convenient') !== false);
+
+        if ($matrix['med_report'] === '') $matrix['med_report'] = $is_plan_a ? 'Full' : ($is_plan_d ? 'Basic' : 'Yes');
+        if ($matrix['hosp_recom'] === '') $matrix['hosp_recom'] = $is_plan_d ? 'Basic' : 'Yes';
+        if ($matrix['treatment_plan'] === '') $matrix['treatment_plan'] = ($is_plan_a || $is_plan_b) ? 'Yes' : '—';
+        if ($matrix['video_consult'] === '') $matrix['video_consult'] = $is_plan_a ? '1' : '0';
+        if ($matrix['doc_visa'] === '') $matrix['doc_visa'] = $is_plan_a ? 'Full' : ($is_plan_d ? 'Basic guidance' : 'Yes');
+        if ($matrix['priority_sched'] === '') $matrix['priority_sched'] = ($is_plan_a || $is_plan_b) ? '✓' : ($is_plan_c ? 'Scheduled' : 'Booking assistance');
+        if ($matrix['hospitalization'] === '') $matrix['hospitalization'] = $is_plan_d ? '0' : '1';
+        if ($matrix['post_op'] === '') $matrix['post_op'] = ($is_plan_a || $is_plan_b) ? '1' : '0';
+        if ($matrix['vip_fasttrack'] === '') $matrix['vip_fasttrack'] = $is_plan_a ? '1' : '0';
+
+        if ($matrix['vehicle'] === '') $matrix['vehicle'] = $is_plan_a ? 'Luxury business' : ($is_plan_b ? 'Premium business' : 'Business + driver');
+        if ($matrix['interpreter'] === '') $matrix['interpreter'] = $is_plan_a ? 'Full professional' : ($is_plan_b ? 'Professional' : ($is_plan_c ? 'Interpreter + device' : 'Translation device'));
+        if ($matrix['airport_transfer'] === '') $matrix['airport_transfer'] = '1';
+
+        if ($matrix['accommodation'] === '') $matrix['accommodation'] = $is_plan_a ? 'Luxury suite · 2 nights' : ($is_plan_b ? 'Quality hotel · 2 nights' : ($is_plan_c ? 'Select hotel · 2 nights' : 'No accommodation'));
+        if ($matrix['dining'] === '') $matrix['dining'] = $is_plan_a ? 'Custom menu for 2' : ($is_plan_b ? 'Custom menu · 2 meals' : ($is_plan_c ? 'Standard · 2 meals' : 'No dining'));
+
+        if ($matrix['companion'] === '') $matrix['companion'] = $is_plan_a ? '1 companion + TCM & wellness' : ($is_plan_b ? '1 companion + TCM benefits' : '—');
+        if ($matrix['travel'] === '') $matrix['travel'] = ($is_plan_a || $is_plan_b) ? 'Full Guangzhou landmarks' : ($is_plan_c ? 'Optional city experiences' : 'No add-ons');
+
+        if ($matrix['support_247'] === '') $matrix['support_247'] = $is_plan_a ? '✓ (24/7 Dedicated)' : ($is_plan_b ? 'Business hours' : '—');
+        if ($matrix['connectivity'] === '') $matrix['connectivity'] = '1';
 
         return (object) [
             'id'            => $id,
@@ -645,6 +894,7 @@ class CareToChina_Packages {
             'travel'        => get_post_meta($id, '_ctc_pkg_travel', true) ?: '',
             'positioning'   => get_post_meta($id, '_ctc_pkg_positioning', true) ?: '',
             'coordination'  => get_post_meta($id, '_ctc_pkg_medical_coordination', true) ?: '',
+            'matrix'        => $matrix,
             'is_active'     => intval(get_post_meta($id, '_ctc_pkg_is_active', true)),
             'order'         => $post->menu_order,
             'image'         => get_the_post_thumbnail_url($id, 'large') ?: '',

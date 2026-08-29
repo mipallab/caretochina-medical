@@ -69,6 +69,8 @@ class CareToChina_Page_Manager {
                 return home_url('/privacy-policy/');
             case 'terms':
                 return home_url('/terms-and-conditions/');
+            case 'pricing':
+                return home_url('/pricing/');
             default:
                 return home_url('/patient-login/');
         }
@@ -79,6 +81,12 @@ class CareToChina_Page_Manager {
      */
     public static function get_default_page_definitions() {
         return [
+            'pricing' => [
+                'title'     => __('Our Pricing Plan', 'caretochina-medical'),
+                'shortcode' => '[caretochina_pricing_plans]',
+                'slug'      => 'pricing',
+                'desc'      => __('Interactive service package pricing table, comparison matrix, and bento plan details with light/dark mode.', 'caretochina-medical'),
+            ],
             'patient_dashboard' => [
                 'title'     => __('Patient Portal & Dashboard', 'caretochina-medical'),
                 'shortcode' => '[caretochina_patient_dashboard]',

@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 // Load Plugin Sub-modules
 require_once CARETOCHINA_BOOKING_PATH . 'includes/class-db.php';
 require_once CARETOCHINA_BOOKING_PATH . 'includes/class-packages.php';
+require_once CARETOCHINA_BOOKING_PATH . 'includes/class-pricing-page.php';
 require_once CARETOCHINA_BOOKING_PATH . 'includes/class-booking-wizard.php';
 require_once CARETOCHINA_BOOKING_PATH . 'includes/class-patient-dashboard.php';
 require_once CARETOCHINA_BOOKING_PATH . 'includes/class-auth.php';
@@ -29,6 +30,7 @@ class CareToChina_Medical_Booking {
 
         // Initialize Modules
         CareToChina_Packages::instance();
+        CareToChina_Pricing_Page::instance();
         CareToChina_Booking_Wizard::instance();
         CareToChina_Patient_Dashboard::instance();
         CareToChina_Booking_Auth::instance();

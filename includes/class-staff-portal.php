@@ -70,12 +70,14 @@ class CareToChina_Staff_Portal {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
         $pending_bookings = 0;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_bookings = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
         }
 
         $unread_messages = 0;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_messages = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
@@ -415,12 +417,14 @@ class CareToChina_Staff_Portal {
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
         $pending_bookings_count = 0;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
         }
 
         $unread_messages_count = 0;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_messages_count = intval($wpdb->get_var($wpdb->prepare(
@@ -964,6 +968,7 @@ class CareToChina_Staff_Portal {
         $items = [];
 
         // 1. Pending Bookings (New Bookings requiring approval)
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 6));
@@ -985,6 +990,7 @@ class CareToChina_Staff_Portal {
         }
 
         // 2. Unread Messages from Patients
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_msg_list = $wpdb->get_results($wpdb->prepare("
@@ -1856,6 +1862,7 @@ class CareToChina_Staff_Portal {
         $unread_items = [];
         
         // Fetch pending bookings list
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 5));
@@ -1874,6 +1881,7 @@ class CareToChina_Staff_Portal {
         }
 
         // Fetch unread messages list
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $unread_msg_list = $wpdb->get_results($wpdb->prepare("
@@ -1946,6 +1954,7 @@ class CareToChina_Staff_Portal {
             $table_messages = $wpdb->prefix . 'caretochina_messages';
 
             // 1. Fetch pending bookings
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 3));
@@ -1960,6 +1969,7 @@ class CareToChina_Staff_Portal {
             }
 
             // 2. Fetch unread patient messages
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $unread_msg_list = $wpdb->get_results($wpdb->prepare("

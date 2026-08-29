@@ -810,6 +810,7 @@ class CareToChina_Hospitals_Plugin {
         require_once __DIR__ . '/widgets/class-caretochina-hospitals-grid-widget.php';
         require_once __DIR__ . '/widgets/class-caretochina-single-hospital-widget.php';
         require_once __DIR__ . '/widgets/class-caretochina-hospitals-slider-widget.php';
+        require_once __DIR__ . '/widgets/class-caretochina-pricing-widget.php';
 
         if (class_exists('CareToChina_Hospitals_Grid_Widget')) {
             $widgets_manager->register(new \CareToChina_Hospitals_Grid_Widget());
@@ -819,6 +820,9 @@ class CareToChina_Hospitals_Plugin {
         }
         if (class_exists('CareToChina_Hospitals_Slider_Widget')) {
             $widgets_manager->register(new \CareToChina_Hospitals_Slider_Widget());
+        }
+        if (class_exists('CareToChina_Pricing_Widget')) {
+            $widgets_manager->register(new \CareToChina_Pricing_Widget());
         }
     }
 

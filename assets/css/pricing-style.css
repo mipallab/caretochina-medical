@@ -1,0 +1,920 @@
+/**
+ * CareToChina Medical Concierge - Dynamic Modular Pricing Styles
+ * Fully scoped to .ctc-pricing-scope / .ctc-pricing-page-wrapper.
+ * Seamlessly inherits theme Dark/Light mode from body.dark-mode / html.dark.
+ */
+
+/* ==========================================================
+   1. BASE CSS VARIABLES & THEME DEFINITIONS (LIGHT MODE)
+   ========================================================== */
+.ctc-pricing-page-wrapper,
+.ctc-pricing-scope {
+  --ctc-p-primary: #0F766E;
+  --ctc-p-primary-dark: #087F73;
+  --ctc-p-primary-hover: #05665D;
+  --ctc-p-primary-light: #CCFBF1;
+  --ctc-p-primary-subtle: #DFF8F2;
+  --ctc-p-text-dark: #0F172A;
+  --ctc-p-text-title: #1E293B;
+  --ctc-p-text-muted: #64748B;
+  --ctc-p-text-body: #334155;
+  --ctc-p-border: #E2E8F0;
+  --ctc-p-border-card: #DCE8E7;
+  --ctc-p-bg-page: #FAFCFC;
+  --ctc-p-bg-card: #FFFFFF;
+  --ctc-p-bg-subtle: #F8FAFC;
+  --ctc-p-bg-item: #F8FAFC;
+  --ctc-p-border-item: #EEF2F6;
+  --ctc-p-table-hl: #F4FBF9;
+  --ctc-p-shadow-card: 0 8px 24px rgba(12, 61, 64, 0.06);
+  --ctc-p-shadow-hover: 0 14px 34px rgba(12, 61, 64, 0.12);
+  --ctc-p-shadow-hl: 0 12px 32px rgba(8, 127, 115, 0.16);
+  --ctc-p-pill-bg: #CCFBF1;
+  --ctc-p-pill-color: #0F766E;
+  --ctc-p-pop-bg: #FFF1D4;
+  --ctc-p-pop-color: #A96D00;
+  --ctc-p-hero-bg: linear-gradient(135deg, rgba(15, 118, 110, 0.08) 0%, rgba(20, 184, 166, 0.04) 100%);
+  --ctc-p-compare-bg: rgba(15, 118, 110, 0.03);
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--ctc-p-text-dark);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ==========================================================
+   2. DARK THEME TOKEN OVERRIDES (CareToChina Global Theme Engine)
+   ========================================================== */
+html.dark-theme .ctc-pricing-scope,
+body.dark-theme .ctc-pricing-scope,
+html.dark-theme .ctc-pricing-page-wrapper,
+body.dark-theme .ctc-pricing-page-wrapper,
+html.dark-theme .ctc-pricing-cards-wrapper,
+body.dark-theme .ctc-pricing-cards-wrapper,
+html.dark-theme .ctc-pricing-compare-wrapper,
+body.dark-theme .ctc-pricing-compare-wrapper,
+html.dark-theme .ctc-pricing-details-wrapper,
+body.dark-theme .ctc-pricing-details-wrapper,
+.ctc-pricing-page-wrapper[data-theme="dark"],
+.ctc-pricing-page-wrapper.ctc-theme-dark,
+.ctc-pricing-scope[data-theme="dark"],
+.ctc-pricing-scope.ctc-theme-dark,
+html.dark .ctc-pricing-scope,
+html.dark-mode .ctc-pricing-scope,
+html.dark_mode .ctc-pricing-scope,
+body.dark .ctc-pricing-scope,
+body.dark-mode .ctc-pricing-scope,
+body.dark_mode .ctc-pricing-scope,
+[data-theme="dark"] .ctc-pricing-scope,
+[data-color-scheme="dark"] .ctc-pricing-scope,
+[data-theme="dark"] .ctc-pricing-page-wrapper {
+  --ctc-p-primary: #14B8A6;
+  --ctc-p-primary-dark: #0D9488;
+  --ctc-p-primary-hover: #2DD4BF;
+  --ctc-p-primary-light: rgba(20, 184, 166, 0.18);
+  --ctc-p-primary-subtle: rgba(20, 184, 166, 0.1);
+  --ctc-p-text-dark: #F8FAFC;
+  --ctc-p-text-title: #F8FAFC;
+  --ctc-p-text-muted: #94A3B8;
+  --ctc-p-text-body: #CBD5E1;
+  --ctc-p-border: #2D3748;
+  --ctc-p-border-card: #2D3748;
+  --ctc-p-bg-page: #0B132B;
+  --ctc-p-bg-card: #1C2541;
+  --ctc-p-bg-subtle: #131B31;
+  --ctc-p-bg-item: #131B31;
+  --ctc-p-border-item: #2D3748;
+  --ctc-p-table-hl: rgba(20, 184, 166, 0.1);
+  --ctc-p-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --ctc-p-shadow-hover: 0 14px 34px rgba(0, 0, 0, 0.5);
+  --ctc-p-shadow-hl: 0 12px 32px rgba(20, 184, 166, 0.2);
+  --ctc-p-pill-bg: rgba(20, 184, 166, 0.2);
+  --ctc-p-pill-color: #2DD4BF;
+  --ctc-p-pop-bg: rgba(245, 158, 11, 0.2);
+  --ctc-p-pop-color: #FBBF24;
+  --ctc-p-hero-bg: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(28, 37, 65, 0.9) 100%);
+  --ctc-p-compare-bg: rgba(19, 27, 49, 0.7);
+}
+
+.ctc-pricing-page-wrapper *,
+.ctc-pricing-scope * {
+  box-sizing: border-box;
+}
+
+/* ==========================================================
+   3. PRICING CARDS GRID SECTION
+   ========================================================== */
+.ctc-pricing-scope .pricing-cards-section,
+.ctc-pricing-page-wrapper .pricing-cards-section {
+  padding: 40px 0;
+  max-width: 1340px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ctc-pricing-scope .pricing-grid,
+.ctc-pricing-page-wrapper .pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.ctc-pricing-scope .pricing-card,
+.ctc-pricing-page-wrapper .pricing-card {
+  background: var(--ctc-p-bg-card);
+  border: 1px solid var(--ctc-p-border-card);
+  border-radius: 18px;
+  padding: 34px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--ctc-p-shadow-card);
+  position: relative;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.ctc-pricing-scope .pricing-card:hover,
+.ctc-pricing-page-wrapper .pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ctc-p-shadow-hover);
+  border-color: var(--ctc-p-primary);
+}
+
+.ctc-pricing-scope .pricing-card.highlighted,
+.ctc-pricing-page-wrapper .pricing-card.highlighted {
+  border: 2px solid var(--ctc-p-primary-dark);
+  box-shadow: var(--ctc-p-shadow-hl);
+}
+
+.ctc-pricing-scope .card-badge-container,
+.ctc-pricing-page-wrapper .card-badge-container {
+  margin-bottom: 38px;
+}
+
+.ctc-pricing-scope .popular-tag,
+.ctc-pricing-page-wrapper .popular-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: var(--ctc-p-pop-bg);
+  color: var(--ctc-p-pop-color);
+  border-radius: 10px;
+  padding: 4px 12px;
+  text-transform: uppercase;
+}
+
+.ctc-pricing-scope .ultimate-tag,
+.ctc-pricing-page-wrapper .ultimate-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: var(--ctc-p-primary-subtle);
+  color: var(--ctc-p-primary);
+  border-radius: 10px;
+  padding: 4px 12px;
+  text-transform: uppercase;
+}
+
+.ctc-pricing-scope .plan-tag,
+.ctc-pricing-page-wrapper .plan-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--ctc-p-primary);
+  margin-bottom: 18px;
+}
+
+.ctc-pricing-scope .plan-title,
+.ctc-pricing-page-wrapper .plan-title {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ctc-p-text-title);
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+
+.ctc-pricing-scope .plan-price,
+.ctc-pricing-page-wrapper .plan-price {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--ctc-p-text-title);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ctc-pricing-scope .plan-price span,
+.ctc-pricing-page-wrapper .plan-price span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ctc-p-text-muted);
+}
+
+.ctc-pricing-scope .plan-desc,
+.ctc-pricing-page-wrapper .plan-desc {
+  font-size: 12px;
+  color: var(--ctc-p-text-muted);
+  line-height: 1.6;
+  min-height: 54px;
+  margin-bottom: 18px;
+}
+
+.ctc-pricing-scope .feature-list,
+.ctc-pricing-page-wrapper .feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.ctc-pricing-scope .feature-list li,
+.ctc-pricing-page-wrapper .feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ctc-p-text-body);
+  line-height: 1.45;
+}
+
+.ctc-pricing-scope .feature-list li i,
+.ctc-pricing-page-wrapper .feature-list li i {
+  color: var(--ctc-p-primary);
+  font-size: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.ctc-pricing-scope .btn-plan,
+.ctc-pricing-page-wrapper .btn-plan {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  background-color: #0F766E;
+  color: #FFFFFF !important;
+  font-family: 'Roboto', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 66px;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2);
+}
+
+.ctc-pricing-scope .btn-plan:hover,
+.ctc-pricing-scope .btn-plan:focus,
+.ctc-pricing-page-wrapper .btn-plan:hover,
+.ctc-pricing-page-wrapper .btn-plan:focus {
+  background-color: #0D645C;
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 100, 92, 0.35);
+  outline: none;
+}
+
+/* ==========================================================
+   4. COMPARISON MATRIX TABLE SECTION
+   ========================================================== */
+.ctc-pricing-scope .p2-compare-system-wrap,
+.ctc-pricing-page-wrapper .p2-compare-system-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ctc-pricing-scope .p2-cmp-box,
+.ctc-pricing-page-wrapper .p2-cmp-box {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  border: 1.5px solid var(--ctc-p-border);
+  background: var(--ctc-p-bg-card);
+  border-radius: 16px;
+  box-shadow: var(--ctc-p-shadow-card);
+}
+
+.ctc-pricing-scope .p2-tbl,
+.ctc-pricing-page-wrapper .p2-tbl {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ctc-p-text-body);
+  font-family: 'Inter', sans-serif;
+}
+
+.ctc-pricing-scope .p2-tbl th,
+.ctc-pricing-scope .p2-tbl td,
+.ctc-pricing-page-wrapper .p2-tbl th,
+.ctc-pricing-page-wrapper .p2-tbl td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--ctc-p-border);
+}
+
+.ctc-pricing-scope .p2-tbl thead th,
+.ctc-pricing-page-wrapper .p2-tbl thead th {
+  padding: 18px 14px;
+  font-weight: 700;
+  background: var(--ctc-p-bg-subtle);
+  color: var(--ctc-p-text-title);
+  font-family: 'Manrope', 'Inter', sans-serif;
+}
+
+.ctc-pricing-scope .p2-tbl thead th:first-child,
+.ctc-pricing-scope .p2-tbl td:first-child,
+.ctc-pricing-page-wrapper .p2-tbl thead th:first-child,
+.ctc-pricing-page-wrapper .p2-tbl td:first-child {
+  text-align: left;
+  width: 28%;
+  font-weight: 700;
+  padding-left: 22px;
+  color: var(--ctc-p-text-title);
+}
+
+.ctc-pricing-scope .p2-tbl th.p2-hl,
+.ctc-pricing-page-wrapper .p2-tbl th.p2-hl {
+  background: var(--ctc-p-primary-light);
+  border-left: 2px solid var(--ctc-p-primary);
+  border-right: 2px solid var(--ctc-p-primary);
+  color: var(--ctc-p-primary);
+}
+
+.ctc-pricing-scope .p2-tbl td.p2-hl,
+.ctc-pricing-page-wrapper .p2-tbl td.p2-hl {
+  background: var(--ctc-p-table-hl);
+  border-left: 2px solid var(--ctc-p-primary);
+  border-right: 2px solid var(--ctc-p-primary);
+  font-weight: 700;
+  color: var(--ctc-p-primary);
+}
+
+.ctc-pricing-scope .p2-tbl tr.p2-grp td,
+.ctc-pricing-page-wrapper .p2-tbl tr.p2-grp td {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 11px;
+  padding: 11px 22px;
+  background: var(--ctc-p-bg-subtle);
+  color: var(--ctc-p-primary);
+  border-top: 1px solid var(--ctc-p-border);
+  text-align: left;
+}
+
+.ctc-pricing-scope .p2-tbl tbody tr:hover td,
+.ctc-pricing-page-wrapper .p2-tbl tbody tr:hover td {
+  background-color: var(--ctc-p-bg-subtle);
+}
+
+.ctc-pricing-scope .p2-tbl .p2-chk,
+.ctc-pricing-page-wrapper .p2-tbl .p2-chk {
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--ctc-p-primary);
+}
+
+.ctc-pricing-scope .p2-tbl .p2-dsh,
+.ctc-pricing-page-wrapper .p2-tbl .p2-dsh {
+  opacity: 0.5;
+  font-size: 14px;
+  color: var(--ctc-p-text-muted);
+}
+
+/* ==========================================================
+   5. FULL PACKAGE DETAILS (BENTO TABS)
+   ========================================================== */
+.ctc-pricing-scope .details-section,
+.ctc-pricing-page-wrapper .details-section {
+  padding: 40px 0;
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ctc-pricing-scope .p2-tab-btn-bar,
+.ctc-pricing-page-wrapper .p2-tab-btn-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.ctc-pricing-scope .p2-tab-pill-btn,
+.ctc-pricing-page-wrapper .p2-tab-pill-btn {
+  padding: 12px 26px;
+  border-radius: 30px;
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
+  border: 1.5px solid var(--ctc-p-border);
+  background: var(--ctc-p-bg-card);
+  color: var(--ctc-p-text-muted);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.ctc-pricing-scope .p2-tab-pill-btn:hover,
+.ctc-pricing-scope .p2-tab-pill-btn:focus,
+.ctc-pricing-page-wrapper .p2-tab-pill-btn:hover,
+.ctc-pricing-page-wrapper .p2-tab-pill-btn:focus {
+  border-color: #0F766E;
+  color: #0F766E;
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.ctc-pricing-scope .p2-tab-pill-btn.p2-active-tab,
+.ctc-pricing-page-wrapper .p2-tab-pill-btn.p2-active-tab {
+  background: #0F766E;
+  border-color: #0F766E;
+  color: #FFFFFF !important;
+  box-shadow: 0 8px 22px rgba(15, 118, 110, 0.25);
+  transform: translateY(-2px);
+}
+
+.ctc-pricing-scope .p2-tab-pill-btn.p2-active-tab:hover,
+.ctc-pricing-scope .p2-tab-pill-btn.p2-active-tab:focus,
+.ctc-pricing-page-wrapper .p2-tab-pill-btn.p2-active-tab:hover,
+.ctc-pricing-page-wrapper .p2-tab-pill-btn.p2-active-tab:focus {
+  background: #0D645C;
+  border-color: #0D645C;
+  color: #FFFFFF !important;
+  outline: none;
+}
+
+.ctc-pricing-scope .p2-tab-pane,
+.ctc-pricing-page-wrapper .p2-tab-pane {
+  display: none;
+  animation: ctcFadeIn 0.3s ease;
+}
+
+.ctc-pricing-scope .p2-tab-pane.active-pane,
+.ctc-pricing-page-wrapper .p2-tab-pane.active-pane {
+  display: block;
+}
+
+@keyframes ctcFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ctc-pricing-scope .bento-hero-card,
+.ctc-pricing-page-wrapper .bento-hero-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 18px;
+  padding: 28px 32px;
+  margin-bottom: 22px;
+  gap: 24px;
+  background: var(--ctc-p-bg-card);
+  border: 1.5px solid var(--ctc-p-border);
+  box-shadow: var(--ctc-p-shadow-card);
+  flex-wrap: wrap;
+}
+
+.ctc-pricing-scope .bento-hero-info,
+.ctc-pricing-page-wrapper .bento-hero-info {
+  flex: 1;
+  min-width: 260px;
+}
+
+.ctc-pricing-scope .bento-hero-action,
+.ctc-pricing-page-wrapper .bento-hero-action {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ctc-pricing-scope .bento-hero-price-wrap,
+.ctc-pricing-page-wrapper .bento-hero-price-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ctc-pricing-scope .bento-badge,
+.ctc-pricing-page-wrapper .bento-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  background: var(--ctc-p-primary-light);
+  color: var(--ctc-p-primary);
+  border: 1px solid rgba(15, 118, 110, 0.2);
+}
+
+.ctc-pricing-scope .bento-hero-title,
+.ctc-pricing-page-wrapper .bento-hero-title {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  margin: 4px 0 8px 0;
+  line-height: 1.25;
+  color: var(--ctc-p-text-title);
+}
+
+.ctc-pricing-scope .bento-hero-pos,
+.ctc-pricing-page-wrapper .bento-hero-pos {
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0;
+  color: var(--ctc-p-text-muted);
+  max-width: 680px;
+}
+
+.ctc-pricing-scope .bento-hero-price,
+.ctc-pricing-page-wrapper .bento-hero-price {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ctc-p-primary);
+  font-family: 'Manrope', 'Inter', sans-serif;
+}
+
+.ctc-pricing-scope .bento-hero-pricesub,
+.ctc-pricing-page-wrapper .bento-hero-pricesub {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+  color: var(--ctc-p-text-muted);
+}
+
+.ctc-pricing-scope .bento-hero-book-btn,
+.ctc-pricing-page-wrapper .bento-hero-book-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #0F766E;
+  color: #FFFFFF !important;
+  font-family: 'Roboto', 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 10px 22px;
+  border-radius: 50px;
+  margin-top: 6px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.2);
+}
+
+.ctc-pricing-scope .bento-hero-book-btn:hover,
+.ctc-pricing-scope .bento-hero-book-btn:focus,
+.ctc-pricing-page-wrapper .bento-hero-book-btn:hover,
+.ctc-pricing-page-wrapper .bento-hero-book-btn:focus {
+  background-color: #0D645C;
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 100, 92, 0.35);
+  outline: none;
+}
+
+.ctc-pricing-scope .bento-grid-layout,
+.ctc-pricing-page-wrapper .bento-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.ctc-pricing-scope .bento-box,
+.ctc-pricing-page-wrapper .bento-box {
+  background: var(--ctc-p-bg-card);
+  border: 1.5px solid var(--ctc-p-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--ctc-p-shadow-card);
+}
+
+.ctc-pricing-scope .bento-span-full,
+.ctc-pricing-page-wrapper .bento-span-full {
+  grid-column: 1 / -1;
+}
+
+.ctc-pricing-scope .bento-header,
+.ctc-pricing-page-wrapper .bento-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ctc-p-border);
+}
+
+.ctc-pricing-scope .bento-header h4,
+.ctc-pricing-page-wrapper .bento-header h4 {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0;
+  flex: 1;
+  color: var(--ctc-p-primary);
+}
+
+.ctc-pricing-scope .bento-count-badge,
+.ctc-pricing-page-wrapper .bento-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 12px;
+  background: var(--ctc-p-primary-light);
+  color: var(--ctc-p-primary);
+}
+
+.ctc-pricing-scope .bento-med-grid,
+.ctc-pricing-page-wrapper .bento-med-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.ctc-pricing-scope .bento-med-item,
+.ctc-pricing-page-wrapper .bento-med-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--ctc-p-bg-item);
+  border: 1px solid var(--ctc-p-border-item);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ctc-p-text-body);
+}
+
+.ctc-pricing-scope .bento-sub-item,
+.ctc-pricing-page-wrapper .bento-sub-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--ctc-p-bg-item);
+  border: 1px solid var(--ctc-p-border-item);
+  border-radius: 12px;
+}
+
+.ctc-pricing-scope .bento-sub-lbl,
+.ctc-pricing-page-wrapper .bento-sub-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ctc-p-primary);
+  margin-bottom: 4px;
+}
+
+.ctc-pricing-scope .bento-text,
+.ctc-pricing-page-wrapper .bento-text {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ctc-p-text-body);
+  margin: 0;
+}
+
+.ctc-pricing-scope .bento-notes-card,
+.ctc-pricing-page-wrapper .bento-notes-card {
+  background: var(--ctc-p-bg-subtle);
+}
+
+.ctc-pricing-scope .bento-note-item,
+.ctc-pricing-page-wrapper .bento-note-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--ctc-p-border-item);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--ctc-p-text-muted);
+}
+
+.ctc-pricing-scope .bento-note-item:last-child,
+.ctc-pricing-page-wrapper .bento-note-item:last-child {
+  border-bottom: none;
+}
+
+.ctc-pricing-scope .bento-note-num,
+.ctc-pricing-page-wrapper .bento-note-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ctc-p-border);
+  color: var(--ctc-p-text-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Fallback Notice for Admins when no packages active */
+.ctc-pricing-scope .ctc-empty-pricing-notice,
+.ctc-pricing-page-wrapper .ctc-empty-pricing-notice {
+  background: #FEF3C7;
+  border: 1.5px solid #F59E0B;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 800px;
+  margin: 20px auto;
+  text-align: center;
+  color: #92400E;
+}
+
+/* ==========================================================
+   6. RESPONSIVE BREAKPOINTS
+   ========================================================== */
+/* Tablet Landscape & Desktop Screens up to 1200px -> 2 Columns */
+@media (max-width: 1200px),
+(min-width: 768px) and (max-width: 1280px) and (orientation: landscape) {
+
+  .ctc-pricing-scope .pricing-grid,
+  .ctc-pricing-page-wrapper .pricing-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px;
+  }
+}
+
+/* Mobile Screens -> 1 Column */
+@media (max-width: 767px) {
+
+  .ctc-pricing-scope .pricing-grid,
+  .ctc-pricing-page-wrapper .pricing-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .ctc-pricing-scope .p2-tab-btn-bar,
+  .ctc-pricing-page-wrapper .p2-tab-btn-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 8px;
+    padding-bottom: 12px;
+    scrollbar-width: none;
+  }
+
+  .ctc-pricing-scope .p2-tab-btn-bar::-webkit-scrollbar,
+  .ctc-pricing-page-wrapper .p2-tab-btn-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ctc-pricing-scope .p2-tab-pill-btn,
+  .ctc-pricing-page-wrapper .p2-tab-pill-btn {
+    flex-shrink: 0;
+    padding: 10px 18px;
+    font-size: 12px;
+  }
+
+  .ctc-pricing-scope .p2-tbl,
+  .ctc-pricing-page-wrapper .p2-tbl {
+    min-width: 660px;
+    font-size: 11.5px;
+  }
+
+  .ctc-pricing-scope .p2-tbl thead th:first-child,
+  .ctc-pricing-scope .p2-tbl td:first-child,
+  .ctc-pricing-page-wrapper .p2-tbl thead th:first-child,
+  .ctc-pricing-page-wrapper .p2-tbl td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--ctc-p-bg-card);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Mobile Bento Hero Card Layout */
+  .ctc-pricing-scope .bento-hero-card,
+  .ctc-pricing-page-wrapper .bento-hero-card {
+    padding: 22px 18px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-info,
+  .ctc-pricing-page-wrapper .bento-hero-info {
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-title,
+  .ctc-pricing-page-wrapper .bento-hero-title {
+    font-size: 22px !important;
+    margin: 6px 0 6px 0 !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-pos,
+  .ctc-pricing-page-wrapper .bento-hero-pos {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-action,
+  .ctc-pricing-page-wrapper .bento-hero-action {
+    width: 100% !important;
+    text-align: left !important;
+    align-items: stretch !important;
+    padding-top: 14px !important;
+    border-top: 1px dashed var(--ctc-p-border) !important;
+    gap: 12px !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-price-wrap,
+  .ctc-pricing-page-wrapper .bento-hero-price-wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: baseline !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-price,
+  .ctc-pricing-page-wrapper .bento-hero-price {
+    font-size: 32px !important;
+    line-height: 1 !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-pricesub,
+  .ctc-pricing-page-wrapper .bento-hero-pricesub {
+    margin-top: 0 !important;
+    font-size: 13px !important;
+    color: var(--ctc-p-text-muted) !important;
+  }
+
+  .ctc-pricing-scope .bento-hero-book-btn,
+  .ctc-pricing-page-wrapper .bento-hero-book-btn {
+    width: 100% !important;
+    margin-top: 0 !important;
+    padding: 13px 20px !important;
+    font-size: 14px !important;
+    justify-content: center !important;
+    border-radius: 50px !important;
+  }
+
+  .ctc-pricing-scope .bento-grid-layout,
+  .ctc-pricing-page-wrapper .bento-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .ctc-pricing-scope .bento-med-grid,
+  .ctc-pricing-page-wrapper .bento-med-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .ctc-pricing-scope .bento-box,
+  .ctc-pricing-page-wrapper .bento-box {
+    padding: 18px 16px !important;
+    border-radius: 14px !important;
+  }
+}
