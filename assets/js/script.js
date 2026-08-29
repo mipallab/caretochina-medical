@@ -6,6 +6,34 @@ function getBookingObj() {
   return (typeof caretochina_obj !== 'undefined') ? caretochina_obj : ((typeof careyou_obj !== 'undefined') ? careyou_obj : { hospitals: [], all_specialties: [], all_cities: [], ajax_url: '/wp-admin/admin-ajax.php', nonce: '' });
 }
 
+window.ctcFetchRecaptchaToken = function(action, formEl) {
+  return new Promise(function(resolve) {
+    var apiObj = getBookingObj();
+    var siteKey = apiObj.recaptcha_site_key || '';
+    var v3TokenInput = formEl ? formEl.querySelector('.ctc-recaptcha-v3-token') : document.querySelector('.ctc-recaptcha-v3-token');
+    if (v3TokenInput && v3TokenInput.getAttribute('data-sitekey')) {
+      siteKey = v3TokenInput.getAttribute('data-sitekey');
+    }
+    
+    if (siteKey && typeof grecaptcha !== 'undefined' && grecaptcha.execute) {
+      grecaptcha.ready(function() {
+        try {
+          grecaptcha.execute(siteKey, { action: action || 'submit' }).then(function(token) {
+            if (v3TokenInput) v3TokenInput.value = token;
+            resolve(token);
+          }).catch(function() {
+            resolve('');
+          });
+        } catch(e) {
+          resolve('');
+        }
+      });
+    } else {
+      resolve('');
+    }
+  });
+};
+
 // Global Cross-Browser Web Audio Notifier with User Interaction Unlock
 var CTC_Audio = (function () {
   var ctx = null;
@@ -698,6 +726,7 @@ jQuery(document).ready(function ($) {
   // WIZARD FORM SUBMISSION HANDLER (Direct submission for both Guests and Logged-in Patients)
   $('#ctc-booking-wizard-form').on('submit', function (e) {
     e.preventDefault();
+    var formEl = this;
 
     var fullName = ($('#wiz_full_name').val() || '').trim();
     var email = ($('#wiz_email').val() || '').trim();
@@ -712,9 +741,17 @@ jQuery(document).ready(function ($) {
       return;
     }
 
-    syncIntlPhoneValues(this);
-    var formSerialized = $(this).serialize();
-    submitBookingForm(formSerialized);
+    syncIntlPhoneValues(formEl);
+
+    var rcAction = isUserLoggedIn() ? 'booking' : 'guest_booking';
+    window.ctcFetchRecaptchaToken(rcAction, formEl).then(function(token) {
+      if (token) {
+        var $rc = $(formEl).find('input[name="g-recaptcha-response"]');
+        if ($rc.length) $rc.val(token);
+      }
+      var formSerialized = $(formEl).serialize();
+      submitBookingForm(formSerialized);
+    });
   });
 
   function submitBookingForm(serializedData) {
@@ -1382,27 +1419,38 @@ jQuery(document).ready(function ($) {
   // AUTH LOGIN SUBMISSION
   $('#careyou-auth-login-form').on('submit', function (e) {
     e.preventDefault();
+    var formEl = this;
     var btn = $('#login_submit_btn');
     var box = $('#login-response-box');
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...');
 
-    var formData = $(this).serialize() + '&action=caretochina_user_login&nonce=' + apiObj.nonce;
-
-    $.post(apiObj.ajax_url, formData, function (res) {
-      box.show();
-      if (res.success) {
-        box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
-        setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
-      } else {
-        box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
-        btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
+    window.ctcFetchRecaptchaToken('login', formEl).then(function(token) {
+      if (token) {
+        var $rc = $(formEl).find('input[name="g-recaptcha-response"]');
+        if ($rc.length) $rc.val(token);
       }
+      var formData = $(formEl).serialize() + '&action=caretochina_user_login&nonce=' + apiObj.nonce;
+
+      $.post(apiObj.ajax_url, formData, function (res) {
+        box.show();
+        if (res.success) {
+          box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
+          setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
+        } else {
+          box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
+          btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
+        }
+      }).fail(function() {
+        box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again.</span>');
+        btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
+      });
     });
   });
 
   // AUTH REGISTER SUBMISSION (WITH JS PASSWORD & PHONE VALIDATION)
   $('#careyou-auth-register-form').on('submit', function (e) {
     e.preventDefault();
+    var formEl = this;
     var pass = $('#reg_user_pass').val();
     var passConfirm = $('#reg_user_pass_confirm').val();
     var btn = $('#reg_submit_btn');
@@ -1422,21 +1470,30 @@ jQuery(document).ready(function ($) {
       return;
     }
 
-    syncIntlPhoneValues(this);
+    syncIntlPhoneValues(formEl);
 
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Creating Patient Account...');
 
-    var formData = $(this).serialize() + '&action=caretochina_user_register&nonce=' + apiObj.nonce;
-
-    $.post(apiObj.ajax_url, formData, function (res) {
-      box.show();
-      if (res.success) {
-        box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
-        setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
-      } else {
-        box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
-        btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
+    window.ctcFetchRecaptchaToken('register', formEl).then(function(token) {
+      if (token) {
+        var $rc = $(formEl).find('input[name="g-recaptcha-response"]');
+        if ($rc.length) $rc.val(token);
       }
+      var formData = $(formEl).serialize() + '&action=caretochina_user_register&nonce=' + apiObj.nonce;
+
+      $.post(apiObj.ajax_url, formData, function (res) {
+        box.show();
+        if (res.success) {
+          box.html('<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + res.data.message + '</span>');
+          setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
+        } else {
+          box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
+          btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
+        }
+      }).fail(function() {
+        box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again.</span>');
+        btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
+      });
     });
   });
 

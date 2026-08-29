@@ -156,7 +156,7 @@ class CareToChina_Recaptcha {
     /**
      * Render the reCAPTCHA widget / hidden token field for a form
      *
-     * @param string $location 'login' | 'register' | 'booking'
+     * @param string $location 'login' | 'register' | 'booking' | 'guest_booking'
      * @return string
      */
     public static function render_field($location) {
@@ -171,7 +171,7 @@ class CareToChina_Recaptcha {
         if ($ver === 'v2') {
             $output .= '<div class="ctc-recaptcha-container" style="margin: 12px 0;"><div class="g-recaptcha" data-sitekey="' . esc_attr($site_key) . '"></div></div>';
         } elseif ($ver === 'v3') {
-            $output .= '<input type="hidden" name="g-recaptcha-response" class="ctc-recaptcha-v3-token" value=""><script>if(typeof grecaptcha!=="undefined"){grecaptcha.ready(function(){grecaptcha.execute("' . esc_js($site_key) . '",{action:"' . esc_js($location) . '"}).then(function(token){document.querySelectorAll(".ctc-recaptcha-v3-token").forEach(function(el){el.value=token;});});});}</script>';
+            $output .= '<input type="hidden" name="g-recaptcha-response" class="ctc-recaptcha-v3-token" data-action="' . esc_attr($location) . '" data-sitekey="' . esc_attr($site_key) . '" value="">';
         }
 
         if (self::is_badge_hidden()) {

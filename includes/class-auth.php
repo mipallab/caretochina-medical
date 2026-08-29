@@ -108,10 +108,10 @@ class CareToChina_Booking_Auth {
         }
     }
 
-    public function render_auth_portal() {
+    public function render_auth_portal($default_tab_override = '') {
         ob_start();
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $default_tab       = (isset($_GET['tab']) && sanitize_key(wp_unslash($_GET['tab'])) === 'register') ? 'register' : 'login';
+        $default_tab       = !empty($default_tab_override) ? $default_tab_override : ((isset($_GET['tab']) && sanitize_key(wp_unslash($_GET['tab'])) === 'register') ? 'register' : 'login');
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $prefill_name      = isset($_GET['prefill_name']) ? sanitize_text_field(wp_unslash($_GET['prefill_name'])) : '';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -246,7 +246,7 @@ class CareToChina_Booking_Auth {
                             </label>
                         </div>
 
-                        <?php if (class_exists('CareToChina_Recaptcha')) { echo wp_kses_post(CareToChina_Recaptcha::render_field('login')); } ?>
+                        <?php if (class_exists('CareToChina_Recaptcha')) { echo CareToChina_Recaptcha::render_field('login'); /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ } ?>
 
                         <button type="submit" id="login_submit_btn" class="auth-submit-btn">
                             <i class="fa-solid fa-right-to-bracket"></i> <?php esc_html_e('Sign In to Account', 'caretochina-medical'); ?>
@@ -406,7 +406,7 @@ class CareToChina_Booking_Auth {
                             </div>
                         </div>
 
-                        <?php if (class_exists('CareToChina_Recaptcha')) { echo wp_kses_post(CareToChina_Recaptcha::render_field('register')); } ?>
+                        <?php if (class_exists('CareToChina_Recaptcha')) { echo CareToChina_Recaptcha::render_field('register'); /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ } ?>
 
                         <button type="submit" id="reg_submit_btn" class="auth-submit-btn">
                             <i class="fa-solid fa-user-plus"></i> <?php esc_html_e('Register Patient Account', 'caretochina-medical'); ?>
@@ -420,11 +420,22 @@ class CareToChina_Booking_Auth {
 
         <script>
         function switchAuthTab(tab) {
-            jQuery('.auth-tab-btn').removeClass('active');
-            jQuery('#tab-btn-' + tab).addClass('active');
+            var tabs = document.querySelectorAll('.auth-tab-btn');
+            tabs.forEach(function(btn) { btn.classList.remove('active'); });
+            var targetBtn = document.getElementById('tab-btn-' + tab);
+            if (targetBtn) targetBtn.classList.add('active');
 
-            jQuery('.auth-panel').hide();
-            jQuery('#auth-panel-' + tab).fadeIn(200);
+            var panels = document.querySelectorAll('.auth-panel');
+            panels.forEach(function(panel) { panel.style.display = 'none'; });
+            var targetPanel = document.getElementById('auth-panel-' + tab);
+            if (targetPanel) {
+                targetPanel.style.display = 'block';
+                targetPanel.style.opacity = '0';
+                setTimeout(function() {
+                    targetPanel.style.transition = 'opacity 0.2s ease';
+                    targetPanel.style.opacity = '1';
+                }, 10);
+            }
         }
         </script>
         <?php
@@ -432,14 +443,11 @@ class CareToChina_Booking_Auth {
     }
 
     public function render_login_form() {
-        return $this->render_auth_portal();
+        return $this->render_auth_portal('login');
     }
 
     public function render_register_form() {
-        ob_start();
-        echo '<script>jQuery(document).ready(function(){ switchAuthTab("register"); });</script>';
-        echo wp_kses_post($this->render_auth_portal());
-        return ob_get_clean();
+        return $this->render_auth_portal('register');
     }
 
     public function handle_login() {

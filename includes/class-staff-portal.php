@@ -115,6 +115,13 @@ class CareToChina_Staff_Portal {
     }
 
     public function render_staff_portal() {
+        if (!wp_style_is('font-awesome', 'registered') && !wp_style_is('font-awesome', 'enqueued')) {
+            wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
+        }
+        wp_enqueue_style('font-awesome');
+        wp_enqueue_style('caretochina-staff-style');
+        wp_enqueue_script('caretochina-staff-script');
+
         ob_start();
         $current_user = wp_get_current_user();
         $is_staff = is_user_logged_in() && (current_user_can('edit_posts') || in_array('medical_staff', (array)$current_user->roles));
@@ -383,30 +390,75 @@ class CareToChina_Staff_Portal {
         </div>
 
         <script>
-        jQuery('#staff-portal-login-form').on('submit', function(e) {
-            e.preventDefault();
-            var btn = jQuery('#staff_login_btn');
-            var res = jQuery('#staff-login-response');
-            var apiObj = (typeof caretochina_staff_obj !== 'undefined') ? caretochina_staff_obj : careyou_staff_obj;
+        (function() {
+            function initStaffLoginForm() {
+                var form = document.getElementById('staff-portal-login-form');
+                if (!form || form.dataset.bound === 'true') return;
+                form.dataset.bound = 'true';
 
-            btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> <?php echo esc_js(__('Verifying Credentials...', 'caretochina-medical')); ?>');
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var btn = document.getElementById('staff_login_btn');
+                    var res = document.getElementById('staff-login-response');
+                    var apiObj = (typeof caretochina_staff_obj !== 'undefined') ? caretochina_staff_obj : ((typeof careyou_staff_obj !== 'undefined') ? careyou_staff_obj : { ajax_url: '/wp-admin/admin-ajax.php', nonce: '' });
 
-            jQuery.post(apiObj.ajax_url, {
-                action: 'caretochina_staff_login',
-                username: jQuery(this).find('input[name="username"]').val(),
-                password: jQuery(this).find('input[name="password"]').val(),
-                nonce: apiObj.nonce
-            }, function(response) {
-                res.show();
-                if (response.success) {
-                    res.css('color', '#10B981').text(response.data.message);
-                    setTimeout(function() { window.location.reload(); }, 1000);
-                } else {
-                    res.css('color', '#EF4444').text(response.data.message);
-                    btn.prop('disabled', false).html('<i class="fa-solid fa-lock"></i> <?php echo esc_js(__('Access Medical Control Desk', 'caretochina-medical')); ?>');
-                }
-            });
-        });
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <?php echo esc_js(__('Verifying Credentials...', 'caretochina-medical')); ?>';
+                    }
+
+                    var usernameInput = form.querySelector('input[name="username"]');
+                    var passwordInput = form.querySelector('input[name="password"]');
+
+                    var formData = new URLSearchParams();
+                    formData.append('action', 'caretochina_staff_login');
+                    formData.append('username', usernameInput ? usernameInput.value : '');
+                    formData.append('password', passwordInput ? passwordInput.value : '');
+                    formData.append('nonce', apiObj.nonce || '');
+
+                    fetch(apiObj.ajax_url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(response) {
+                        if (res) {
+                            res.style.display = 'block';
+                            if (response && response.success) {
+                                res.style.color = '#10B981';
+                                res.textContent = response.data ? response.data.message : 'Login successful!';
+                                setTimeout(function() { window.location.reload(); }, 1000);
+                            } else {
+                                res.style.color = '#EF4444';
+                                res.textContent = (response && response.data && response.data.message) ? response.data.message : 'Invalid credentials.';
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.innerHTML = '<i class="fa-solid fa-lock"></i> <?php echo esc_js(__('Access Medical Control Desk', 'caretochina-medical')); ?>';
+                                }
+                            }
+                        }
+                    })
+                    .catch(function(err) {
+                        if (res) {
+                            res.style.display = 'block';
+                            res.style.color = '#EF4444';
+                            res.textContent = 'Connection error. Please try again.';
+                        }
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fa-solid fa-lock"></i> <?php echo esc_js(__('Access Medical Control Desk', 'caretochina-medical')); ?>';
+                        }
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initStaffLoginForm);
+            } else {
+                initStaffLoginForm();
+            }
+        })();
         </script>
         <?php
     }

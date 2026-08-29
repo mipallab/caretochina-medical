@@ -1,11 +1,16 @@
 /**
  * CareToChina Hero Hospital Slider Carousel Initializer
+ * Optimized for WP Rocket (Delay JS, Defer JS, Combine JS) & Elementor
  *
  * @package CareToChina_Medical
  */
 
 (function () {
     'use strict';
+
+    var retryTimer = null;
+    var retryCount = 0;
+    var maxRetries = 100; // 100 * 100ms = 10 seconds max retry
 
     function initHeroSliders(context) {
         var root = context || document;
@@ -15,15 +20,28 @@
             return;
         }
 
+        if (typeof Swiper === 'undefined') {
+            // Swiper script might be delayed by WP Rocket; schedule retry
+            scheduleSwiperRetry(context);
+            return;
+        }
+
         sliderWrappers.forEach(function (wrapper) {
             // Avoid duplicate initializations
-            if (wrapper.dataset.sliderInitialized === 'true') {
+            if (wrapper.dataset.sliderInitialized === 'true' && wrapper.swiperInstance) {
                 return;
             }
 
-            var swiperContainer = wrapper.querySelector('.swiper.ctc-hero-slider');
+            var swiperContainer = wrapper.querySelector('.swiper.ctc-hero-slider') || wrapper.querySelector('.ctc-hero-slider');
             if (!swiperContainer) {
                 return;
+            }
+
+            // Destroy existing instance if re-initializing
+            if (swiperContainer.swiper) {
+                try {
+                    swiperContainer.swiper.destroy(true, true);
+                } catch (e) {}
             }
 
             var configAttr = wrapper.getAttribute('data-slider-config');
@@ -98,16 +116,34 @@
                 }
             }
 
-            if (typeof Swiper !== 'undefined') {
-                try {
-                    new Swiper(swiperContainer, swiperOptions);
-                    wrapper.dataset.sliderInitialized = 'true';
-                } catch (err) {
-                    console.error('[Hero Slider] Failed to initialize Swiper:', err);
-                }
+            try {
+                wrapper.swiperInstance = new Swiper(swiperContainer, swiperOptions);
+                wrapper.dataset.sliderInitialized = 'true';
+            } catch (err) {
+                console.error('[Hero Slider] Failed to initialize Swiper:', err);
             }
         });
     }
+
+    function scheduleSwiperRetry(context) {
+        if (retryTimer) return;
+        retryTimer = setInterval(function () {
+            retryCount++;
+            if (typeof Swiper !== 'undefined') {
+                clearInterval(retryTimer);
+                retryTimer = null;
+                initHeroSliders(context);
+            } else if (retryCount >= maxRetries) {
+                clearInterval(retryTimer);
+                retryTimer = null;
+            }
+        }, 100);
+    }
+
+    // Expose global initializer for dynamic scripts / AJAX
+    window.ctcInitHeroSliders = function (ctx) {
+        initHeroSliders(ctx || document);
+    };
 
     // Standard DOM ready initialization
     if (document.readyState === 'loading') {
@@ -118,17 +154,29 @@
         initHeroSliders(document);
     }
 
-    // Elementor & Dynamic Content Compatibility
+    // Window load fallback
     window.addEventListener('load', function () {
         initHeroSliders(document);
     });
 
+    // WP Rocket User Interaction Un-delay Triggers
+    var interactionEvents = ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'];
+    var onUserInteraction = function () {
+        initHeroSliders(document);
+        interactionEvents.forEach(function (evt) {
+            window.removeEventListener(evt, onUserInteraction, { capture: true, passive: true });
+        });
+    };
+    interactionEvents.forEach(function (evt) {
+        window.addEventListener(evt, onUserInteraction, { capture: true, passive: true });
+    });
+
+    // Elementor & Dynamic Content Compatibility
     if (typeof jQuery !== 'undefined') {
         jQuery(document).on('elementor/popup/show ajaxComplete', function () {
             initHeroSliders(document);
         });
 
-        // Elementor Frontend Hook
         jQuery(window).on('elementor/frontend/init', function () {
             if (window.elementorFrontend && window.elementorFrontend.hooks) {
                 window.elementorFrontend.hooks.addAction('frontend/element_ready/global', function ($scope) {

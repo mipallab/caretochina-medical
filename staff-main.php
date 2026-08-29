@@ -34,9 +34,12 @@ class CareToChina_Medical_Staff_Plugin {
     }
 
     public function enqueue_staff_assets() {
-        wp_enqueue_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
-        wp_enqueue_style('caretochina-staff-style', CARETOCHINA_STAFF_URL . 'assets/css/staff-style.css', [], CARETOCHINA_STAFF_VERSION);
-        wp_enqueue_script('caretochina-staff-script', CARETOCHINA_STAFF_URL . 'assets/js/staff-script.js', ['jquery'], CARETOCHINA_STAFF_VERSION, true);
+        if (!wp_style_is('font-awesome', 'registered') && !wp_style_is('font-awesome', 'enqueued')) {
+            wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
+        }
+
+        wp_register_style('caretochina-staff-style', CARETOCHINA_STAFF_URL . 'assets/css/staff-style.css', ['font-awesome'], CARETOCHINA_STAFF_VERSION);
+        wp_register_script('caretochina-staff-script', CARETOCHINA_STAFF_URL . 'assets/js/staff-script.js', ['jquery'], CARETOCHINA_STAFF_VERSION, true);
 
         $localized_data = [
             'ajax_url' => wp_parse_url(admin_url('admin-ajax.php'), PHP_URL_PATH),
@@ -45,6 +48,19 @@ class CareToChina_Medical_Staff_Plugin {
 
         wp_localize_script('caretochina-staff-script', 'caretochina_staff_obj', $localized_data);
         wp_localize_script('caretochina-staff-script', 'careyou_staff_obj', $localized_data);
+
+        // Check if current post/page is the staff portal
+        $staff_page_id = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_id('staff_portal') : 0;
+        $is_staff_page = ($staff_page_id > 0 && is_page($staff_page_id));
+
+        global $post;
+        $has_shortcode = is_a($post, 'WP_Post') && (has_shortcode($post->post_content, 'caretochina_staff_portal') || has_shortcode($post->post_content, 'careyou_staff_portal'));
+
+        if ($is_staff_page || $has_shortcode) {
+            wp_enqueue_style('font-awesome');
+            wp_enqueue_style('caretochina-staff-style');
+            wp_enqueue_script('caretochina-staff-script');
+        }
     }
 
     public function enqueue_admin_assets($hook) {

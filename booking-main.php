@@ -47,50 +47,72 @@ class CareToChina_Medical_Booking {
     }
 
     public function enqueue_frontend_assets() {
-        wp_enqueue_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
-        wp_enqueue_style('caretochina-booking-style', CARETOCHINA_BOOKING_URL . 'assets/css/style.css', [], CARETOCHINA_BOOKING_VERSION);
+        if (!wp_style_is('font-awesome', 'registered') && !wp_style_is('font-awesome', 'enqueued')) {
+            wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
+        }
+        wp_enqueue_style('font-awesome');
+        wp_enqueue_style('caretochina-booking-style', CARETOCHINA_BOOKING_URL . 'assets/css/style.css', ['font-awesome'], CARETOCHINA_BOOKING_VERSION);
 
         $intl_phone_enabled = (bool) get_option('ctc_enable_intl_phone_flags', 1);
         if ($intl_phone_enabled) {
-            wp_enqueue_style('intl-tel-input', CARETOCHINA_MEDICAL_URL . 'assets/vendor/intl-tel-input/css/intlTelInput.min.css', [], '19.5.6');
-            wp_enqueue_script('intl-tel-input', CARETOCHINA_MEDICAL_URL . 'assets/vendor/intl-tel-input/js/intlTelInput.min.js', [], '19.5.6', true);
+            wp_register_style('intl-tel-input', CARETOCHINA_MEDICAL_URL . 'assets/vendor/intl-tel-input/css/intlTelInput.min.css', [], '19.5.6');
+            wp_register_script('intl-tel-input', CARETOCHINA_MEDICAL_URL . 'assets/vendor/intl-tel-input/js/intlTelInput.min.js', [], '19.5.6', true);
+            wp_enqueue_style('intl-tel-input');
+            wp_enqueue_script('intl-tel-input');
         }
 
+        // Main booking and interactivity script
         wp_enqueue_script('caretochina-booking-script', CARETOCHINA_BOOKING_URL . 'assets/js/script.js', ['jquery'], CARETOCHINA_BOOKING_VERSION, true);
 
-        // Payment Scripts Enqueue
-        wp_enqueue_script('stripe-js', 'https://js.stripe.com/v3/', [], '3.0', true);
-        
-        $paypal_gateway = new CareToChina_PayPal_Gateway();
-        if ($paypal_gateway->is_available()) {
-            $currency = get_option('ctc_payment_currency', 'USD');
-            wp_enqueue_script('paypal-js-sdk', 'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_gateway->get_client_id()) . '&currency=' . esc_attr($currency), [], CARETOCHINA_BOOKING_VERSION, true);
-        }
+        // Payment handler script (registered with on-demand Stripe/PayPal SDK dynamic loading)
+        wp_register_script('stripe-js', 'https://js.stripe.com/v3/', [], '3.0', true);
+        wp_register_script('caretochina-payment-handler', CARETOCHINA_BOOKING_URL . 'assets/js/payment-handler.js', ['jquery'], CARETOCHINA_BOOKING_VERSION, true);
 
-        wp_enqueue_script('caretochina-payment-handler', CARETOCHINA_BOOKING_URL . 'assets/js/payment-handler.js', ['jquery', 'stripe-js'], CARETOCHINA_BOOKING_VERSION, true);
+        // Conditionally enqueue payment handler on dashboard, hospital single, or pricing pages where payments occur
+        $dash_page_id    = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_id('patient_dashboard') : 0;
+        $pricing_page_id = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_id('pricing') : 0;
+        $auth_page_id    = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_id('patient_login') : 0;
+        
+        $should_load_payments = is_singular('hospital') 
+            || ($dash_page_id > 0 && is_page($dash_page_id)) 
+            || ($pricing_page_id > 0 && is_page($pricing_page_id))
+            || ($auth_page_id > 0 && is_page($auth_page_id))
+            || is_user_logged_in();
+
+        if ($should_load_payments) {
+            wp_enqueue_script('caretochina-payment-handler');
+        }
 
         $active_packages = class_exists('CareToChina_Packages') ? CareToChina_Packages::instance()->get_active_packages() : [];
         $store_currency  = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_store_currency() : 'USD';
         $curr_symbol     = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_currency_symbol($store_currency) : '$';
         $service_notes   = class_exists('CareToChina_Packages') ? CareToChina_Packages::get_global_service_notes() : '';
 
+        $paypal_gateway = class_exists('CareToChina_PayPal_Gateway') ? new CareToChina_PayPal_Gateway() : null;
+        $stripe_gateway = class_exists('CareToChina_Stripe_Gateway') ? new CareToChina_Stripe_Gateway() : null;
+
         $localized_data = [
-            'ajax_url'           => wp_parse_url(admin_url('admin-ajax.php'), PHP_URL_PATH),
-            'nonce'              => wp_create_nonce('caretochina_booking_nonce'),
-            'booking_nonce'      => wp_create_nonce('caretochina_booking_nonce'),
-            'patient_nonce'      => wp_create_nonce('caretochina_patient_nonce'),
-            'rest_url'           => esc_url_raw(rest_url()),
-            'rest_nonce'         => wp_create_nonce('wp_rest'),
-            'dashboard_url'      => class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/'),
-            'intl_phone_enabled' => $intl_phone_enabled,
-            'hospitals'          => CareToChina_Booking_Wizard::instance()->get_hospitals_data(),
-            'packages'           => $active_packages,
-            'currency'           => $store_currency,
-            'currency_symbol'    => $curr_symbol,
-            'service_notes'      => $service_notes,
-            'all_specialties'    => CareToChina_Booking_Wizard::instance()->get_all_specialties(),
-            'all_cities'         => CareToChina_Booking_Wizard::instance()->get_all_cities(),
-            'pricing_url'        => home_url('/pricing/'),
+            'ajax_url'              => wp_parse_url(admin_url('admin-ajax.php'), PHP_URL_PATH),
+            'nonce'                 => wp_create_nonce('caretochina_booking_nonce'),
+            'booking_nonce'         => wp_create_nonce('caretochina_booking_nonce'),
+            'patient_nonce'         => wp_create_nonce('caretochina_patient_nonce'),
+            'rest_url'              => esc_url_raw(rest_url()),
+            'rest_nonce'            => wp_create_nonce('wp_rest'),
+            'dashboard_url'         => class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/'),
+            'intl_phone_enabled'    => $intl_phone_enabled,
+            'hospitals'             => CareToChina_Booking_Wizard::instance()->get_hospitals_data(),
+            'packages'              => $active_packages,
+            'currency'              => $store_currency,
+            'currency_symbol'       => $curr_symbol,
+            'service_notes'         => $service_notes,
+            'all_specialties'       => CareToChina_Booking_Wizard::instance()->get_all_specialties(),
+            'all_cities'            => CareToChina_Booking_Wizard::instance()->get_all_cities(),
+            'pricing_url'           => home_url('/pricing/'),
+            'recaptcha_enabled'     => class_exists('CareToChina_Recaptcha') && CareToChina_Recaptcha::is_master_enabled() && CareToChina_Recaptcha::is_configured(),
+            'recaptcha_version'     => class_exists('CareToChina_Recaptcha') ? CareToChina_Recaptcha::get_version() : 'v2',
+            'recaptcha_site_key'    => class_exists('CareToChina_Recaptcha') ? CareToChina_Recaptcha::get_site_key() : '',
+            'stripe_publishable_key'=> ($stripe_gateway && $stripe_gateway->is_available()) ? $stripe_gateway->get_publishable_key() : '',
+            'paypal_client_id'      => ($paypal_gateway && $paypal_gateway->is_available()) ? $paypal_gateway->get_client_id() : '',
         ];
 
         if (is_singular('hospital')) {

@@ -1,6 +1,7 @@
 /**
  * CareToChina Payment Integration & Chat Payment Request Handler
  * Handles Stripe Elements, PayPal Smart Buttons, Payment Requests, and Receipts
+ * Optimized for WP Rocket (On-demand SDK loading, Defer JS, Combine JS)
  */
 
 (function($) {
@@ -10,69 +11,129 @@
         stripe: null,
         elements: null,
 
+        loadStripeSdk: function(callback) {
+            if (typeof Stripe !== 'undefined') {
+                if (typeof callback === 'function') callback();
+                return;
+            }
+            var existing = document.querySelector('script[src="https://js.stripe.com/v3/"]');
+            if (existing) {
+                existing.addEventListener('load', function() {
+                    if (typeof callback === 'function') callback();
+                });
+                return;
+            }
+            var script = document.createElement('script');
+            script.src = 'https://js.stripe.com/v3/';
+            script.async = true;
+            script.onload = function() {
+                if (typeof callback === 'function') callback();
+            };
+            document.head.appendChild(script);
+        },
+
+        loadPayPalSdk: function(clientId, currency, callback) {
+            if (typeof paypal !== 'undefined') {
+                if (typeof callback === 'function') callback();
+                return;
+            }
+            var curr = currency || 'USD';
+            var existing = document.querySelector('script[src*="paypal.com/sdk/js"]');
+            if (existing) {
+                existing.addEventListener('load', function() {
+                    if (typeof callback === 'function') callback();
+                });
+                return;
+            }
+            var script = document.createElement('script');
+            script.src = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(clientId) + '&currency=' + encodeURIComponent(curr);
+            script.async = true;
+            script.onload = function() {
+                if (typeof callback === 'function') callback();
+            };
+            document.head.appendChild(script);
+        },
+
         initStripe: function(publishableKey, clientSecret, containerId, bookingId) {
             var self = this;
             if (typeof Stripe === 'undefined') {
-                console.error('Stripe.js not loaded.');
+                self.loadStripeSdk(function() {
+                    self.initStripe(publishableKey, clientSecret, containerId, bookingId);
+                });
                 return;
             }
 
-            self.stripe = Stripe(publishableKey);
-            self.elements = self.stripe.elements({ clientSecret: clientSecret });
+            try {
+                self.stripe = Stripe(publishableKey);
+                self.elements = self.stripe.elements({ clientSecret: clientSecret });
 
-            var paymentElement = self.elements.create('payment');
-            $('#' + containerId).empty();
-            paymentElement.mount('#' + containerId);
+                var paymentElement = self.elements.create('payment');
+                $('#' + containerId).empty();
+                paymentElement.mount('#' + containerId);
 
-            $('#ctc-stripe-pay-btn').off('click').on('click', function(e) {
-                e.preventDefault();
-                var $btn = $(this);
-                $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Processing Payment...');
+                $('#ctc-stripe-pay-btn').off('click').on('click', function(e) {
+                    e.preventDefault();
+                    var $btn = $(this);
+                    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Processing Payment...');
 
-                self.stripe.confirmPayment({
-                    elements: self.elements,
-                    confirmParams: {
-                        return_url: window.location.href + '?ctc_payment_confirm=1&booking_id=' + bookingId,
-                    },
-                    redirect: 'if_required'
-                }).then(function(result) {
-                    if (result.error) {
+                    self.stripe.confirmPayment({
+                        elements: self.elements,
+                        confirmParams: {
+                            return_url: window.location.href + (window.location.href.indexOf('?') !== -1 ? '&' : '?') + 'ctc_payment_confirm=1&booking_id=' + bookingId,
+                        },
+                        redirect: 'if_required'
+                    }).then(function(result) {
+                        if (result.error) {
+                            $btn.prop('disabled', false).html('<i class="fa-solid fa-credit-card"></i> Pay Now');
+                            $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>' + (result.error.message || 'Payment processing failed. Please try again.') + '</p>').show();
+                        } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+                            $btn.html('<i class="fa-solid fa-check"></i> Payment Succeeded!');
+                            $('#ctc-payment-notice').removeClass('notice-error').addClass('notice-success').html('<p>Payment received successfully! Confirming booking status...</p>').show();
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        }
+                    }).catch(function(err) {
                         $btn.prop('disabled', false).html('<i class="fa-solid fa-credit-card"></i> Pay Now');
-                        $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>' + (result.error.message || 'Payment processing failed. Please try again.') + '</p>').show();
-                    } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
-                        $btn.html('<i class="fa-solid fa-check"></i> Payment Succeeded!');
-                        $('#ctc-payment-notice').removeClass('notice-error').addClass('notice-success').html('<p>Payment received successfully! Confirming booking status...</p>').show();
-                        setTimeout(function() {
-                            window.location.reload();
-                        }, 1500);
-                    }
+                        $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>' + (err.message || 'Payment failed.') + '</p>').show();
+                    });
                 });
-            });
+            } catch (err) {
+                console.error('[CareToChina] Stripe init error:', err);
+                $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>Could not initialize Stripe payment form.</p>').show();
+            }
         },
 
         initPayPal: function(clientId, orderId, containerId, bookingId) {
             var self = this;
             if (typeof paypal === 'undefined') {
-                console.error('PayPal SDK not loaded.');
+                var curr = (window.caretochina_obj && window.caretochina_obj.currency) || 'USD';
+                self.loadPayPalSdk(clientId, curr, function() {
+                    self.initPayPal(clientId, orderId, containerId, bookingId);
+                });
                 return;
             }
 
-            $('#' + containerId).empty();
-            paypal.Buttons({
-                createOrder: function() {
-                    return orderId;
-                },
-                onApprove: function(data, actions) {
-                    $('#ctc-payment-notice').removeClass('notice-error').addClass('notice-success').html('<p>PayPal transaction authorized! Confirming case status...</p>').show();
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 1500);
-                },
-                onError: function(err) {
-                    console.error('PayPal Error:', err);
-                    $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>PayPal checkout encountered an error. Please try again.</p>').show();
-                }
-            }).render('#' + containerId);
+            try {
+                $('#' + containerId).empty();
+                paypal.Buttons({
+                    createOrder: function() {
+                        return orderId;
+                    },
+                    onApprove: function(data, actions) {
+                        $('#ctc-payment-notice').removeClass('notice-error').addClass('notice-success').html('<p>PayPal transaction authorized! Confirming case status...</p>').show();
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    },
+                    onError: function(err) {
+                        console.error('PayPal Error:', err);
+                        $('#ctc-payment-notice').removeClass('notice-success').addClass('notice-error').html('<p>PayPal checkout encountered an error. Please try again.</p>').show();
+                    }
+                }).render('#' + containerId);
+            } catch (err) {
+                console.error('[CareToChina] PayPal render error:', err);
+            }
         },
 
         requestPaymentIntent: function(bookingId, gateway, successCallback, errorCallback) {
@@ -389,8 +450,6 @@
         } else if (pricingType === 'custom_treatment') {
             postData.custom_title = $('input[name="custom_treatment_title"]').val();
             postData.custom_content = $('textarea[name="custom_treatment_content"]').val();
-            postData.custom_amount = $('input[name="custom_treatment_amount"]').val();
-        }
             postData.custom_amount = $('input[name="custom_treatment_amount"]').val();
         }
 

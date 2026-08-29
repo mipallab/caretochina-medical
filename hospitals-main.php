@@ -406,15 +406,23 @@ class CareToChina_Hospitals_Plugin {
     }
 
     public function enqueue_scripts() {
-        wp_enqueue_script('jquery');
-        
-        if (!wp_style_is('font-awesome', 'enqueued')) {
-            wp_enqueue_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
+        if (!wp_style_is('font-awesome', 'registered') && !wp_style_is('font-awesome', 'enqueued')) {
+            wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
         }
 
-        // Always enqueue Swiper JS and CSS from bundled vendor
-        wp_enqueue_script('swiper', CARETOCHINA_MEDICAL_URL . 'assets/vendor/swiper/js/swiper-bundle.min.js', ['jquery'], '8.0.0', false);
-        wp_enqueue_style('swiper', CARETOCHINA_MEDICAL_URL . 'assets/vendor/swiper/css/swiper-bundle.min.css', [], '8.0.0');
+        // Register Swiper JS and CSS from bundled vendor in footer
+        if (!wp_style_is('swiper', 'registered')) {
+            wp_register_style('swiper', CARETOCHINA_MEDICAL_URL . 'assets/vendor/swiper/css/swiper-bundle.min.css', [], '8.4.5');
+        }
+        if (!wp_script_is('swiper', 'registered')) {
+            wp_register_script('swiper', CARETOCHINA_MEDICAL_URL . 'assets/vendor/swiper/js/swiper-bundle.min.js', [], '8.4.5', true);
+        }
+
+        // Conditionally enqueue Swiper on single hospital page
+        if (is_singular('hospital')) {
+            wp_enqueue_style('swiper');
+            wp_enqueue_script('swiper');
+        }
     }
 
     public function hospital_single_template($template) {

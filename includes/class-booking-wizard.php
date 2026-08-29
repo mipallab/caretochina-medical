@@ -313,7 +313,7 @@ class CareToChina_Booking_Wizard {
                             <input type="hidden" name="messenger" id="wiz_messenger" value="<?php echo esc_attr($profile_messenger); ?>">
                             <input type="hidden" name="linkedin" id="wiz_linkedin" value="<?php echo esc_attr($profile_linkedin); ?>">
 
-                            <?php if (class_exists('CareToChina_Recaptcha')) { echo wp_kses_post(CareToChina_Recaptcha::render_field($is_logged_in ? 'booking' : 'guest_booking')); } ?>
+                            <?php if (class_exists('CareToChina_Recaptcha')) { echo CareToChina_Recaptcha::render_field($is_logged_in ? 'booking' : 'guest_booking'); /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ } ?>
                         </div>
 
                         <div class="wiz-action-footer">

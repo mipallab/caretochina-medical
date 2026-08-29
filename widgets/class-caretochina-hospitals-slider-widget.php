@@ -653,8 +653,15 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                 }
             </style>
 
+            wp_enqueue_style('swiper');
+            wp_enqueue_script('swiper');
+            ?>
             <script>
             (function() {
+                var retryCount = 0;
+                var maxRetries = 100;
+                var retryTimer = null;
+
                 function getActiveDeviceSlides() {
                     if (window.elementorFrontend && typeof elementorFrontend.getCurrentDeviceMode === 'function') {
                         var dev = elementorFrontend.getCurrentDeviceMode();
@@ -678,82 +685,99 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                     if (!wrapper) return;
 
                     var container = wrapper.querySelector('.ctc-hosp-swiper');
+                    if (!container) return;
+
+                    if (typeof Swiper === 'undefined') {
+                        if (!retryTimer) {
+                            retryTimer = setInterval(function() {
+                                retryCount++;
+                                if (typeof Swiper !== 'undefined') {
+                                    clearInterval(retryTimer);
+                                    retryTimer = null;
+                                    runHospitalsSwiper();
+                                } else if (retryCount >= maxRetries) {
+                                    clearInterval(retryTimer);
+                                    retryTimer = null;
+                                }
+                            }, 100);
+                        }
+                        return;
+                    }
+
                     var nextArrow = wrapper.querySelector('.ctc-next-arrow');
                     var prevArrow = wrapper.querySelector('.ctc-prev-arrow');
                     var dotsBox   = wrapper.querySelector('.ctc-swiper-dots');
 
-                    if (container && typeof Swiper !== 'undefined') {
-                        if (container.swiper) {
-                            try { container.swiper.destroy(true, true); } catch(e) {}
+                    if (container.swiper) {
+                        try { container.swiper.destroy(true, true); } catch(e) {}
+                    }
+
+                    var allowDrag = <?php echo ($settings['enable_drag'] === 'yes') ? 'true' : 'false'; ?>;
+                    var currentSlides = getActiveDeviceSlides();
+
+                    var swiperConfig = {
+                        slidesPerView: currentSlides,
+                        spaceBetween: <?php echo intval($gap_desktop); ?>,
+                        loop: true,
+                        observer: true,
+                        observeParents: true,
+                        grabCursor: allowDrag,
+                        simulateTouch: allowDrag,
+                        allowTouchMove: allowDrag,
+                        touchRatio: 1,
+                        touchAngle: 45,
+                        shortSwipes: true,
+                        longSwipes: true,
+                        breakpoints: {
+                            1201: { slidesPerView: <?php echo intval($slides_desktop); ?>, spaceBetween: <?php echo intval($gap_desktop); ?> },
+                            1025: { slidesPerView: <?php echo intval($slides_laptop); ?>, spaceBetween: <?php echo intval($gap_desktop); ?> },
+                            881:  { slidesPerView: <?php echo intval($slides_tab_ext); ?>, spaceBetween: <?php echo intval($gap_tablet); ?> },
+                            768:  { slidesPerView: <?php echo intval($slides_tablet); ?>, spaceBetween: <?php echo intval($gap_tablet); ?> },
+                            481:  { slidesPerView: <?php echo intval($slides_mob_ext); ?>, spaceBetween: <?php echo intval($gap_mobile); ?> },
+                            0:    { slidesPerView: <?php echo intval($slides_mobile); ?>, spaceBetween: <?php echo intval($gap_mobile); ?> }
                         }
+                    };
 
-                        var allowDrag = <?php echo ($settings['enable_drag'] === 'yes') ? 'true' : 'false'; ?>;
-                        var currentSlides = getActiveDeviceSlides();
+                    <?php if ($settings['autoplay'] === 'yes') : ?>
+                    swiperConfig.autoplay = {
+                        delay: 3500,
+                        disableOnInteraction: false
+                    };
+                    <?php endif; ?>
 
-                        var swiperConfig = {
-                            slidesPerView: currentSlides,
-                            spaceBetween: <?php echo intval($gap_desktop); ?>,
-                            loop: true,
-                            observer: true,
-                            observeParents: true,
-                            grabCursor: allowDrag,
-                            simulateTouch: allowDrag,
-                            allowTouchMove: allowDrag,
-                            touchRatio: 1,
-                            touchAngle: 45,
-                            shortSwipes: true,
-                            longSwipes: true,
-                            breakpoints: {
-                                1201: { slidesPerView: <?php echo intval($slides_desktop); ?>, spaceBetween: <?php echo intval($gap_desktop); ?> },
-                                1025: { slidesPerView: <?php echo intval($slides_laptop); ?>, spaceBetween: <?php echo intval($gap_desktop); ?> },
-                                881:  { slidesPerView: <?php echo intval($slides_tab_ext); ?>, spaceBetween: <?php echo intval($gap_tablet); ?> },
-                                768:  { slidesPerView: <?php echo intval($slides_tablet); ?>, spaceBetween: <?php echo intval($gap_tablet); ?> },
-                                481:  { slidesPerView: <?php echo intval($slides_mob_ext); ?>, spaceBetween: <?php echo intval($gap_mobile); ?> },
-                                0:    { slidesPerView: <?php echo intval($slides_mobile); ?>, spaceBetween: <?php echo intval($gap_mobile); ?> }
-                            }
+                    <?php if ($settings['show_arrows'] === 'yes') : ?>
+                    if (nextArrow && prevArrow) {
+                        swiperConfig.navigation = {
+                            nextEl: nextArrow,
+                            prevEl: prevArrow
                         };
+                    }
+                    <?php endif; ?>
 
-                        <?php if ($settings['autoplay'] === 'yes') : ?>
-                        swiperConfig.autoplay = {
-                            delay: 3500,
-                            disableOnInteraction: false
+                    <?php if ($settings['show_dots'] === 'yes') : ?>
+                    if (dotsBox) {
+                        swiperConfig.pagination = {
+                            el: dotsBox,
+                            clickable: true
                         };
-                        <?php endif; ?>
+                    }
+                    <?php endif; ?>
 
-                        <?php if ($settings['show_arrows'] === 'yes') : ?>
-                        if (nextArrow && prevArrow) {
-                            swiperConfig.navigation = {
-                                nextEl: nextArrow,
-                                prevEl: prevArrow
-                            };
-                        }
-                        <?php endif; ?>
+                    var swiperInst = new Swiper(container, swiperConfig);
 
-                        <?php if ($settings['show_dots'] === 'yes') : ?>
-                        if (dotsBox) {
-                            swiperConfig.pagination = {
-                                el: dotsBox,
-                                clickable: true
-                            };
-                        }
-                        <?php endif; ?>
-
-                        var swiperInst = new Swiper(container, swiperConfig);
-
-                        if (nextArrow) {
-                            nextArrow.onclick = function(e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (swiperInst) swiperInst.slideNext();
-                            };
-                        }
-                        if (prevArrow) {
-                            prevArrow.onclick = function(e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (swiperInst) swiperInst.slidePrev();
-                            };
-                        }
+                    if (nextArrow) {
+                        nextArrow.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (swiperInst) swiperInst.slideNext();
+                        };
+                    }
+                    if (prevArrow) {
+                        prevArrow.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (swiperInst) swiperInst.slidePrev();
+                        };
                     }
                 }
 
@@ -764,6 +788,17 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                 }
 
                 window.addEventListener('load', runHospitalsSwiper);
+
+                // User interaction un-delay listener
+                var triggerInit = function() {
+                    runHospitalsSwiper();
+                    ['scroll', 'mousemove', 'touchstart', 'click'].forEach(function(evt) {
+                        window.removeEventListener(evt, triggerInit, { capture: true, passive: true });
+                    });
+                };
+                ['scroll', 'mousemove', 'touchstart', 'click'].forEach(function(evt) {
+                    window.addEventListener(evt, triggerInit, { capture: true, passive: true });
+                });
 
                 if (window.jQuery) {
                     window.jQuery(document).ready(runHospitalsSwiper);

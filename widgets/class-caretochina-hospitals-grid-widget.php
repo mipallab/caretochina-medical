@@ -461,95 +461,112 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         </style>
 
         <script>
-        jQuery(document).ready(function($) {
-            var $section = $('#ctc-hospitals-<?php echo esc_js($widget_id); ?>');
-            var $grid = $section.find('.ctc-hospitals-grid');
-            var $pagBox = $section.find('.ctc-hosp-pagination-box');
-            var currentCity = 'all';
-            var currentPage = 1;
-            var searchTimeout;
-            var lastDevicePPP = 0;
-
-            function getResponsivePostsPerPage() {
-                var width = $(window).width();
-                if (width <= 767) {
-                    return <?php echo intval($ppp_mobile); ?>;
-                } else if (width <= 1024) {
-                    return <?php echo intval($ppp_tablet); ?>;
+        (function() {
+            function initHospitalsGrid() {
+                if (typeof jQuery === 'undefined') {
+                    setTimeout(initHospitalsGrid, 50);
+                    return;
                 }
-                return <?php echo intval($ppp_desktop); ?>;
-            }
+                var $ = jQuery;
+                var $section = $('#ctc-hospitals-<?php echo esc_js($widget_id); ?>');
+                if (!$section.length || $section.data('grid-init') === true) return;
+                $section.data('grid-init', true);
 
-            function doFilter(page, force) {
-                if (!page) page = 1;
-                currentPage = page;
-                var searchVal = $section.find('.ctc-hosp-search-input').val();
-                var ppp = getResponsivePostsPerPage();
+                var $grid = $section.find('.ctc-hospitals-grid');
+                var $pagBox = $section.find('.ctc-hosp-pagination-box');
+                var currentCity = 'all';
+                var currentPage = 1;
+                var searchTimeout;
+                var lastDevicePPP = 0;
 
-                if (!force && lastDevicePPP === ppp && page === currentPage && searchVal === '' && currentCity === 'all') {
-                    // Avoid redundant fetch if PPP hasn't changed
-                }
-                lastDevicePPP = ppp;
-
-                $grid.css('opacity', '0.5');
-
-                $.ajax({
-                    url: '<?php echo esc_url_raw(admin_url('admin-ajax.php')); ?>',
-                    type: 'POST',
-                    data: {
-                        action: 'caretochina_filter_hospitals',
-                        city: currentCity,
-                        search: searchVal,
-                        page: currentPage,
-                        posts_per_page: ppp
-                    },
-                    success: function(res) {
-                        $grid.css('opacity', '1');
-                        if (res.success) {
-                            $grid.html(res.data.html);
-                            $pagBox.html(res.data.pagination_html);
-                        }
+                function getResponsivePostsPerPage() {
+                    var width = $(window).width();
+                    if (width <= 767) {
+                        return <?php echo intval($ppp_mobile); ?>;
+                    } else if (width <= 1024) {
+                        return <?php echo intval($ppp_tablet); ?>;
                     }
+                    return <?php echo intval($ppp_desktop); ?>;
+                }
+
+                function doFilter(page, force) {
+                    if (!page) page = 1;
+                    currentPage = page;
+                    var searchVal = $section.find('.ctc-hosp-search-input').val();
+                    var ppp = getResponsivePostsPerPage();
+
+                    if (!force && lastDevicePPP === ppp && page === currentPage && searchVal === '' && currentCity === 'all') {
+                        // Avoid redundant fetch if PPP hasn't changed
+                    }
+                    lastDevicePPP = ppp;
+
+                    $grid.css('opacity', '0.5');
+
+                    $.ajax({
+                        url: '<?php echo esc_url_raw(admin_url('admin-ajax.php')); ?>',
+                        type: 'POST',
+                        data: {
+                            action: 'caretochina_filter_hospitals',
+                            city: currentCity,
+                            search: searchVal,
+                            page: currentPage,
+                            posts_per_page: ppp
+                        },
+                        success: function(res) {
+                            $grid.css('opacity', '1');
+                            if (res.success) {
+                                $grid.html(res.data.html);
+                                $pagBox.html(res.data.pagination_html);
+                            }
+                        }
+                    });
+                }
+
+                // Initial check on load: if device is Tablet or Mobile, refresh grid with exact responsive PPP
+                var initialPPP = getResponsivePostsPerPage();
+                if (initialPPP !== <?php echo intval($ppp_desktop); ?>) {
+                    doFilter(1, true);
+                }
+
+                // Window resize debounced listener to dynamically adjust grid & pagination when switching orientations/devices
+                var resizeTimer;
+                $(window).on('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        var newPPP = getResponsivePostsPerPage();
+                        if (newPPP !== lastDevicePPP) {
+                            doFilter(1, true);
+                        }
+                    }, 250);
+                });
+
+                $section.on('click', '.ctc-city-tab', function() {
+                    $section.find('.ctc-city-tab').removeClass('active');
+                    $(this).addClass('active');
+                    currentCity = $(this).data('city');
+                    doFilter(1, true);
+                });
+
+                $section.on('keyup input', '.ctc-hosp-search-input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(function() {
+                        doFilter(1, true);
+                    }, 300);
+                });
+
+                $section.on('click', '.ctc-hosp-page-btn', function() {
+                    var p = $(this).data('page');
+                    doFilter(p, true);
                 });
             }
 
-            // Initial check on load: if device is Tablet or Mobile, refresh grid with exact responsive PPP
-            var initialPPP = getResponsivePostsPerPage();
-            if (initialPPP !== <?php echo intval($ppp_desktop); ?>) {
-                doFilter(1, true);
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initHospitalsGrid);
+            } else {
+                initHospitalsGrid();
             }
-
-            // Window resize debounced listener to dynamically adjust grid & pagination when switching orientations/devices
-            var resizeTimer;
-            $(window).on('resize', function() {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function() {
-                    var newPPP = getResponsivePostsPerPage();
-                    if (newPPP !== lastDevicePPP) {
-                        doFilter(1, true);
-                    }
-                }, 250);
-            });
-
-            $section.on('click', '.ctc-city-tab', function() {
-                $section.find('.ctc-city-tab').removeClass('active');
-                $(this).addClass('active');
-                currentCity = $(this).data('city');
-                doFilter(1, true);
-            });
-
-            $section.on('keyup input', '.ctc-hosp-search-input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(function() {
-                    doFilter(1, true);
-                }, 300);
-            });
-
-            $section.on('click', '.ctc-hosp-page-btn', function() {
-                var p = $(this).data('page');
-                doFilter(p, true);
-            });
-        });
+            window.addEventListener('load', initHospitalsGrid);
+        })();
         </script>
         <?php
     }
