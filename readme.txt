@@ -5,7 +5,7 @@ Tags: medical, hospital, booking, healthcare, appointments
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.2.2
+Stable tag: 2.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,18 @@ No, basic hospital management and booking wizard work standalone. WooCommerce ca
 Staff members assigned the 'medical_staff' role can access the portal directly from the frontend portal page or WordPress admin.
 
 == Changelog ==
+
+= 2.3.4 =
+* Performance: Optimized asset enqueueing; eliminated unconditional staff scripts and Swiper JS on unrelated frontend pages.
+* Performance: Converted Stripe and PayPal SDKs to on-demand dynamic loading.
+* Compatibility: Added full compatibility with WP Rocket (Delay JavaScript Execution, Defer JS, Minify/Combine JS).
+* Fix: Enhanced Google reCAPTCHA v3/v2 token generation on the fly before form submissions.
+* Fix: Added retry polling and user interaction triggers for Swiper carousels and sliders.
+* Fix: Replaced inline jQuery event handlers with deferral-safe JavaScript logic.
+
+= 2.3.3 =
+* Fix: Custom treatment plan amount parsing in staff payment request handler.
+* Enhancement: Patient timeline and chat responsiveness improvements.
 
 = 1.9.0 =
 * Unified code base under CareToChina Medical Suite.
