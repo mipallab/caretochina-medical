@@ -648,11 +648,8 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
                     background-color: #0f766e !important;
                     color: #ffffff !important;
                 }
-                html.dark-theme .ctc-slider-arrow:hover svg, body.dark-theme .ctc-slider-arrow:hover svg {
-                    stroke: #ffffff !important;
-                }
             </style>
-
+            <?php
             wp_enqueue_style('swiper');
             wp_enqueue_script('swiper');
             ?>

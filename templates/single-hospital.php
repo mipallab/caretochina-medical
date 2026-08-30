@@ -9,22 +9,20 @@ if (!defined('ABSPATH')) {
 
 get_header();
 
-(function() {
-    while (have_posts()) : the_post();
-    $post_id = get_the_ID();
+while (have_posts()) : the_post();
+$post_id = get_the_ID();
 
-    // If post is built with Elementor or currently being edited in Elementor editor, render standard Elementor content container
-    if (class_exists('\Elementor\Plugin') && (\Elementor\Plugin::$instance->db->is_built_with_elementor($post_id) || \Elementor\Plugin::$instance->editor->is_edit_mode() || \Elementor\Plugin::$instance->preview->is_preview_mode())) {
-        ?>
-        <main id="primary" class="site-main ctc-elementor-single-hospital" style="padding: 40px 0;">
-            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-                <?php the_content(); ?>
-            </div>
-        </main>
-        <?php
-        get_footer();
-        return;
-    }
+// If post is built with Elementor or currently being edited in Elementor editor, render standard Elementor content container
+if (class_exists('\Elementor\Plugin') && (\Elementor\Plugin::$instance->db->is_built_with_elementor($post_id) || \Elementor\Plugin::$instance->editor->is_edit_mode() || \Elementor\Plugin::$instance->preview->is_preview_mode())) {
+    ?>
+    <main id="primary" class="site-main ctc-elementor-single-hospital" style="padding: 40px 0;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+            <?php the_content(); ?>
+        </div>
+    </main>
+    <?php
+    break;
+}
 
     $title = get_the_title();
 
@@ -1017,6 +1015,5 @@ sprintf(__('Visit CareToChina on %s', 'caretochina-medical'), $csoc_title)); ?>"
 
     <?php
     endwhile;
-})();
 
 get_footer();

@@ -3,7 +3,7 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, Coordinator Portal, and Headless WooCommerce Payments.
- * Version: 2.3.4
+ * Version: 2.4.4
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Tested up to: 7.1
@@ -38,7 +38,7 @@ if (isset($wp_version) && version_compare($wp_version, '6.0', '<')) {
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '2.3.4');
+define('CARETOCHINA_MEDICAL_VERSION', '2.4.4');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
 
@@ -60,6 +60,7 @@ if (!defined('CAREYOU_STAFF_URL')) define('CAREYOU_STAFF_URL', CARETOCHINA_MEDIC
 
 // Load the modules
 require_once CARETOCHINA_MEDICAL_PATH . 'hospitals-main.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'treatments-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'booking-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'staff-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-async-mailer.php';
@@ -71,6 +72,7 @@ require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-data-exporter.php'
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-setup-wizard.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-hospital-settings.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-hero-hospital-slider.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-wp-rocket-compat.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/payments/loader.php';
 
 // Instantiate Core Services
@@ -81,6 +83,8 @@ CareToChina_Recaptcha::instance();
 CareToChina_Setup_Wizard::instance();
 CareToChina_Hospital_Settings::instance();
 CareToChina_Hero_Hospital_Slider::instance();
+CareToChina_Treatments_Plugin::instance();
+CareToChina_WPRocket_Compat::instance();
 
 // Automatic DB Schema & Index Synchronization
 add_action('plugins_loaded', function() {
