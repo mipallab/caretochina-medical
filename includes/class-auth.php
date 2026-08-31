@@ -200,10 +200,10 @@ class CareToChina_Booking_Auth {
                 <!-- TABBED SWITCHER -->
                 <div class="auth-tab-bar">
                     <button type="button" class="auth-tab-btn <?php echo ($default_tab === 'login') ? 'active' : ''; ?>" onclick="switchAuthTab('login')" id="tab-btn-login">
-                        <i class="fa-solid fa-right-to-bracket"></i> <?php esc_html_e('Sign In', 'caretochina-medical'); ?>
+                        <i class="fas fa-sign-in-alt"></i> <?php esc_html_e('Sign In', 'caretochina-medical'); ?>
                     </button>
                     <button type="button" class="auth-tab-btn <?php echo ($default_tab === 'register') ? 'active' : ''; ?>" onclick="switchAuthTab('register')" id="tab-btn-register">
-                        <i class="fa-solid fa-user-plus"></i> <?php esc_html_e('Register Patient', 'caretochina-medical'); ?>
+                        <i class="fas fa-user-plus"></i> <?php esc_html_e('Register Patient', 'caretochina-medical'); ?>
                     </button>
                 </div>
 
@@ -211,7 +211,7 @@ class CareToChina_Booking_Auth {
                 <div id="auth-panel-login" class="auth-panel" style="display:<?php echo ($default_tab === 'login') ? 'block' : 'none'; ?>;">
                     <div class="auth-header">
                         <div class="auth-icon-badge">
-                            <i class="fa-solid fa-hospital-user"></i>
+                            <i class="fas fa-user-md"></i>
                         </div>
                         <h3 class="auth-title"><?php esc_html_e('Sign In to Patient Portal', 'caretochina-medical'); ?></h3>
                         <p class="auth-subtitle"><?php esc_html_e('Access your medical travel itinerary, timeline & coordinator chat', 'caretochina-medical'); ?></p>
@@ -249,7 +249,7 @@ class CareToChina_Booking_Auth {
                         <?php if (class_exists('CareToChina_Recaptcha')) { echo CareToChina_Recaptcha::render_field('login'); /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ } ?>
 
                         <button type="submit" id="login_submit_btn" class="auth-submit-btn">
-                            <i class="fa-solid fa-right-to-bracket"></i> <?php esc_html_e('Sign In to Account', 'caretochina-medical'); ?>
+                            <i class="fas fa-sign-in-alt"></i> <?php esc_html_e('Sign In to Account', 'caretochina-medical'); ?>
                         </button>
                     </form>
                     <div id="login-response-box" class="auth-response-box" style="display:none;"></div>
@@ -259,7 +259,7 @@ class CareToChina_Booking_Auth {
                 <div id="auth-panel-register" class="auth-panel" style="display:<?php echo ($default_tab === 'register') ? 'block' : 'none'; ?>;">
                     <div class="auth-header">
                         <div class="auth-icon-badge">
-                            <i class="fa-solid fa-user-plus"></i>
+                            <i class="fas fa-user-plus"></i>
                         </div>
                         <h3 class="auth-title"><?php esc_html_e('Create Patient Account', 'caretochina-medical'); ?></h3>
                         <p class="auth-subtitle"><?php esc_html_e('Registered as Patient • Track treatment roadmap & medical vault', 'caretochina-medical'); ?></p>
@@ -409,7 +409,7 @@ class CareToChina_Booking_Auth {
                         <?php if (class_exists('CareToChina_Recaptcha')) { echo CareToChina_Recaptcha::render_field('register'); /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ } ?>
 
                         <button type="submit" id="reg_submit_btn" class="auth-submit-btn">
-                            <i class="fa-solid fa-user-plus"></i> <?php esc_html_e('Register Patient Account', 'caretochina-medical'); ?>
+                            <i class="fas fa-user-plus"></i> <?php esc_html_e('Register Patient Account', 'caretochina-medical'); ?>
                         </button>
                     </form>
                     <div id="reg-response-box" class="auth-response-box" style="display:none;"></div>

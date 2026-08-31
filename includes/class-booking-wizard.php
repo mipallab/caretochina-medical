@@ -48,7 +48,7 @@ class CareToChina_Booking_Wizard {
         ?>
         <div class="ctc-wizard-shortcode-trigger">
             <button type="button" class="ctc-trigger-booking ctc-solid-btn btn-teal-primary <?php echo esc_attr($atts['class']); ?>" onclick="if(typeof appWizard !== 'undefined') appWizard.openScenario1();">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> <?php echo esc_html($atts['label']); ?>
+                <i class="fas fa-magic"></i> <?php echo esc_html($atts['label']); ?>
             </button>
         </div>
         <?php
@@ -206,7 +206,7 @@ class CareToChina_Booking_Wizard {
                             <img src="<?php echo esc_url($brand_logo); ?>" alt="CareToChina Logo" class="wiz-brand-logo">
                         </div>
                     <?php endif; ?>
-                    <span class="badge-pill ctc-badge-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> <?php esc_html_e('CareToChina Consultation Wizard', 'caretochina-medical'); ?></span>
+                    <span class="badge-pill ctc-badge-pill"><i class="fas fa-magic"></i> <?php esc_html_e('CareToChina Consultation Wizard', 'caretochina-medical'); ?></span>
                     <h2 id="wiz-modal-title" class="section-title wiz-modal-title"><?php esc_html_e('Medical Consultation Booking', 'caretochina-medical'); ?></h2>
                     <p class="section-subtitle text-muted wiz-modal-subtitle">
                         <?php esc_html_e('Select your service package and consultation details in 2 simple steps. Our medical team coordinates every aspect of your journey.', 'caretochina-medical'); ?>
@@ -247,14 +247,14 @@ class CareToChina_Booking_Wizard {
                             <!-- Pricing Page CTA Link (Opens in New Tab) -->
                             <div class="wiz-pricing-cta-wrap">
                                 <a href="<?php echo esc_url(home_url('/pricing/')); ?>" target="_blank" rel="noopener noreferrer" class="wiz-pricing-cta-btn">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> <?php esc_html_e('View Full Pricing & Plan Details', 'caretochina-medical'); ?>
+                                    <i class="fas fa-external-link-alt"></i> <?php esc_html_e('View Full Pricing & Plan Details', 'caretochina-medical'); ?>
                                 </a>
                             </div>
                         </div>
 
                         <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.skipPackage()"><i class="fa-solid fa-forward"></i> <?php esc_html_e('Skip Package & Continue', 'caretochina-medical'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(2)"><?php esc_html_e('Next: Patient Details', 'caretochina-medical'); ?> <i class="fa-solid fa-arrow-right"></i></button>
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.skipPackage()"><i class="fas fa-forward"></i> <?php esc_html_e('Skip Package & Continue', 'caretochina-medical'); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(2)"><?php esc_html_e('Next: Patient Details', 'caretochina-medical'); ?> <i class="fas fa-arrow-right"></i></button>
                         </div>
                     </div>
 
@@ -336,8 +336,8 @@ class CareToChina_Booking_Wizard {
                         </div>
 
                         <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> <?php esc_html_e('Back to Packages', 'caretochina-medical'); ?></button>
-                            <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fa-solid fa-check-circle"></i> <?php echo esc_html($is_logged_in ? __('Confirm & Submit Booking', 'caretochina-medical') : __('Complete Booking Request', 'caretochina-medical')); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(1)"><i class="fas fa-arrow-left"></i> <?php esc_html_e('Back to Packages', 'caretochina-medical'); ?></button>
+                            <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fas fa-check-circle"></i> <?php echo esc_html($is_logged_in ? __('Confirm & Submit Booking', 'caretochina-medical') : __('Complete Booking Request', 'caretochina-medical')); ?></button>
                         </div>
                     </div>
                 </form>

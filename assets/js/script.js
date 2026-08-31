@@ -1445,11 +1445,11 @@ jQuery(document).ready(function ($) {
           setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
         } else {
           box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
-          btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
+          btn.prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Sign In to Account');
         }
       }).fail(function () {
         box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again.</span>');
-        btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
+        btn.prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Sign In to Account');
       });
     });
   });
@@ -1495,11 +1495,11 @@ jQuery(document).ready(function ($) {
           setTimeout(function () { window.location.href = res.data.redirect; }, 1000);
         } else {
           box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
-          btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
+          btn.prop('disabled', false).html('<i class="fas fa-user-plus"></i> Register Patient Account');
         }
       }).fail(function () {
         box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again.</span>');
-        btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
+        btn.prop('disabled', false).html('<i class="fas fa-user-plus"></i> Register Patient Account');
       });
     });
   });

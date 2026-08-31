@@ -172,7 +172,7 @@ function caretochina_render_dashboard_button($atts = []) {
     <a href="<?php echo esc_url($url); ?>" class="ctc-dash-btn elementor-button elementor-button-secondary elementor-size-sm <?php echo esc_attr($atts['class'] . ' ' . $extra_class); ?>">
         <span class="elementor-button-content-wrapper" style="display:inline-flex; align-items:center; justify-content:center;">
             <?php if ($display_mode !== 'text_only') : ?>
-                <i class="<?php echo $is_logged_in ? 'fa-solid fa-user-circle' : 'fa-solid fa-right-to-bracket'; ?> ctc-btn-icon" style="margin-right:8px; font-size:<?php echo $is_logged_in ? '16px' : '15px'; ?>;"></i>
+                <i class="<?php echo $is_logged_in ? 'fas fa-user-circle' : 'fas fa-sign-in-alt'; ?> ctc-btn-icon" style="margin-right:8px; font-size:<?php echo $is_logged_in ? '16px' : '15px'; ?>;"></i>
             <?php endif; ?>
             <?php if ($display_mode !== 'icon_only') : ?>
                 <span class="elementor-button-text"><?php echo esc_html($label); ?></span>

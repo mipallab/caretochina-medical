@@ -85,7 +85,10 @@
 .fad,
 .fal,
 .far,
-.fas {
+.fas,
+.fa-solid,
+.fa-regular,
+.fa-brands {
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     display: inline-block;
@@ -94,6 +97,35 @@
     text-rendering: auto;
     line-height: 1
 }
+
+/* Font Awesome 6/5 Cross-Compatibility Icon Mappings */
+.fa-right-to-bracket:before, .fa-sign-in-alt:before, .fa-sign-in:before { content: "\f2f6" !important; }
+.fa-right-from-bracket:before, .fa-sign-out-alt:before, .fa-sign-out:before { content: "\f2f5" !important; }
+.fa-wand-magic-sparkles:before, .fa-magic:before { content: "\f0d0" !important; }
+.fa-arrow-up-right-from-square:before, .fa-external-link-alt:before { content: "\f35d" !important; }
+.fa-gear:before, .fa-cog:before { content: "\f013" !important; }
+.fa-gears:before, .fa-cogs:before { content: "\f085" !important; }
+.fa-magnifying-glass:before, .fa-search:before { content: "\f002" !important; }
+.fa-pen-to-square:before, .fa-edit:before { content: "\f044" !important; }
+.fa-circle-check:before, .fa-check-circle:before { content: "\f058" !important; }
+.fa-circle-xmark:before, .fa-times-circle:before { content: "\f057" !important; }
+.fa-circle-info:before, .fa-info-circle:before { content: "\f05a" !important; }
+.fa-circle-question:before, .fa-question-circle:before { content: "\f059" !important; }
+.fa-circle-exclamation:before, .fa-exclamation-circle:before { content: "\f06a" !important; }
+.fa-triangle-exclamation:before, .fa-exclamation-triangle:before { content: "\f071" !important; }
+.fa-arrow-rotate-right:before, .fa-redo:before { content: "\f01e" !important; }
+.fa-arrow-rotate-left:before, .fa-undo:before { content: "\f0e2" !important; }
+.fa-hospital-user:before { content: "\f80d" !important; }
+.fa-user:before { content: "\f007" !important; }
+.fa-user-plus:before { content: "\f234" !important; }
+.fa-user-circle:before { content: "\f2bd" !important; }
+.fa-arrow-right:before { content: "\f061" !important; }
+.fa-arrow-left:before { content: "\f060" !important; }
+.fa-forward:before { content: "\f04e" !important; }
+.fa-backward:before { content: "\f04a" !important; }
+.fa-check:before { content: "\f00c" !important; }
+.fa-times:before, .fa-xmark:before { content: "\f00d" !important; }
+.fa-spinner:before { content: "\f110" !important; }
 
 .fa-lg {
     font-size: 1.33333em;
