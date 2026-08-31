@@ -27,7 +27,7 @@ class CareToChina_Treatments_Grid_Widget extends Widget_Base {
     }
 
     public function get_style_depends() {
-        return ['font-awesome', 'caretochina-booking-style'];
+        return ['caretochina-font-awesome', 'font-awesome', 'caretochina-booking-style'];
     }
 
     protected function register_controls() {

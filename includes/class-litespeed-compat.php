@@ -42,6 +42,8 @@ class CareToChina_LiteSpeed_Compat {
 
         // LiteSpeed CSS Exclusions & Safelisting
         add_filter('litespeed_optm_css_exc', [$this, 'exclude_css_from_optm']);
+        add_filter('litespeed_optm_css_combine_exc', [$this, 'exclude_css_from_optm']);
+        add_filter('litespeed_optm_asynccss_exc', [$this, 'exclude_css_from_optm']);
         add_filter('litespeed_ucss_exc', [$this, 'safelist_ucss_selectors']);
 
         // LiteSpeed Image & Media LazyLoad Exclusions
@@ -49,11 +51,12 @@ class CareToChina_LiteSpeed_Compat {
         add_filter('litespeed_media_lazy_img_exc', [$this, 'exclude_lazyload_images']);
 
         // Automatic Targeted Cache Purging on Post & Settings Changes
-        add_action('save_post_hospital', [$this, 'purge_cache_on_post_update'], 20, 2);
         add_action('save_post_medical_treatment', [$this, 'purge_cache_on_post_update'], 20, 2);
         add_action('save_post_service_package', [$this, 'purge_cache_on_post_update'], 20, 2);
-        add_action('update_option_caretochina_hospital_settings', [$this, 'purge_all_litespeed_cache']);
         add_action('update_option_caretochina_pricing_settings', [$this, 'purge_all_litespeed_cache']);
+
+        // Cross-Origin Resource Sharing (CORS) header for webfonts
+        add_action('send_headers', [$this, 'add_cors_font_headers']);
 
         // Lightweight Nonce Refresh Endpoint for Cached Public Pages
         add_action('wp_ajax_ctc_refresh_nonces', [$this, 'ajax_refresh_nonces']);
@@ -232,7 +235,10 @@ class CareToChina_LiteSpeed_Compat {
 
         $items = [
             'font-awesome',
+            'caretochina-font-awesome',
+            'all.min.css',
             'caretochina-booking-style',
+            'caretochina-staff-style',
             'intl-tel-input',
         ];
 
@@ -336,6 +342,15 @@ class CareToChina_LiteSpeed_Compat {
     public function purge_all_litespeed_cache() {
         if (defined('LSCWP_V')) {
             do_action('litespeed_purge_all', 'CareToChina Global Settings Updated');
+        }
+    }
+
+    /**
+     * Set Cross-Origin Resource Sharing (CORS) header for webfonts on LiteSpeed Web Server
+     */
+    public function add_cors_font_headers() {
+        if (!headers_sent()) {
+            header('Access-Control-Allow-Origin: *');
         }
     }
 

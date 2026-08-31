@@ -26,16 +26,6 @@ class CareToChina_Booking_Wizard {
 
         // Render modal globally in the footer
         add_action('wp_footer', [$this, 'render_booking_modal_in_footer']);
-
-        // Automatic transient cache invalidation
-        add_action('save_post_hospital', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('deleted_post', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('created_hospital_city', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('edited_hospital_city', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('created_hospital_specialty', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('edited_hospital_specialty', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('created_hospital_department', [__CLASS__, 'purge_hospitals_cache']);
-        add_action('edited_hospital_department', [__CLASS__, 'purge_hospitals_cache']);
     }
 
     public function render_wizard($atts = []) {
@@ -55,144 +45,21 @@ class CareToChina_Booking_Wizard {
         return ob_get_clean();
     }
 
-    public function get_hospitals_data() {
-        $cache_key = 'ctc_cached_hospitals_data_v2';
-        $cached = get_transient($cache_key);
-        if ($cached !== false && is_array($cached)) {
-            return $cached;
-        }
-
-        $hospitals_query = new WP_Query([
-            'post_type'              => 'hospital',
-            'post_status'            => 'publish',
-            'posts_per_page'         => -1,
-            'no_found_rows'          => true,
-            'update_post_meta_cache' => true,
-            'update_post_term_cache' => true,
-        ]);
-
-        $hospitals = [];
-        if ($hospitals_query->have_posts()) {
-            while ($hospitals_query->have_posts()) {
-                $hospitals_query->the_post();
-                $id = get_the_ID();
-                
-                $cities = wp_get_post_terms($id, 'hospital_city', ['fields' => 'all']);
-                $specialties = wp_get_post_terms($id, 'hospital_specialty', ['fields' => 'all']);
-                $departments = wp_get_post_terms($id, 'hospital_department', ['fields' => 'all']);
-
-                $cities_arr = [];
-                if (!is_wp_error($cities)) {
-                    foreach ($cities as $c) {
-                        $cities_arr[] = ['id' => $c->term_id, 'name' => $c->name, 'slug' => $c->slug];
-                    }
-                }
-
-                $specialties_arr = [];
-                if (!is_wp_error($specialties)) {
-                    foreach ($specialties as $s) {
-                        $specialties_arr[] = ['id' => $s->term_id, 'name' => $s->name, 'slug' => $s->slug];
-                    }
-                }
-
-                $departments_arr = [];
-                if (!is_wp_error($departments)) {
-                    foreach ($departments as $d) {
-                        $departments_arr[] = ['id' => $d->term_id, 'name' => $d->name, 'slug' => $d->slug];
-                    }
-                }
-
-                $thumb_id = get_post_thumbnail_id($id);
-                $image_thumb = $thumb_id ? wp_get_attachment_image_url($thumb_id, 'medium') : '';
-                $image_full = $thumb_id ? wp_get_attachment_image_url($thumb_id, 'medium_large') : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80';
-                $image_srcset = $thumb_id ? wp_get_attachment_image_srcset($thumb_id, 'medium') : '';
-
-                $hospitals[] = [
-                    'id' => $id,
-                    'title' => get_the_title(),
-                    'image' => $image_full,
-                    'image_thumb' => $image_thumb ?: $image_full,
-                    'image_srcset' => $image_srcset ?: '',
-                    'cities' => $cities_arr,
-                    'specialties' => $specialties_arr,
-                    'departments' => $departments_arr,
-                    'type' => get_post_meta($id, '_hospital_type', true) ?: 'General Medical Center',
-                    'rating' => get_post_meta($id, '_hospital_rating', true) ?: '4.9 (1,240 Reviews)',
-                    'certification' => get_post_meta($id, '_hospital_certification', true) ?: 'JCI Certified',
-                ];
-            }
-            wp_reset_postdata();
-        }
-
-        set_transient($cache_key, $hospitals, 12 * HOUR_IN_SECONDS);
-        return $hospitals;
-    }
-
-    public function get_all_specialties() {
-        $cache_key = 'ctc_cached_specialties';
-        $cached = get_transient($cache_key);
-        if ($cached !== false && is_array($cached)) {
-            return $cached;
-        }
-
-        $terms = get_terms([
-            'taxonomy'   => 'hospital_specialty',
-            'hide_empty' => false,
-        ]);
-        $specialties = [];
-        if (!is_wp_error($terms)) {
-            foreach ($terms as $t) {
-                $specialties[] = ['id' => $t->term_id, 'name' => $t->name, 'slug' => $t->slug];
-            }
-        }
-
-        set_transient($cache_key, $specialties, 12 * HOUR_IN_SECONDS);
-        return $specialties;
-    }
-
-    public function get_all_cities() {
-        $cache_key = 'ctc_cached_cities';
-        $cached = get_transient($cache_key);
-        if ($cached !== false && is_array($cached)) {
-            return $cached;
-        }
-
-        $terms = get_terms([
-            'taxonomy'   => 'hospital_city',
-            'hide_empty' => false,
-        ]);
-        $cities = [];
-        if (!is_wp_error($terms)) {
-            foreach ($terms as $t) {
-                $cities[] = ['id' => $t->term_id, 'name' => $t->name, 'slug' => $t->slug];
-            }
-        }
-
-        set_transient($cache_key, $cities, 12 * HOUR_IN_SECONDS);
-        return $cities;
-    }
-
-    public static function purge_hospitals_cache() {
-        delete_transient('ctc_cached_hospitals_data_v2');
-        delete_transient('ctc_cached_specialties');
-        delete_transient('ctc_cached_cities');
-    }
-
     public function render_booking_modal_in_footer() {
         $is_logged_in = is_user_logged_in();
         $current_user = wp_get_current_user();
         $user_id = ($is_logged_in && $current_user) ? $current_user->ID : 0;
         
-        $profile_name = $is_logged_in ? ($current_user->display_name ?: $current_user->user_login) : '';
-        $profile_email = $is_logged_in ? $current_user->user_email : '';
-        $profile_country = $user_id ? get_user_meta($user_id, 'patient_country', true) : '';
-        $profile_phone = $user_id ? (get_user_meta($user_id, 'patient_phone', true) ?: get_user_meta($user_id, 'billing_phone', true)) : '';
-        $profile_gender = $user_id ? get_user_meta($user_id, 'patient_gender', true) : '';
-        $profile_age = $user_id ? get_user_meta($user_id, 'patient_age', true) : '';
-        $profile_whatsapp = $user_id ? get_user_meta($user_id, 'patient_whatsapp', true) : '';
-        $profile_wechat = $user_id ? get_user_meta($user_id, 'patient_wechat', true) : '';
+        $profile_name      = $is_logged_in ? ($current_user->display_name ?: $current_user->user_login) : '';
+        $profile_email     = $is_logged_in ? $current_user->user_email : '';
+        $profile_country   = $user_id ? get_user_meta($user_id, 'patient_country', true) : '';
+        $profile_phone     = $user_id ? (get_user_meta($user_id, 'patient_phone', true) ?: get_user_meta($user_id, 'billing_phone', true)) : '';
+        $profile_gender    = $user_id ? get_user_meta($user_id, 'patient_gender', true) : '';
+        $profile_age       = $user_id ? get_user_meta($user_id, 'patient_age', true) : '';
+        $profile_whatsapp  = $user_id ? get_user_meta($user_id, 'patient_whatsapp', true) : '';
+        $profile_wechat    = $user_id ? get_user_meta($user_id, 'patient_wechat', true) : '';
         $profile_messenger = $user_id ? get_user_meta($user_id, 'patient_messenger', true) : '';
-        $profile_linkedin = $user_id ? get_user_meta($user_id, 'patient_linkedin', true) : '';
+        $profile_linkedin  = $user_id ? get_user_meta($user_id, 'patient_linkedin', true) : '';
         
         ?>
         <!-- CARETOCHINA BOOKING MODAL POPUP -->
@@ -209,24 +76,19 @@ class CareToChina_Booking_Wizard {
                     <span class="badge-pill ctc-badge-pill"><i class="fa-solid fa-wand-magic-sparkles"></i> <?php esc_html_e('CareToChina Consultation Wizard', 'caretochina-medical'); ?></span>
                     <h2 id="wiz-modal-title" class="section-title wiz-modal-title"><?php esc_html_e('Medical Consultation Booking', 'caretochina-medical'); ?></h2>
                     <p class="section-subtitle text-muted wiz-modal-subtitle">
-                        <?php esc_html_e('Choose your hospital and service package in 3 simple steps. Our team coordinates every detail of your medical journey.', 'caretochina-medical'); ?>
+                        <?php esc_html_e('Select your service package and consultation details in 2 simple steps. Our medical team coordinates every aspect of your journey.', 'caretochina-medical'); ?>
                     </p>
                 </div>
 
-                <!-- STEP INDICATORS (3 STEPS) -->
+                <!-- STEP INDICATORS (2 STEPS) -->
                 <div class="wizard-steps-indicator">
                     <div class="wiz-step active" data-step="1">
                         <span class="wiz-step-num">1</span>
-                        <span class="wiz-step-label"><?php esc_html_e('Hospital', 'caretochina-medical'); ?></span>
+                        <span class="wiz-step-label"><span class="wiz-lbl-short"><?php esc_html_e('Package', 'caretochina-medical'); ?></span><span class="wiz-lbl-full"><?php esc_html_e('Service Package', 'caretochina-medical'); ?></span></span>
                     </div>
                     <div class="wiz-step-divider"></div>
                     <div class="wiz-step" data-step="2">
                         <span class="wiz-step-num">2</span>
-                        <span class="wiz-step-label"><span class="wiz-lbl-short"><?php esc_html_e('Package', 'caretochina-medical'); ?></span><span class="wiz-lbl-full"><?php esc_html_e('Service Package', 'caretochina-medical'); ?></span></span>
-                    </div>
-                    <div class="wiz-step-divider"></div>
-                    <div class="wiz-step" data-step="3">
-                        <span class="wiz-step-num">3</span>
                         <span class="wiz-step-label"><span class="wiz-lbl-short"><?php esc_html_e('Details', 'caretochina-medical'); ?></span><span class="wiz-lbl-full"><?php esc_html_e('Patient Details', 'caretochina-medical'); ?></span></span>
                     </div>
                 </div>
@@ -239,30 +101,11 @@ class CareToChina_Booking_Wizard {
                     <input type="hidden" name="package_name" id="wiz_package_name" value="">
                     <input type="hidden" name="package_price" id="wiz_package_price" value="0">
                     
-                    <!-- STEP 1: SELECT HOSPITAL -->
+                    <!-- STEP 1: SELECT SERVICE PACKAGE -->
                     <div class="wiz-page active" id="wiz-step-1">
-                        <div class="wiz-step-filters">
-                            <input type="text" id="wiz-hospital-search" class="form-input" placeholder="<?php esc_html_e('Search hospitals by name, city, or specialty...', 'caretochina-medical'); ?>">
-                            <select id="wiz-hospital-city-filter" class="form-select">
-                                <option value=""><?php esc_html_e('All Cities', 'caretochina-medical'); ?></option>
-                            </select>
-                        </div>
-                        
-                        <div id="wiz-hospital-list-grid" class="wiz-hospital-grid">
-                            <!-- Populated Dynamically via JS -->
-                        </div>
-                        
-                        <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.skipHospital()"><?php esc_html_e('Skip Hospital & Continue', 'caretochina-medical'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(2)"><?php esc_html_e('Next: Choose Package', 'caretochina-medical'); ?> <i class="fa-solid fa-arrow-right"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- STEP 2: SELECT SERVICE PACKAGE -->
-                    <div class="wiz-page" id="wiz-step-2" style="display:none;">
                         <div class="form-group mb-16">
-                            <label class="form-label wiz-plan-title"><?php esc_html_e('Select Your Service Package *', 'caretochina-medical'); ?></label>
-                            <p class="wiz-plan-subtext"><?php esc_html_e('Select your medical escort and coordination tier. Package pricing is fixed onto your booking.', 'caretochina-medical'); ?></p>
+                            <label class="form-label wiz-plan-title"><?php esc_html_e('Select Your Service Package (Optional)', 'caretochina-medical'); ?></label>
+                            <p class="wiz-plan-subtext"><?php esc_html_e('Choose an authorized medical escort & concierge tier, or skip to request a general consultation.', 'caretochina-medical'); ?></p>
                             
                             <div id="wiz-packages-list-grid" class="wiz-packages-grid">
                                 <!-- Populated Dynamically via JS / Localized Object -->
@@ -277,13 +120,13 @@ class CareToChina_Booking_Wizard {
                         </div>
 
                         <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> <?php esc_html_e('Back', 'caretochina-medical'); ?></button>
-                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(3)"><?php esc_html_e('Next: Patient Details', 'caretochina-medical'); ?> <i class="fa-solid fa-arrow-right"></i></button>
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.skipPackage()"><i class="fa-solid fa-forward"></i> <?php esc_html_e('Skip Package & Continue', 'caretochina-medical'); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-teal-primary btn-wiz-primary" onclick="appWizard.nextStep(2)"><?php esc_html_e('Next: Patient Details', 'caretochina-medical'); ?> <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
 
-                    <!-- STEP 3: PATIENT DETAILS & DIRECT CONFIRMATION -->
-                    <div class="wiz-page" id="wiz-step-3" style="display:none;">
+                    <!-- STEP 2: PATIENT DETAILS & DIRECT CONFIRMATION -->
+                    <div class="wiz-page" id="wiz-step-2" style="display:none;">
                         <div class="wiz-step3-fields-scroll">
                             <div class="form-group mb-12">
                                 <label class="form-label"><?php esc_html_e('Briefly describe your condition or medical needs *', 'caretochina-medical'); ?></label>
@@ -328,6 +171,11 @@ class CareToChina_Booking_Wizard {
                                     if (class_exists('CareToChina_Country_Helper')) { 
                                         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped HTML from CareToChina_Country_Helper.
                                         echo CareToChina_Country_Helper::render_phone_input_group('phone', $profile_phone, true, '555-0199', 'wiz_phone'); 
+                                        ?>
+                                        <div class="ctc-phone-guide-hint">
+                                            <span>💡 <strong><?php esc_html_e('Tip:', 'caretochina-medical'); ?></strong> <?php esc_html_e('Click the flag to choose country code or type number.', 'caretochina-medical'); ?></span>
+                                        </div>
+                                        <?php
                                     } else { 
                                         echo '<input type="tel" name="phone" id="wiz_phone" class="form-input" value="' . esc_attr($profile_phone) . '" required placeholder="+1 (800) 555-0199">'; 
                                     } 
@@ -360,7 +208,7 @@ class CareToChina_Booking_Wizard {
                         </div>
 
                         <div class="wiz-action-footer">
-                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(2)"><i class="fa-solid fa-arrow-left"></i> <?php esc_html_e('Back', 'caretochina-medical'); ?></button>
+                            <button type="button" class="ctc-solid-btn btn-wiz-secondary" onclick="appWizard.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> <?php esc_html_e('Back to Packages', 'caretochina-medical'); ?></button>
                             <button type="submit" id="ctc-wizard-submit-btn" class="ctc-solid-btn btn-teal-primary btn-wiz-primary"><i class="fa-solid fa-check-circle"></i> <?php echo esc_html($is_logged_in ? __('Confirm & Submit Booking', 'caretochina-medical') : __('Complete Booking Request', 'caretochina-medical')); ?></button>
                         </div>
                     </div>
@@ -392,8 +240,8 @@ class CareToChina_Booking_Wizard {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
 
         // Retrieve and sanitize fields
-        $hospital_id       = isset($_POST['hospital_id']) ? absint(wp_unslash($_POST['hospital_id'])) : 0;
-        $hospital_name     = isset($_POST['hospital_name']) ? sanitize_text_field(wp_unslash($_POST['hospital_name'])) : '';
+        $hospital_id       = 0;
+        $hospital_name     = '';
         $package_id        = isset($_POST['package_id']) ? absint(wp_unslash($_POST['package_id'])) : 0;
         $quote_details     = isset($_POST['quote_details']) ? sanitize_textarea_field(wp_unslash($_POST['quote_details'])) : '';
         $country           = isset($_POST['country']) ? sanitize_text_field(wp_unslash($_POST['country'])) : '';
@@ -452,14 +300,12 @@ class CareToChina_Booking_Wizard {
         if (is_user_logged_in()) {
             $patient_id = get_current_user_id();
             $is_guest   = 0;
-            $invoice_status = ($snapshotted_price > 0) ? 'Pending Deposit' : 'Pending Quote / Assessment';
         } else {
-            $invoice_status = ($snapshotted_price > 0) ? 'Pending Deposit' : 'Pending Quote / Assessment';
             $raw_guest_token = bin2hex(random_bytes(32));
             $guest_token_hash = hash('sha256', $raw_guest_token);
         }
 
-        $specialty_label = $package_title ?: ($hospital_name ?: __('Medical Service Consultation', 'caretochina-medical'));
+        $specialty_label = $package_title ?: __('Medical Service Consultation', 'caretochina-medical');
 
         // DUPLICATE CONSULTATION / BOOKING PROTECTION
         $lock_key = 'ctc_sub_lock_' . md5($email . '|' . strtolower($specialty_label));
@@ -513,14 +359,14 @@ class CareToChina_Booking_Wizard {
             'patient_id'       => $patient_id,
             'is_guest'         => $is_guest,
             'guest_token_hash' => $guest_token_hash,
-            'hospital_id'      => $hospital_id,
-            'hospital_name'    => $hospital_name ?: __('General Inquiry (No Hospital Selected)', 'caretochina-medical'),
+            'hospital_id'      => 0,
+            'hospital_name'    => '',
             'specialty'        => $specialty_label,
             'package_id'       => $package_id,
             'treatment_timing' => 'Flexible',
             'quote_details'    => $quote_details,
-            'country'          => $country,
             'full_name'        => $full_name,
+            'country'          => $country,
             'age'              => $age,
             'gender'           => $gender,
             'email'            => $email,
@@ -529,94 +375,94 @@ class CareToChina_Booking_Wizard {
             'wechat'           => $wechat,
             'messenger'        => $messenger,
             'linkedin'         => $linkedin,
-            'status'           => 'pending',
-            'timeline_stage'   => 1,
-            'invoice_status'   => $invoice_status,
             'amount'           => $snapshotted_price,
             'currency'         => $currency,
+            'status'           => 'pending',
+            'created_at'       => current_time('mysql'),
+        ], [
+            '%s', '%d', '%d', '%s', '%d', '%s', '%s', '%d', '%s', '%s',
+            '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+            '%f', '%s', '%s', '%s',
         ]);
 
-        if ($inserted) {
-            $booking_id = $wpdb->insert_id;
+        if ($inserted === false) {
+            delete_transient($lock_key);
+            wp_send_json_error(['message' => __('Database error saving booking. Please try again.', 'caretochina-medical')]);
+        }
 
-            // Set secure cookie for guest continuity
-            if ($is_guest && !headers_sent()) {
-                $expiry_days = intval(get_option('ctc_guest_token_expiry_days', 90));
-                $expiry_seconds = max(1, $expiry_days) * 86400;
-                setcookie('ctc_guest_token', $raw_guest_token, time() + $expiry_seconds, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-                setcookie('ctc_active_guest_token', $raw_guest_token, time() + $expiry_seconds, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-            }
+        $booking_id = $wpdb->insert_id;
+        delete_transient($lock_key);
 
-            $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
-            $guest_chat_url = $is_guest ? add_query_arg([
-                'booking_code' => $booking_code,
-                'token'        => $raw_guest_token,
-            ], $dash_url) : $dash_url;
+        // Auto-Generate Initial Patient & Admin Initial Messages
+        $table_messages = $wpdb->prefix . 'caretochina_messages';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+        $wpdb->insert($table_messages, [
+            'booking_id'   => $booking_id,
+            'sender_id'    => $patient_id,
+            'sender_type'  => 'patient',
+            'message_text' => sprintf(
+                __("Initial Inquiry / Medical Request:\n%s\n\nContact Details:\nPhone: %s\nWhatsApp: %s\nWeChat/Messenger: %s", 'caretochina-medical'),
+                $quote_details,
+                $phone,
+                $whatsapp ?: __('N/A', 'caretochina-medical'),
+                $wechat ?: __('N/A', 'caretochina-medical')
+            ),
+            'created_at'   => current_time('mysql'),
+        ], ['%d', '%d', '%s', '%s', '%s']);
 
-            // Send Emails
-            $this->send_notifications($booking_code, $full_name, $email, $hospital_name, $specialty_str, $treatment_timing, $guest_chat_url, $package_title, $package_price_formatted, $package_timeline, $quote_details);
+        // System Welcome Message
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+        $wpdb->insert($table_messages, [
+            'booking_id'   => $booking_id,
+            'sender_id'    => 0,
+            'sender_type'  => 'admin',
+            'message_text' => sprintf(
+                __("Hello %s! Thank you for contacting CareToChina Medical. Your case #%s for %s has been received. Our medical concierge team is currently reviewing your medical details and will respond shortly with next steps and consultation itinerary.", 'caretochina-medical'),
+                $full_name,
+                $booking_code,
+                $specialty_label
+            ),
+            'created_at'   => current_time('mysql'),
+        ], ['%d', '%d', '%s', '%s', '%s']);
 
-            wp_send_json_success([
-                'booking_id'      => $booking_id,
-                'booking_code'    => $booking_code,
-                'is_guest'        => (bool) $is_guest,
-                'guest_token'     => $raw_guest_token,
-                'chat_url'        => $guest_chat_url,
-                'amount'          => $snapshotted_price,
-                'currency'        => $currency,
-                'specialty'       => $specialty_str,
-                'message'         => /* translators: %s: dynamic value */
- /* translators: 1: Case code, 2: Email */
- sprintf(__('Booking request submitted! Your Case Code is %1$s. A confirmation email with live chat access has been sent to %2$s.', 'caretochina-medical'), $booking_code, $email)
+        // Save Guest Token in Cookie for Instant Dashboard Auto-Authentication
+        if ($is_guest && !empty($raw_guest_token)) {
+            $cookie_name = 'ctc_guest_token_' . $booking_code;
+            $cookie_expiry = time() + (30 * DAY_IN_SECONDS);
+            $secure = is_ssl();
+            setcookie($cookie_name, $raw_guest_token, [
+                'expires'  => $cookie_expiry,
+                'path'     => COOKIEPATH,
+                'domain'   => COOKIE_DOMAIN,
+                'secure'   => $secure,
+                'httponly' => true,
+                'samesite' => 'Lax'
             ]);
-        } else {
-            wp_send_json_error(['message' => __('Failed to record request into database. Please try again.', 'caretochina-medical')]);
-        }
-    }
-
-    private function send_notifications($booking_code, $name, $email, $hospital, $specialty, $timing, $chat_url = '', $package_name = '', $package_price = '', $package_timeline = '', $quote_details = '') {
-        $dashboard_url = !empty($chat_url) ? $chat_url : (class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/'));
-        $site_name = get_bloginfo('name') ?: 'CareToChina Medical';
-        $admin_email = get_option('admin_email');
-
-        $email_data = [
-            'patient_name'      => $name,
-            'full_name'         => $name,
-            'patient_email'     => $email,
-            'booking_code'      => $booking_code,
-            'hospital_name'     => $hospital ?: __('Best Matched Medical Center', 'caretochina-medical'),
-            'specialty'         => $specialty ?: __('General Medical Consultation', 'caretochina-medical'),
-            'package_name'      => $package_name ?: __('Not Selected', 'caretochina-medical'),
-            'package_price'     => $package_price ?: '',
-            'package_timeline'  => $package_timeline ?: '',
-            'quote_details'     => $quote_details ?: '',
-            'timing'            => $timing ?: __('Flexible / As soon as possible', 'caretochina-medical'),
-            'status'            => 'Pending Coordinator Review',
-            'chat_url'          => $dashboard_url,
-            'dashboard_url'     => $dashboard_url,
-            'staff_portal_url'  => admin_url('admin.php?page=caretochina-staff-desk'),
-        ];
-
-        // 1. Send confirmation to Patient / Guest via Template Engine
-        $patient_event = !empty($chat_url) ? 'guest_booking' : 'patient_booking';
-        if (class_exists('CareToChina_Email_Templates')) {
-            CareToChina_Email_Templates::send_notification($patient_event, $email, $email_data);
         }
 
-        // 2. Send alert to Admin & Staff via Template Engine
-        $staff_emails = [$admin_email];
-        $staff_users = get_users(['role__in' => ['administrator', 'editor', 'medical_staff'], 'fields' => ['user_email']]);
-        foreach ($staff_users as $user) {
-            if (!empty($user->user_email)) {
-                $staff_emails[] = $user->user_email;
-            }
+        // Asynchronous Notification Delivery (Patient Confirmation + Admin Alert)
+        if (class_exists('CareToChina_Async_Mailer')) {
+            CareToChina_Async_Mailer::dispatch_booking_created($booking_id, $raw_guest_token);
         }
-        $staff_emails = array_unique($staff_emails);
 
-        if (class_exists('CareToChina_Email_Templates')) {
-            foreach ($staff_emails as $staff_to) {
-                CareToChina_Email_Templates::send_notification('admin_booking', $staff_to, $email_data);
-            }
-        }
+        $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
+        
+        $chat_url = ($is_guest && !empty($raw_guest_token)) ? add_query_arg([
+            'booking_code' => $booking_code,
+            'ctc_token'    => $raw_guest_token,
+        ], $dash_url) : $dash_url;
+
+        // Clean user-friendly success response
+        wp_send_json_success([
+            'booking_id'      => $booking_id,
+            'booking_code'    => $booking_code,
+            'is_guest'        => (bool) $is_guest,
+            'guest_token'     => $raw_guest_token,
+            'chat_url'        => $chat_url,
+            'amount'          => $snapshotted_price,
+            'currency'        => $currency,
+            'specialty'       => $specialty_label,
+            'message'         => __('Booking submitted successfully! Redirecting to your personal consultation desk...', 'caretochina-medical')
+        ]);
     }
 }

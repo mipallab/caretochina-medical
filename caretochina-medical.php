@@ -62,7 +62,6 @@ if (!defined('CAREYOU_STAFF_PATH')) define('CAREYOU_STAFF_PATH', CARETOCHINA_MED
 if (!defined('CAREYOU_STAFF_URL')) define('CAREYOU_STAFF_URL', CARETOCHINA_MEDICAL_URL);
 
 // Load the modules
-require_once CARETOCHINA_MEDICAL_PATH . 'hospitals-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'treatments-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'booking-main.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'staff-main.php';
@@ -73,8 +72,6 @@ require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-page-manager.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-recaptcha.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-data-exporter.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-setup-wizard.php';
-require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-hospital-settings.php';
-require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-hero-hospital-slider.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-litespeed-compat.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/payments/loader.php';
 
@@ -84,8 +81,6 @@ CareToChina_Email_Templates::instance();
 CareToChina_Page_Manager::instance();
 CareToChina_Recaptcha::instance();
 CareToChina_Setup_Wizard::instance();
-CareToChina_Hospital_Settings::instance();
-CareToChina_Hero_Hospital_Slider::instance();
 CareToChina_Treatments_Plugin::instance();
 CareToChina_LiteSpeed_Compat::instance();
 

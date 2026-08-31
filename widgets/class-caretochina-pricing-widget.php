@@ -26,6 +26,10 @@ class CareToChina_Pricing_Widget extends Widget_Base {
         return ['pricing', 'plans', 'packages', 'medical', 'comparison', 'bento', 'table', 'caretochina'];
     }
 
+    public function get_style_depends() {
+        return ['caretochina-font-awesome', 'font-awesome', 'caretochina-booking-style'];
+    }
+
     protected function register_controls() {
         $this->start_controls_section(
             'section_content',

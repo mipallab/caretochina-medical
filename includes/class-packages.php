@@ -166,7 +166,7 @@ class CareToChina_Packages {
             'public'             => false,
             'publicly_queryable' => false,
             'show_ui'            => true,
-            'show_in_menu'       => 'edit.php?post_type=hospital',
+            'show_in_menu'       => 'edit.php?post_type=medical_treatment',
             'query_var'          => false,
             'rewrite'            => false,
             'capability_type'    => 'post',

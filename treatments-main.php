@@ -592,11 +592,15 @@ class CareToChina_Treatments_Plugin {
      * Frontend Scripts & Styles
      */
     public function enqueue_frontend_scripts() {
-        if (!wp_style_is('font-awesome', 'registered') && !wp_style_is('font-awesome', 'enqueued')) {
-            wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
+        if (!wp_style_is('caretochina-font-awesome', 'registered')) {
+            wp_register_style('caretochina-font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.5.1');
         }
+        if (!wp_style_is('font-awesome', 'registered')) {
+            wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.5.1');
+        }
+        wp_enqueue_style('caretochina-font-awesome');
         wp_enqueue_style('font-awesome');
-        wp_enqueue_style('caretochina-booking-style', CARETOCHINA_MEDICAL_URL . 'assets/css/style.css', ['font-awesome'], CARETOCHINA_MEDICAL_VERSION);
+        wp_enqueue_style('caretochina-booking-style', CARETOCHINA_MEDICAL_URL . 'assets/css/style.css', ['caretochina-font-awesome', 'font-awesome'], CARETOCHINA_MEDICAL_VERSION);
     }
 
     /**
@@ -784,9 +788,13 @@ class CareToChina_Treatments_Plugin {
      */
     public function register_elementor_widgets($widgets_manager) {
         require_once __DIR__ . '/widgets/class-caretochina-treatments-grid-widget.php';
+        require_once __DIR__ . '/widgets/class-caretochina-pricing-widget.php';
 
         if (class_exists('CareToChina_Treatments_Grid_Widget')) {
             $widgets_manager->register(new \CareToChina_Treatments_Grid_Widget());
+        }
+        if (class_exists('CareToChina_Pricing_Widget')) {
+            $widgets_manager->register(new \CareToChina_Pricing_Widget());
         }
     }
 }

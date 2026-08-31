@@ -129,34 +129,25 @@ var CTC_Audio = (function () {
 
 window.appWizard = {
   currentStep: 1,
-  selectedHospitalId: 0,
-  selectedHospitalName: '',
   selectedPackageId: 0,
   selectedPackageName: '',
   selectedPackagePrice: 0.00,
   selectedPackageCurrency: 'USD',
 
   openScenario1() {
-    this.selectedHospitalId = 0;
-    this.selectedHospitalName = '';
     this.selectedPackageId = 0;
     this.selectedPackageName = '';
     this.selectedPackagePrice = 0.00;
 
-    // Clear search and reset city filter to All Cities
-    jQuery('#wiz-hospital-search').val('');
-    jQuery('#wiz-hospital-city-filter').val('');
-
-    // Clear form inputs
+    // Reset hidden form inputs
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
     jQuery('#wiz_package_id').val(0);
     jQuery('#wiz_package_name').val('');
     jQuery('#wiz_package_price').val(0);
 
-    // Reset steps
+    // Reset steps to Step 1 (Select Package)
     this.currentStep = 1;
-    this.renderHospitals();
     this.renderPackages();
     this.showStep(1);
 
@@ -169,26 +160,29 @@ window.appWizard = {
     jQuery('#ctc-booking-modal').addClass('show');
   },
 
-  openScenario2(hospitalData) {
-    this.selectedHospitalId = (hospitalData && hospitalData.id) ? hospitalData.id : 0;
-    this.selectedHospitalName = (hospitalData && hospitalData.name) ? hospitalData.name : '';
-    this.selectedPackageId = 0;
-    this.selectedPackageName = '';
-    this.selectedPackagePrice = 0.00;
+  openScenario2(packageData) {
+    if (packageData && typeof packageData === 'object' && packageData.id) {
+      this.openScenarioFromPackage(packageData.id, packageData.name || '', packageData.price || 0);
+    } else {
+      this.openScenario1();
+    }
+  },
 
-    // Set selections
-    jQuery('#wiz_hospital_id').val(this.selectedHospitalId);
-    jQuery('#wiz_hospital_name').val(this.selectedHospitalName);
-    jQuery('#wiz_package_id').val(0);
-    jQuery('#wiz_package_name').val('');
-    jQuery('#wiz_package_price').val(0);
+  openScenarioFromPackage(packageId, packageName, packagePrice) {
+    this.selectedPackageId = packageId || 0;
+    this.selectedPackageName = packageName || '';
+    this.selectedPackagePrice = packagePrice || 0.00;
 
-    // Reset steps and jump directly to Step 2 (Package Selection)
+    jQuery('#wiz_hospital_id').val(0);
+    jQuery('#wiz_hospital_name').val('');
+    jQuery('#wiz_package_id').val(this.selectedPackageId);
+    jQuery('#wiz_package_name').val(this.selectedPackageName);
+    jQuery('#wiz_package_price').val(this.selectedPackagePrice);
+
+    // Jump directly to Step 2 (Patient Details)
     this.currentStep = 2;
-    this.renderPackages();
     this.showStep(2);
 
-    // Reset form and steps indicator visibility
     jQuery('#ctc-booking-wizard-form').show();
     jQuery('.wizard-steps-indicator').show();
     jQuery('#ctc-wizard-status').hide().empty();
@@ -197,30 +191,21 @@ window.appWizard = {
     jQuery('#ctc-booking-modal').addClass('show');
   },
 
-  openScenarioFromPackage(hospitalId, hospitalName, packageId, packageName, packagePrice) {
-    this.selectedHospitalId = hospitalId || 0;
-    this.selectedHospitalName = hospitalName || '';
-    this.selectedPackageId = packageId || 0;
-    this.selectedPackageName = packageName || '';
-    this.selectedPackagePrice = packagePrice || 0.00;
+  skipPackage() {
+    this.selectedPackageId = 0;
+    this.selectedPackageName = 'General Consultation (No Package Selected)';
+    this.selectedPackagePrice = 0.00;
 
-    jQuery('#wiz_hospital_id').val(this.selectedHospitalId);
-    jQuery('#wiz_hospital_name').val(this.selectedHospitalName);
-    jQuery('#wiz_package_id').val(this.selectedPackageId);
-    jQuery('#wiz_package_name').val(this.selectedPackageName);
-    jQuery('#wiz_package_price').val(this.selectedPackagePrice);
+    jQuery('#wiz_hospital_id').val(0);
+    jQuery('#wiz_hospital_name').val('');
+    jQuery('#wiz_package_id').val(0);
+    jQuery('#wiz_package_name').val('');
+    jQuery('#wiz_package_price').val(0);
 
-    // Render packages so state is primed, then jump to Step 3 (Patient Details)
-    this.renderPackages();
-    this.currentStep = 3;
-    this.showStep(3);
+    jQuery('.wiz-package-card').removeClass('selected');
+    jQuery('.wiz-pkg-radio').prop('checked', false);
 
-    jQuery('#ctc-booking-wizard-form').show();
-    jQuery('.wizard-steps-indicator').show();
-    jQuery('#ctc-wizard-status').hide().empty();
-
-    jQuery('html, body').addClass('ctc-modal-open');
-    jQuery('#ctc-booking-modal').addClass('show');
+    this.showStep(2);
   },
 
   closeModal() {
@@ -245,99 +230,11 @@ window.appWizard = {
   },
 
   nextStep(stepNum) {
-    var bookingObj = getBookingObj();
-
-    // STEP 1 -> 2 VALIDATION (Hospital selected or skipped)
-    if (stepNum === 2 && this.currentStep === 1) {
-      if (this.selectedHospitalId === 0) {
-        // Offer quick proceed if no hospital explicitly clicked
-        this.skipHospital();
-        return;
-      }
-      this.renderPackages();
-    }
-
-    // STEP 2 -> 3 VALIDATION (Package selected)
-    if (stepNum === 3 && this.currentStep === 2) {
-      var pkgId = parseInt(jQuery('#wiz_package_id').val() || 0);
-      if (pkgId === 0 && this.selectedPackageId === 0) {
-        var $firstCard = jQuery('.wiz-package-card').first();
-        if ($firstCard.length) {
-          $firstCard.trigger('click');
-        } else {
-          alert('Please select a service package to proceed.');
-          return;
-        }
-      }
-    }
-
     this.showStep(stepNum);
   },
 
-  skipHospital() {
-    this.selectedHospitalId = 0;
-    this.selectedHospitalName = 'General Inquiry (No Hospital Selected)';
-    jQuery('#wiz_hospital_id').val(0);
-    jQuery('#wiz_hospital_name').val('');
-    jQuery('.hospital-select-card').removeClass('selected');
-
-    this.renderPackages();
-    this.showStep(2);
-  },
-
-  selectHospitalCard(element, id, name) {
-    jQuery('.hospital-select-card').removeClass('selected');
-    jQuery(element).addClass('selected');
-    this.selectedHospitalId = id;
-    this.selectedHospitalName = name;
-    jQuery('#wiz_hospital_id').val(id);
-    jQuery('#wiz_hospital_name').val(name);
-  },
-
-  renderHospitals() {
-    const listGrid = jQuery('#wiz-hospital-list-grid');
-    if (!listGrid.length) return;
-
-    listGrid.empty();
-    const searchVal = (jQuery('#wiz-hospital-search').val() || '').toLowerCase().trim();
-    const cityVal = jQuery('#wiz-hospital-city-filter').val();
-    const bookingObj = getBookingObj();
-
-    bookingObj.hospitals.forEach(h => {
-      if (searchVal && h.title.toLowerCase().indexOf(searchVal) === -1) return;
-      if (cityVal && cityVal !== '' && cityVal !== '0' && !h.cities.some(c => c.id == cityVal)) return;
-
-      const imgSrc = h.image_thumb || h.image;
-      const srcsetAttribute = h.image_srcset ? `srcset="${h.image_srcset}" sizes="70px"` : '';
-
-      const cityNames = (h.cities && Array.isArray(h.cities)) ? h.cities.map(c => c.name).filter(Boolean).join(', ') : '';
-      const metaText = [h.certification, h.rating].filter(Boolean).join(' • ');
-
-      const card = jQuery(`
-        <div class="hospital-select-card" onclick="appWizard.selectHospitalCard(this, ${h.id}, '${h.title.replace(/'/g, "\\'")}')">
-          <img src="${imgSrc}" ${srcsetAttribute} loading="lazy" alt="${h.title}" class="hospital-select-card-img">
-          <div class="hospital-select-card-info">
-            <h4 class="hospital-select-card-title">${h.title}</h4>
-            ${cityNames ? `<div class="hospital-select-card-city"><i class="fa-solid fa-map-marker-alt"></i> ${cityNames}</div>` : ''}
-            ${metaText ? `<div class="hospital-select-card-meta">${metaText}</div>` : ''}
-          </div>
-        </div>
-      `);
-
-      if (h.id === this.selectedHospitalId) {
-        card.addClass('selected');
-      }
-
-      listGrid.append(card);
-    });
-
-    if (listGrid.children().length === 0) {
-      listGrid.append('<div style="grid-column: span 2; text-align:center; padding:20px; color:#64748B; font-size:13px;">No hospitals matching criteria.</div>');
-    }
-  },
-
   /**
-   * Render Service Packages (Plan A, B, C, D) into Step 2 Grid
+   * Render Service Packages (Plan A, B, C, D) into Step 1 Grid
    */
   renderPackages() {
     var self = this;
@@ -362,16 +259,8 @@ window.appWizard = {
 
     grid.empty();
 
-    packages.forEach(function (pkg, idx) {
-      var isChecked = (self.selectedPackageId == pkg.id) || (self.selectedPackageId === 0 && idx === 0);
-      if (isChecked && self.selectedPackageId === 0) {
-        self.selectedPackageId = pkg.id;
-        self.selectedPackageName = pkg.name;
-        self.selectedPackagePrice = pkg.price;
-        jQuery('#wiz_package_id').val(pkg.id);
-        jQuery('#wiz_package_name').val(pkg.name);
-        jQuery('#wiz_package_price').val(pkg.price);
-      }
+    packages.forEach(function (pkg) {
+      var isChecked = (self.selectedPackageId == pkg.id);
 
       var cardHtml = `
         <div class="wiz-package-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPackage(this, ${pkg.id}, '${pkg.name.replace(/'/g, "\\'")}', ${pkg.price})">
@@ -649,28 +538,10 @@ jQuery(document).ready(function ($) {
     filter.val('');
   }
 
-  // Search & filter listeners
-  $(document).on('keyup input', '#wiz-hospital-search', function () {
-    appWizard.renderHospitals();
-  });
-  $(document).on('keydown', '#wiz-hospital-search', function (e) {
-    if (e.key === 'Enter' || e.keyCode === 13) {
-      e.preventDefault();
-      $(this).blur();
-    }
-  });
-  $(document).on('change', '#wiz-hospital-city-filter', function () {
-    appWizard.renderHospitals();
-  });
-
   // Modal open triggers
   $(document).on('click', 'a[href="#booking"], .ctc-trigger-booking, [id="booking"], .ctc-quote-btn, .ctc-sidebar-quote-btn', function (e) {
     e.preventDefault();
-    if (typeof apiObj.current_hospital !== 'undefined' && apiObj.current_hospital) {
-      appWizard.openScenario2(apiObj.current_hospital);
-    } else {
-      appWizard.openScenario1();
-    }
+    appWizard.openScenario1();
   });
 
   // Close modals on Close button, backdrop or Escape
