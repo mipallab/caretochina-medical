@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('CARETOCHINA_PAYMENT_DB_VERSION')) {
-    define('CARETOCHINA_PAYMENT_DB_VERSION', '2.5.0');
+    define('CARETOCHINA_PAYMENT_DB_VERSION', '2.6.0');
 }
 
 class CareToChina_Booking_DB {
