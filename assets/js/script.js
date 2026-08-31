@@ -945,9 +945,36 @@ jQuery(document).ready(function ($) {
     }
   };
 
+  // Adaptive Smart Polling for Patient Chat
+  var patientChatTimer = null;
+  var patientPollInterval = 3500;
+
+  function scheduleNextPatientPoll(delay) {
+    if (patientChatTimer) clearTimeout(patientChatTimer);
+    if (!$('#patient-chat-box').length) return;
+    
+    patientChatTimer = setTimeout(function () {
+      if (document.hidden) {
+        // In background tab, schedule lazy poll every 20s
+        scheduleNextPatientPoll(20000);
+        return;
+      }
+      fetchPatientChat();
+      scheduleNextPatientPoll(patientPollInterval);
+    }, delay || patientPollInterval);
+  }
+
   if ($('#patient-chat-box').length) {
     fetchPatientChat();
-    setInterval(fetchPatientChat, 1000);
+    scheduleNextPatientPoll(patientPollInterval);
+
+    // Immediately poll when user switches back to tab
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && $('#patient-chat-box').length) {
+        fetchPatientChat();
+        scheduleNextPatientPoll(patientPollInterval);
+      }
+    });
   }
 
   // PATIENT / GUEST MESSAGING SUBMISSION (WITH ATTACHMENTS)

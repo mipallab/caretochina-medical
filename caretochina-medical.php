@@ -3,7 +3,7 @@
  * Plugin Name: CareToChina Medical Suite
  * Plugin URI: https://caretochina.com
  * Description: Unified Medical Management suite for CareToChina, combining Hospitals Management, Booking Engine, Coordinator Portal, and Headless WooCommerce Payments.
- * Version: 2.4.4
+ * Version: 2.5.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Tested up to: 7.1
@@ -22,9 +22,7 @@ if (!defined('ABSPATH')) {
 // Runtime Environment Compatibility Check
 if (version_compare(PHP_VERSION, '7.4', '<')) {
     add_action('admin_notices', function() {
-        /* translators: 1: Required PHP version, 2: Current PHP version */
-        $message = sprintf(__('This plugin requires PHP version %1$s or higher. Your server is running PHP %2$s.', 'caretochina-medical'), '7.4', PHP_VERSION);
-        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html($message) . '</p></div>';
+        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html(sprintf('This plugin requires PHP version %1$s or higher. Your server is running PHP %2$s.', '7.4', PHP_VERSION)) . '</p></div>';
     });
     return;
 }
@@ -32,15 +30,20 @@ if (version_compare(PHP_VERSION, '7.4', '<')) {
 global $wp_version;
 if (isset($wp_version) && version_compare($wp_version, '6.0', '<')) {
     add_action('admin_notices', function() {
-        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> ' . esc_html__('This plugin requires WordPress version 6.0 or higher.', 'caretochina-medical') . '</p></div>';
+        echo '<div class="notice notice-error"><p><strong>CareToChina Medical Suite:</strong> This plugin requires WordPress version 6.0 or higher.</p></div>';
     });
     return;
 }
 
 // Unified Constants
-define('CARETOCHINA_MEDICAL_VERSION', '2.4.4');
+define('CARETOCHINA_MEDICAL_VERSION', '2.5.0');
 define('CARETOCHINA_MEDICAL_PATH', plugin_dir_path(__FILE__));
 define('CARETOCHINA_MEDICAL_URL', plugin_dir_url(__FILE__));
+
+// Load translations strictly on 'init' action for WordPress 6.7+ standard
+add_action('init', function() {
+    load_plugin_textdomain('caretochina-medical', false, dirname(plugin_basename(__FILE__)) . '/languages');
+}, 1);
 
 // Backwards compatibility constants for Booking
 if (!defined('CARETOCHINA_BOOKING_VERSION')) define('CARETOCHINA_BOOKING_VERSION', CARETOCHINA_MEDICAL_VERSION);
@@ -72,7 +75,7 @@ require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-data-exporter.php'
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-setup-wizard.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-hospital-settings.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-hero-hospital-slider.php';
-require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-wp-rocket-compat.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-litespeed-compat.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/payments/loader.php';
 
 // Instantiate Core Services
@@ -84,7 +87,7 @@ CareToChina_Setup_Wizard::instance();
 CareToChina_Hospital_Settings::instance();
 CareToChina_Hero_Hospital_Slider::instance();
 CareToChina_Treatments_Plugin::instance();
-CareToChina_WPRocket_Compat::instance();
+CareToChina_LiteSpeed_Compat::instance();
 
 // Automatic DB Schema & Index Synchronization
 add_action('plugins_loaded', function() {

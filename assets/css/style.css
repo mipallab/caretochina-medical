@@ -7673,3 +7673,368 @@ body[data-bs-theme="dark"] #ctc-booking-modal .btn-wiz-secondary:hover {
     box-sizing: border-box !important;
   }
 }
+
+/* ==========================================================================
+   HOSPITAL CARD STYLES (EXTRACTED FROM INLINE)
+   ========================================================================== */
+.ctc-hospital-card {
+    background-color: #ffffff;
+    border: 1px solid #0f766e69;
+    border-radius: 24px;
+    box-shadow: 0px 10px 25px -5px rgba(15, 118, 110, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.ctc-hospital-card:hover {
+    transform: translateY(-6px);
+    border-color: #0f766e !important;
+    box-shadow: 0px 16px 32px -8px rgba(15, 118, 110, 0.18) !important;
+}
+.ctc-hosp-img-box {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+}
+.ctc-hosp-img-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.ctc-hosp-img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 24px 24px 0 0;
+    display: block;
+    transition: transform 0.4s ease;
+}
+.ctc-hospital-card:hover .ctc-hosp-img {
+    transform: scale(1.05);
+}
+.ctc-hosp-badge-loc {
+    position: absolute !important;
+    bottom: 15px !important;
+    left: 15px !important;
+    display: inline-flex !important;
+    width: auto !important;
+    max-width: max-content !important;
+    background-color: #0f172abf !important;
+    color: #ffffff !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    padding: 8px 14px !important;
+    border-radius: 48px !important;
+    text-decoration: none !important;
+    backdrop-filter: blur(4px);
+    align-items: center !important;
+    gap: 6px !important;
+    z-index: 2 !important;
+    white-space: nowrap !important;
+}
+.ctc-hosp-badge-loc i {
+    color: #ffffff !important;
+}
+.ctc-hosp-body {
+    padding: 15px 25px 28px 25px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.ctc-hosp-rating {
+    color: #f59e0b !important;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ctc-hosp-rating i {
+    color: #f59e0b !important;
+    font-size: 16px;
+}
+.ctc-hosp-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    margin: 4px 0 8px 0;
+}
+.ctc-hosp-title a {
+    color: #0f172a;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.ctc-hosp-title a:hover {
+    color: #0f766e;
+}
+.ctc-hosp-specs {
+    font-family: 'Inter', sans-serif;
+    color: #64748b !important;
+    font-size: 13.5px;
+    margin: 10px 0 18px 0;
+    line-height: 1.5;
+}
+.ctc-hosp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    width: 100%;
+    padding-top: 10px;
+}
+.ctc-hosp-jci {
+    color: #10b981 !important;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    cursor: pointer;
+}
+.ctc-hosp-jci i {
+    color: #10b981 !important;
+}
+.ctc-hosp-jci:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+}
+.ctc-hosp-btn {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #0c0707 !important;
+    background-color: #c7f8cef2 !important;
+    border: 1.5px solid transparent;
+    border-radius: 80px;
+    padding: 10px 18px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+.ctc-hosp-btn:hover {
+    background-color: #0f766e !important;
+    color: #ffffff !important;
+    border-color: #0f766e !important;
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+}
+.ctc-hosp-btn:focus, .ctc-hosp-btn:focus-visible, .ctc-hosp-btn:active {
+    background-color: #c7f8cef2 !important;
+    color: #0c0707 !important;
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+@media (max-width: 640px) {
+    .ctc-hosp-jci {
+        display: none !important;
+    }
+    .ctc-hosp-footer {
+        justify-content: center !important;
+    }
+    .ctc-hosp-btn {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+}
+html.dark-theme .ctc-hospital-card, body.dark-theme .ctc-hospital-card {
+    background-color: #1c2541 !important;
+    border-color: #2d3748 !important;
+}
+html.dark-theme .ctc-hosp-title a, body.dark-theme .ctc-hosp-title a {
+    color: #f8fafc !important;
+}
+html.dark-theme .ctc-hosp-title a:hover, body.dark-theme .ctc-hosp-title a:hover {
+    color: #14b8a6 !important;
+}
+html.dark-theme .ctc-hosp-specs, body.dark-theme .ctc-hosp-specs {
+    color: #94a3b8 !important;
+}
+html.dark-theme .ctc-hosp-btn, body.dark-theme .ctc-hosp-btn {
+    background-color: #2d3748 !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+html.dark-theme .ctc-hosp-btn:hover, body.dark-theme .ctc-hosp-btn:hover {
+    background-color: #14b8a6 !important;
+    color: #0f172a !important;
+    border-color: #14b8a6 !important;
+}
+
+/* ==========================================================================
+   TREATMENT CARD STYLES (EXTRACTED FROM INLINE)
+   ========================================================================== */
+.ctc-treatment-card {
+    position: relative !important;
+    background-color: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 12px !important;
+    box-shadow: 0px 4px 16px -2px rgba(15, 118, 110, 0.06), 0px 2px 6px -1px rgba(0, 0, 0, 0.03);
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.ctc-treatment-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0px 12px 24px -4px rgba(15, 118, 110, 0.14), 0px 4px 10px -2px rgba(0, 0, 0, 0.04) !important;
+    border-color: rgba(15, 118, 110, 0.35) !important;
+}
+.ctc-treat-card-overlay-link {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2 !important;
+    display: block !important;
+    text-indent: -9999px !important;
+    outline: none !important;
+}
+.ctc-treat-img-box {
+    position: relative !important;
+    width: 100% !important;
+    height: 180px !important;
+    overflow: hidden !important;
+    background-color: #f1f5f9 !important;
+    border-radius: 12px 12px 0 0 !important;
+    z-index: 1 !important;
+}
+.ctc-treat-img-link {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    z-index: 3 !important;
+}
+.ctc-treat-img {
+    width: 100% !important;
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    border-radius: 12px 12px 0 0 !important;
+    display: block !important;
+    transition: transform 0.4s ease !important;
+}
+.ctc-treatment-card:hover .ctc-treat-img {
+    transform: scale(1.04);
+}
+.ctc-treat-save-badge {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #ff9800 !important;
+    color: #ffffff !important;
+    font-family: 'Inter', -apple-system, sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px !important;
+    padding: 4.5px 12px !important;
+    border-radius: 999px !important;
+    box-shadow: 0 3px 8px rgba(245, 158, 11, 0.35) !important;
+    z-index: 4 !important;
+    line-height: 1.2 !important;
+    pointer-events: none !important;
+}
+.ctc-treat-body {
+    position: relative !important;
+    z-index: 1 !important;
+    padding: 18px 20px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    box-sizing: border-box;
+}
+.ctc-treat-title {
+    font-family: 'Manrope', 'Inter', -apple-system, sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.2px;
+    position: relative !important;
+    z-index: 3 !important;
+}
+.ctc-treat-title a {
+    color: #0f172a;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.ctc-treat-title a:hover {
+    color: #0f766e;
+}
+.ctc-treat-desc {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #64748b !important;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 0;
+}
+html.dark-theme .ctc-treatment-card, body.dark-theme .ctc-treatment-card {
+    background-color: #172033 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0px 8px 20px -4px rgba(0, 0, 0, 0.45) !important;
+}
+html.dark-theme .ctc-treatment-card:hover, body.dark-theme .ctc-treatment-card:hover {
+    border-color: rgba(45, 212, 191, 0.35) !important;
+    box-shadow: 0px 14px 28px -4px rgba(0, 0, 0, 0.6) !important;
+}
+html.dark-theme .ctc-treat-img-box, body.dark-theme .ctc-treat-img-box {
+    background-color: #0f172a !important;
+}
+html.dark-theme .ctc-treat-title a, body.dark-theme .ctc-treat-title a {
+    color: #f8fafc !important;
+}
+html.dark-theme .ctc-treat-title a:hover, body.dark-theme .ctc-treat-title a:hover {
+    color: #2dd4bf !important;
+}
+html.dark-theme .ctc-treat-desc, body.dark-theme .ctc-treat-desc {
+    color: #94a3b8 !important;
+}
+html.dark-theme .ctc-treat-divider, body.dark-theme .ctc-treat-divider {
+    background-color: #243048 !important;
+}
+html.dark-theme .ctc-treat-meta-item, body.dark-theme .ctc-treat-meta-item {
+    color: #cbd5e1 !important;
+}
+html.dark-theme .ctc-icon-stay, body.dark-theme .ctc-icon-stay {
+    color: #14b8a6 !important;
+}

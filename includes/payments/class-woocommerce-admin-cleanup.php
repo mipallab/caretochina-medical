@@ -37,12 +37,82 @@ class CareToChina_WooCommerce_Admin_Cleanup {
         // Run at late priority 999 after WooCommerce finishes registering all menus (default WC priority is 50-60)
         add_action('admin_menu', [$this, 'clean_admin_menus'], 999);
         add_action('admin_notices', [$this, 'display_fallback_warning_notice']);
+
+        // Clean top header bar items ("Visit Store", "Live" badge, Store Activity)
+        add_action('admin_bar_menu', [$this, 'clean_admin_bar_nodes'], 999);
+        add_action('wp_before_admin_bar_render', [$this, 'clean_admin_bar_render'], 999);
+        add_action('admin_head', [$this, 'inject_admin_bar_cleanup_styles']);
+    }
+
+    /**
+     * Clean top admin bar nodes
+     */
+    public function clean_admin_bar_nodes($wp_admin_bar) {
+        if (!get_option('ctc_wc_hide_admin_bar_store', 1)) {
+            return;
+        }
+
+        if (!is_object($wp_admin_bar)) {
+            global $wp_admin_bar;
+        }
+        if (!is_object($wp_admin_bar)) {
+            return;
+        }
+
+        $nodes = [
+            'view-store',
+            'woocommerce-site-visibility-badge',
+            'woocommerce-activity-panel',
+            'woocommerce-store-alerts',
+            'woocommerce-notes',
+            'woocommerce',
+        ];
+
+        foreach ($nodes as $node_id) {
+            $wp_admin_bar->remove_node($node_id);
+        }
+    }
+
+    /**
+     * Fallback admin bar node removal before render
+     */
+    public function clean_admin_bar_render() {
+        global $wp_admin_bar;
+        if (is_object($wp_admin_bar)) {
+            $this->clean_admin_bar_nodes($wp_admin_bar);
+        }
+    }
+
+    /**
+     * Extra safety CSS to cleanly hide store badges and live indicators in top admin bar
+     */
+    public function inject_admin_bar_cleanup_styles() {
+        if (!get_option('ctc_wc_hide_admin_bar_store', 1)) {
+            return;
+        }
+        ?>
+        <style id="ctc-wc-admin-bar-cleanup">
+            #wp-admin-bar-view-store,
+            #wp-admin-bar-woocommerce-site-visibility-badge,
+            #wp-admin-bar-woocommerce-activity-panel,
+            #wp-admin-bar-woocommerce-store-alerts,
+            #wp-admin-bar-woocommerce-notes,
+            #wp-admin-bar-woocommerce {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        </style>
+        <?php
     }
 
     /**
      * Clean and hide unused WooCommerce top-level wp-admin menus for all users
      */
     public function clean_admin_menus() {
+        if (!get_option('ctc_wc_headless_admin_menus', 1)) {
+            return;
+        }
+
         global $menu;
 
         if (!is_array($menu)) {

@@ -517,13 +517,34 @@ jQuery(document).ready(function($) {
   // Initial bookings fetch for search & pagination
   appStaff.fetchBookings(1);
   
-  // Initial chat load
+  // Initial chat load with Smart Adaptive Polling
+  var staffChatTimer = null;
+  var staffChatInterval = 3500;
+
+  function scheduleNextStaffChatPoll(delay) {
+    if (staffChatTimer) clearTimeout(staffChatTimer);
+    if (!$('#staff-chat-box').length) return;
+
+    staffChatTimer = setTimeout(function() {
+      if (document.hidden) {
+        scheduleNextStaffChatPoll(20000);
+        return;
+      }
+      appStaff.fetchStaffChat();
+      scheduleNextStaffChatPoll(staffChatInterval);
+    }, delay || staffChatInterval);
+  }
+
   if ($('#staff-chat-box').length) {
     appStaff.fetchStaffChat();
-    // Poll chat every 1 second
-    setInterval(function() {
-      appStaff.fetchStaffChat();
-    }, 1000);
+    scheduleNextStaffChatPoll(staffChatInterval);
+
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && $('#staff-chat-box').length) {
+        appStaff.fetchStaffChat();
+        scheduleNextStaffChatPoll(staffChatInterval);
+      }
+    });
   }
 
   // 1. POLL FOR BOTH NEW BOOKINGS & UNREAD MESSAGES (EVERY 5 SECONDS)
@@ -707,9 +728,21 @@ jQuery(document).ready(function($) {
     }
   });
   
+  var portalPollTimer = null;
+  function schedulePortalPoll() {
+    if (portalPollTimer) clearTimeout(portalPollTimer);
+    if (!portalWrapper.length) return;
+    portalPollTimer = setTimeout(function() {
+      if (!document.hidden) {
+        appStaff.pollUpdates();
+      }
+      schedulePortalPoll();
+    }, 6000);
+  }
+
   if (portalWrapper.length) {
     appStaff.pollUpdates(); // Initial fetch
-    setInterval(appStaff.pollUpdates, 5000);
+    schedulePortalPoll();
   }
 
   $(document).on('click', function(e) {

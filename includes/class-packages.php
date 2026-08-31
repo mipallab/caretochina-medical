@@ -43,6 +43,13 @@ class CareToChina_Packages {
         // AJAX Endpoints: Public (Logged-in & Anonymous)
         add_action('wp_ajax_ctc_get_packages', [$this, 'handle_get_packages']);
         add_action('wp_ajax_nopriv_ctc_get_packages', [$this, 'handle_get_packages']);
+
+        // Automatic transient cache invalidation
+        add_action('save_post_service_package', [__CLASS__, 'purge_packages_cache']);
+        add_action('save_post_ctc_package', [__CLASS__, 'purge_packages_cache']);
+        add_action('deleted_post', [__CLASS__, 'purge_packages_cache']);
+        add_action('update_option_caretochina_global_service_notes', [__CLASS__, 'purge_packages_cache']);
+        add_action('update_option_ctc_payment_currency', [__CLASS__, 'purge_packages_cache']);
     }
 
     /**
@@ -760,14 +767,23 @@ class CareToChina_Packages {
      * Retrieve all active packages with price > 0
      */
     public function get_active_packages() {
+        $cache_key = 'ctc_cached_active_packages';
+        $cached = get_transient($cache_key);
+        if ($cached !== false && is_array($cached)) {
+            return $cached;
+        }
+
         $posts = get_posts([
-            'post_type'      => ['service_package', 'ctc_package'],
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'orderby'        => 'menu_order title',
-            'order'          => 'ASC',
+            'post_type'              => ['service_package', 'ctc_package'],
+            'post_status'            => 'publish',
+            'posts_per_page'         => -1,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => true,
+            'update_post_term_cache' => false,
+            'orderby'                => 'menu_order title',
+            'order'                  => 'ASC',
             // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-            'meta_query'     => [
+            'meta_query'             => [
                 'relation' => 'AND',
                 [
                     'key'     => '_ctc_pkg_is_active',
@@ -787,6 +803,8 @@ class CareToChina_Packages {
         foreach ($posts as $p) {
             $packages[] = $this->format_package_object($p);
         }
+
+        set_transient($cache_key, $packages, 12 * HOUR_IN_SECONDS);
         return $packages;
     }
 
@@ -794,19 +812,38 @@ class CareToChina_Packages {
      * Retrieve all packages (active or inactive)
      */
     public function get_all_packages() {
+        $cache_key = 'ctc_cached_all_packages';
+        $cached = get_transient($cache_key);
+        if ($cached !== false && is_array($cached)) {
+            return $cached;
+        }
+
         $posts = get_posts([
-            'post_type'      => ['service_package', 'ctc_package'],
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'orderby'        => 'menu_order title',
-            'order'          => 'ASC',
+            'post_type'              => ['service_package', 'ctc_package'],
+            'post_status'            => 'publish',
+            'posts_per_page'         => -1,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => true,
+            'update_post_term_cache' => false,
+            'orderby'                => 'menu_order title',
+            'order'                  => 'ASC',
         ]);
 
         $packages = [];
         foreach ($posts as $p) {
             $packages[] = $this->format_package_object($p);
         }
+
+        set_transient($cache_key, $packages, 12 * HOUR_IN_SECONDS);
         return $packages;
+    }
+
+    /**
+     * Invalidate packages transient caches
+     */
+    public static function purge_packages_cache() {
+        delete_transient('ctc_cached_active_packages');
+        delete_transient('ctc_cached_all_packages');
     }
 
     /**

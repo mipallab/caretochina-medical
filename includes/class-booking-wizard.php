@@ -26,6 +26,16 @@ class CareToChina_Booking_Wizard {
 
         // Render modal globally in the footer
         add_action('wp_footer', [$this, 'render_booking_modal_in_footer']);
+
+        // Automatic transient cache invalidation
+        add_action('save_post_hospital', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('deleted_post', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('created_hospital_city', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('edited_hospital_city', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('created_hospital_specialty', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('edited_hospital_specialty', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('created_hospital_department', [__CLASS__, 'purge_hospitals_cache']);
+        add_action('edited_hospital_department', [__CLASS__, 'purge_hospitals_cache']);
     }
 
     public function render_wizard($atts = []) {
@@ -46,10 +56,19 @@ class CareToChina_Booking_Wizard {
     }
 
     public function get_hospitals_data() {
+        $cache_key = 'ctc_cached_hospitals_data_v2';
+        $cached = get_transient($cache_key);
+        if ($cached !== false && is_array($cached)) {
+            return $cached;
+        }
+
         $hospitals_query = new WP_Query([
-            'post_type' => 'hospital',
-            'post_status' => 'publish',
-            'posts_per_page' => -1,
+            'post_type'              => 'hospital',
+            'post_status'            => 'publish',
+            'posts_per_page'         => -1,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => true,
+            'update_post_term_cache' => true,
         ]);
 
         $hospitals = [];
@@ -104,12 +123,20 @@ class CareToChina_Booking_Wizard {
             }
             wp_reset_postdata();
         }
+
+        set_transient($cache_key, $hospitals, 12 * HOUR_IN_SECONDS);
         return $hospitals;
     }
 
     public function get_all_specialties() {
+        $cache_key = 'ctc_cached_specialties';
+        $cached = get_transient($cache_key);
+        if ($cached !== false && is_array($cached)) {
+            return $cached;
+        }
+
         $terms = get_terms([
-            'taxonomy' => 'hospital_specialty',
+            'taxonomy'   => 'hospital_specialty',
             'hide_empty' => false,
         ]);
         $specialties = [];
@@ -118,12 +145,20 @@ class CareToChina_Booking_Wizard {
                 $specialties[] = ['id' => $t->term_id, 'name' => $t->name, 'slug' => $t->slug];
             }
         }
+
+        set_transient($cache_key, $specialties, 12 * HOUR_IN_SECONDS);
         return $specialties;
     }
 
     public function get_all_cities() {
+        $cache_key = 'ctc_cached_cities';
+        $cached = get_transient($cache_key);
+        if ($cached !== false && is_array($cached)) {
+            return $cached;
+        }
+
         $terms = get_terms([
-            'taxonomy' => 'hospital_city',
+            'taxonomy'   => 'hospital_city',
             'hide_empty' => false,
         ]);
         $cities = [];
@@ -132,7 +167,15 @@ class CareToChina_Booking_Wizard {
                 $cities[] = ['id' => $t->term_id, 'name' => $t->name, 'slug' => $t->slug];
             }
         }
+
+        set_transient($cache_key, $cities, 12 * HOUR_IN_SECONDS);
         return $cities;
+    }
+
+    public static function purge_hospitals_cache() {
+        delete_transient('ctc_cached_hospitals_data_v2');
+        delete_transient('ctc_cached_specialties');
+        delete_transient('ctc_cached_cities');
     }
 
     public function render_booking_modal_in_footer() {

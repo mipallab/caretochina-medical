@@ -63,12 +63,12 @@ class CareToChina_Booking_Admin {
             $like = '%' . $wpdb->esc_like($search) . '%';
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $bookings = $wpdb->get_results($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE full_name LIKE %s OR booking_code LIKE %s OR email LIKE %s OR phone LIKE %s ORDER BY id DESC",
-                $like, $like, $like, $like
+                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE full_name LIKE %s OR booking_code LIKE %s OR email LIKE %s OR phone LIKE %s ORDER BY id DESC LIMIT %d",
+                $like, $like, $like, $like, 250
             ));
         } else {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC");
+            $bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 250));
         }
         ?>
         <style>
@@ -600,12 +600,12 @@ class CareToChina_Booking_Admin {
             $like = '%' . $wpdb->esc_like($search) . '%';
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $bookings = $wpdb->get_results($wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE full_name LIKE %s OR email LIKE %s OR booking_code LIKE %s OR phone LIKE %s ORDER BY id DESC",
-                $like, $like, $like, $like
+                "SELECT * FROM {$wpdb->prefix}caretochina_bookings WHERE full_name LIKE %s OR email LIKE %s OR booking_code LIKE %s OR phone LIKE %s ORDER BY id DESC LIMIT %d",
+                $like, $like, $like, $like, 250
             ));
         } else {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $bookings = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC");
+            $bookings = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_bookings ORDER BY id DESC LIMIT %d", 250));
         }
         $html = $this->generate_admin_table_rows($bookings);
 

@@ -14,6 +14,65 @@ class CareToChina_Payment_Manager {
         return self::$instance;
     }
 
+    public function __construct() {
+        // Universal WooCommerce order completion and payment hooks
+        add_action('woocommerce_payment_complete', [$this, 'handle_wc_payment_complete'], 10, 1);
+        add_action('woocommerce_order_status_processing', [$this, 'handle_wc_payment_complete'], 10, 1);
+        add_action('woocommerce_order_status_completed', [$this, 'handle_wc_payment_complete'], 10, 1);
+        add_action('woocommerce_order_status_changed', [$this, 'handle_wc_order_status_changed'], 10, 3);
+        add_action('woocommerce_thankyou', [$this, 'handle_wc_thankyou'], 10, 1);
+    }
+
+    /**
+     * Handle WooCommerce Payment Complete / Processing / Completed
+     */
+    public function handle_wc_payment_complete($order_id) {
+        if (!$order_id) return;
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $this->handle_wc_order_status_changed($order_id, '', $order->get_status());
+    }
+
+    /**
+     * Handle WooCommerce Thank You page hit to ensure immediate sync
+     */
+    public function handle_wc_thankyou($order_id) {
+        if (!$order_id) return;
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        if (in_array($order->get_status(), ['processing', 'completed', 'on-hold'])) {
+            $this->handle_wc_payment_complete($order_id);
+        }
+    }
+
+    /**
+     * Handle all WooCommerce Order Status transitions for any payment gateway
+     */
+    public function handle_wc_order_status_changed($order_id, $old_status, $new_status) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+
+        $booking_id = intval($order->get_meta('_caretochina_booking_id'));
+        if (!$booking_id) {
+            global $wpdb;
+            $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $booking_id = intval($wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}caretochina_bookings WHERE wc_order_id = %d", $order_id)));
+        }
+
+        if (!$booking_id) {
+            return;
+        }
+
+        if (in_array($new_status, ['processing', 'completed'])) {
+            $gateway_id = $order->get_payment_method();
+            $txn_id     = $order->get_transaction_id();
+            $this->confirm_booking_payment($booking_id, $order_id, $txn_id, $gateway_id);
+        } elseif (in_array($new_status, ['failed', 'cancelled'])) {
+            $this->mark_booking_payment_failed($booking_id, $order_id, sprintf(__('WooCommerce order status transitioned to %s', 'caretochina-medical'), $new_status));
+        }
+    }
+
     /**
      * Retrieve booking record by ID
      */
@@ -250,19 +309,38 @@ class CareToChina_Payment_Manager {
         // If booking was converted from a chat payment request, mark that request as accepted_paid
         $table_requests = $wpdb->prefix . 'caretochina_payment_requests';
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_requests))) === $table_requests) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $wpdb->update(
-                $table_requests,
-                ['status' => 'accepted_paid'],
-                ['converted_booking_id' => $booking->id]
-            );
-        }
+        $wpdb->update(
+            $table_requests,
+            ['status' => 'accepted_paid'],
+            ['converted_booking_id' => $booking->id]
+        );
 
-        $this->add_audit_log($booking->id, $wc_order_id, 0, 'payment_succeeded', $paid_amount, 'Payment auto-confirmed via verified webhook (' . $gateway . ')');
+        // Post confirmation message to live consultation chat thread (Preserves Patient & Staff Chat History)
+        $table_messages = $wpdb->prefix . 'caretochina_messages';
+        $gw_title = !empty($gateway) ? ucwords(str_replace('_', ' ', $gateway)) : __('Online Gateway', 'caretochina-medical');
+        $chat_msg_text = sprintf(
+            /* translators: 1: Currency, 2: Amount, 3: Gateway title, 4: Order ID */
+            __('✅ Payment of %1$s %2$s received successfully via %3$s (Order #%4$s). Medical booking confirmed.', 'caretochina-medical'),
+            $currency,
+            number_format($paid_amount, 2),
+            $gw_title,
+            $wc_order_id ?: $booking->id
+        );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $wpdb->insert($table_messages, [
+            'booking_id'   => $booking->id,
+            'sender_type'  => 'system',
+            'sender_name'  => __('CareToChina Billing', 'caretochina-medical'),
+            'message'      => $chat_msg_text,
+            'message_type' => 'payment_confirmation',
+            'is_read'      => 0,
+            'created_at'   => current_time('mysql'),
+        ]);
 
-        // Send Email Notification
-        $this->send_payment_receipt_notifications($booking, $paid_amount, $currency);
+        $this->add_audit_log($booking->id, $wc_order_id, 0, 'payment_succeeded', $paid_amount, 'Payment confirmed via WooCommerce Gateway (' . ($gateway ?: 'Gateway') . ')');
+
+        // Send Email Notification to Patient, Admin, and Assigned Staff
+        $this->send_payment_receipt_notifications($booking, $paid_amount, $currency, $gateway, $wc_order_id);
 
         return true;
     }
@@ -284,7 +362,7 @@ class CareToChina_Payment_Manager {
             $order = wc_get_order($wc_order_id);
             if ($order) {
                 $order->update_status('failed', /* translators: %s: dynamic value */
- sprintf(__('Payment failed via webhook: %s', 'caretochina-medical'), $reason));
+ sprintf(__('Payment failed: %s', 'caretochina-medical'), $reason));
             }
         }
 
@@ -296,7 +374,7 @@ class CareToChina_Payment_Manager {
             'invoice_status' => 'Payment Failed',
         ], ['id' => $booking->id]);
 
-        $this->add_audit_log($booking->id, $wc_order_id, 0, 'payment_failed', 0, 'Payment failed webhook: ' . $reason);
+        $this->add_audit_log($booking->id, $wc_order_id, 0, 'payment_failed', 0, 'Payment failed: ' . $reason);
 
         return true;
     }
@@ -484,15 +562,14 @@ class CareToChina_Payment_Manager {
     }
 
     /**
-     * Notification helper on payment receipt
+     * Notification helper on payment receipt (Dispatches to Patient, Admin, and Assigned Staff)
      */
-    private function send_payment_receipt_notifications($booking, $amount, $currency) {
-        if (empty($booking->email)) {
-            return;
-        }
-
+    private function send_payment_receipt_notifications($booking, $amount, $currency, $gateway = '', $wc_order_id = 0) {
         $dash_url = class_exists('CareToChina_Page_Manager') ? CareToChina_Page_Manager::get_page_url('patient_dashboard') : home_url('/patient-dashboard/');
         $chat_url = !empty($booking->guest_token) ? home_url('/guest-chat/?token=' . $booking->guest_token) : home_url('/patient-dashboard/?tab=messages');
+        $staff_portal_url = home_url('/staff-portal/');
+
+        $gw_title = !empty($gateway) ? ucwords(str_replace('_', ' ', $gateway)) : __('Online Payment Gateway', 'caretochina-medical');
 
         $email_data = [
             'patient_name'    => $booking->full_name,
@@ -504,10 +581,13 @@ class CareToChina_Payment_Manager {
             'hospital_name'   => $booking->hospital_name,
             'amount'          => number_format(floatval($amount), 2),
             'currency'        => $currency,
-            'payment_method'  => 'Online Payment Gateway',
-            'status'          => 'Payment Confirmed',
+            'payment_method'  => $gw_title,
+            'wc_order_id'     => $wc_order_id ?: $booking->wc_order_id,
+            'status'          => __('Payment Confirmed', 'caretochina-medical'),
             'dashboard_url'   => $dash_url,
             'chat_url'        => $chat_url,
+            'staff_portal_url'=> $staff_portal_url,
+            'quote_details'   => sprintf(__('Payment received for Booking #%s via %s. Medical case itinerary is confirmed.', 'caretochina-medical'), $booking->booking_code, $gw_title),
         ];
 
         // Enrich with package data if available
@@ -519,9 +599,31 @@ class CareToChina_Payment_Manager {
                 $email_data['package_timeline'] = $pkg->timeline ?? '';
             }
         }
+        if (empty($email_data['package_name'])) {
+            $email_data['package_name'] = !empty($booking->specialty) ? $booking->specialty : __('Medical Concierge', 'caretochina-medical');
+            $email_data['package_price'] = $currency . ' ' . number_format(floatval($amount), 2);
+            $email_data['package_timeline'] = __('As scheduled', 'caretochina-medical');
+        }
 
         if (class_exists('CareToChina_Email_Templates')) {
-            CareToChina_Email_Templates::send_notification('payment_success', $booking->email, $email_data);
+            // 1. Patient Notification
+            if (!empty($booking->email)) {
+                CareToChina_Email_Templates::send_notification('payment_success', $booking->email, $email_data);
+            }
+
+            // 2. Admin Notification
+            $admin_email = get_option('admin_email');
+            if (!empty($admin_email)) {
+                CareToChina_Email_Templates::send_notification('admin_booking', $admin_email, $email_data);
+            }
+
+            // 3. Assigned Medical Staff / Coordinator Notification
+            if (!empty($booking->assigned_staff_id)) {
+                $staff_user = get_userdata(intval($booking->assigned_staff_id));
+                if ($staff_user && !empty($staff_user->user_email) && $staff_user->user_email !== $admin_email) {
+                    CareToChina_Email_Templates::send_notification('admin_booking', $staff_user->user_email, $email_data);
+                }
+            }
         }
     }
 }

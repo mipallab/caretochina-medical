@@ -30,10 +30,28 @@ if (class_exists('\Elementor\Plugin') && (\Elementor\Plugin::$instance->db->is_b
     $day_stay     = get_post_meta($post_id, '_treatment_day_stay', true);
     $rating       = get_post_meta($post_id, '_treatment_rating', true);
     $success_rate = get_post_meta($post_id, '_treatment_success_rate', true);
-    $quote_url    = get_post_meta($post_id, '_treatment_quote_url', true);
+    
+    // Parse Booking Link / Widget Trigger Selector (#id, .class, or URL)
+    $raw_quote_target = trim(strval(get_post_meta($post_id, '_treatment_quote_url', true)));
+    $quote_target_selector = '';
+    $quote_url_href = '#';
+
+    if (empty($raw_quote_target)) {
+        $quote_url_href = '#booking';
+        $quote_target_selector = '#booking';
+    } elseif (str_starts_with($raw_quote_target, '#') || str_starts_with($raw_quote_target, '.')) {
+        $quote_target_selector = $raw_quote_target;
+        $quote_url_href = '#';
+    } elseif (filter_var($raw_quote_target, FILTER_VALIDATE_URL) || str_starts_with($raw_quote_target, '/') || str_starts_with($raw_quote_target, 'tel:') || str_starts_with($raw_quote_target, 'mailto:')) {
+        $quote_url_href = $raw_quote_target;
+        $quote_target_selector = '';
+    } else {
+        // If entered without leading '#' or '.', treat as selector/ID
+        $quote_target_selector = '#' . $raw_quote_target;
+        $quote_url_href = '#' . $raw_quote_target;
+    }
 
     if (!$rating) $rating = '4.9 (480 Reviews)';
-    if (!$quote_url) $quote_url = '#booking';
     if (!$success_rate) $success_rate = '98.5% Success Rate';
 
     $categories = get_the_terms($post_id, 'treatment_category');
@@ -145,7 +163,7 @@ if (class_exists('\Elementor\Plugin') && (\Elementor\Plugin::$instance->db->is_b
                         <p><?php esc_html_e('Our multilingual medical coordinators assist with second opinions, customized cost estimates, travel arrangements, and hospital admission.', 'caretochina-medical'); ?></p>
                     </div>
                     <div class="ctc-treat-cta-actions">
-                        <a href="<?php echo esc_url($quote_url); ?>" class="ctc-btn-hero-book">
+                        <a href="<?php echo esc_attr($quote_url_href); ?>" data-trigger-target="<?php echo esc_attr($quote_target_selector ?: $quote_url_href); ?>" class="ctc-btn-hero-book ctc-inquiry-trigger-btn">
                             <i class="fas fa-calendar-check"></i> <?php esc_html_e('Book Consultation', 'caretochina-medical'); ?>
                         </a>
                     </div>
@@ -196,7 +214,7 @@ if (class_exists('\Elementor\Plugin') && (\Elementor\Plugin::$instance->db->is_b
                         </li>
                     </ul>
 
-                    <a href="<?php echo esc_url($quote_url); ?>" class="ctc-treat-side-btn">
+                    <a href="<?php echo esc_attr($quote_url_href); ?>" data-trigger-target="<?php echo esc_attr($quote_target_selector ?: $quote_url_href); ?>" class="ctc-treat-side-btn ctc-inquiry-trigger-btn">
                         <i class="fas fa-paper-plane"></i> <?php esc_html_e('Inquire For This Treatment', 'caretochina-medical'); ?>
                     </a>
                 </div>
@@ -899,6 +917,53 @@ if (class_exists('\Elementor\Plugin') && (\Elementor\Plugin::$instance->db->is_b
             }
         }
     </style>
+
+    <script>
+    (function() {
+        function handleInquiryAction(e) {
+            var btn = e.currentTarget;
+            var target = btn.getAttribute('data-trigger-target') || btn.getAttribute('href');
+            if (!target || target === '#') return;
+
+            var selector = target.trim();
+
+            // 1. If selector starts with # or .
+            if (selector.startsWith('#') || selector.startsWith('.')) {
+                var targetEl = document.querySelector(selector);
+                if (targetEl) {
+                    e.preventDefault();
+                    targetEl.click();
+                    if (typeof targetEl.scrollIntoView === 'function') {
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return false;
+                }
+            }
+
+            // 2. Check if element exists by naked ID or Class
+            if (!selector.startsWith('http://') && !selector.startsWith('https://') && !selector.startsWith('/') && !selector.startsWith('tel:') && !selector.startsWith('mailto:')) {
+                var fallbackEl = document.getElementById(selector) || document.querySelector('.' + selector);
+                if (fallbackEl) {
+                    e.preventDefault();
+                    fallbackEl.click();
+                    if (typeof fallbackEl.scrollIntoView === 'function') {
+                        fallbackEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return false;
+                }
+            }
+
+            // 3. Otherwise standard URL navigation proceeds naturally
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var btns = document.querySelectorAll('.ctc-inquiry-trigger-btn, .ctc-treat-side-btn, .ctc-btn-hero-book');
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].addEventListener('click', handleInquiryAction);
+            }
+        });
+    })();
+    </script>
     <?php
     endwhile;
 

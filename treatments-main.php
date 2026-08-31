@@ -245,9 +245,9 @@ class CareToChina_Treatments_Plugin {
                 </div>
 
                 <div class="ctc-treat-mb-field full">
-                    <label><?php esc_html_e('Booking / Consultation Link', 'caretochina-medical'); ?> <span class="ctc-treat-opt-badge"><?php esc_html_e('Optional', 'caretochina-medical'); ?></span></label>
-                    <input type="text" name="treatment_quote_url" value="<?php echo esc_attr($quote_url); ?>" placeholder="<?php esc_attr_e('#booking or custom URL', 'caretochina-medical'); ?>">
-                    <span class="ctc-treat-mb-hint"><?php esc_html_e('Target destination URL for booking/inquiry.', 'caretochina-medical'); ?></span>
+                    <label><?php esc_html_e('Booking / Consultation Link or Widget Selector', 'caretochina-medical'); ?> <span class="ctc-treat-opt-badge"><?php esc_html_e('Optional', 'caretochina-medical'); ?></span></label>
+                    <input type="text" name="treatment_quote_url" value="<?php echo esc_attr($quote_url); ?>" placeholder="<?php esc_attr_e('#booking-widget, .open-booking-modal, #chat-trigger, or https://...', 'caretochina-medical'); ?>">
+                    <span class="ctc-treat-mb-hint"><?php esc_html_e('Enter an ID (#id), Class (.class), or Custom URL. Clicking the inquiry button will trigger/open that widget/modal or navigate to the URL.', 'caretochina-medical'); ?></span>
                 </div>
             </div>
         </div>
@@ -310,14 +310,26 @@ class CareToChina_Treatments_Plugin {
      */
     public function register_admin_columns($columns) {
         $new_columns = [];
-        $new_columns['cb'] = $columns['cb'];
+        if (isset($columns['cb'])) {
+            $new_columns['cb'] = $columns['cb'];
+        }
         $new_columns['treatment_thumb'] = __('Image', 'caretochina-medical');
         $new_columns['title'] = __('Treatment Title', 'caretochina-medical');
         $new_columns['treatment_cat'] = __('Category', 'caretochina-medical');
         $new_columns['treatment_price'] = __('Price', 'caretochina-medical');
         $new_columns['treatment_stay'] = __('Day Stay', 'caretochina-medical');
         $new_columns['treatment_badge'] = __('Discount Badge', 'caretochina-medical');
-        $new_columns['date'] = $columns['date'];
+        if (isset($columns['date'])) {
+            $new_columns['date'] = $columns['date'];
+        }
+        // Preserve any remaining third-party columns (e.g. SEO, Polylang)
+        if (is_array($columns)) {
+            foreach ($columns as $key => $title) {
+                if (!isset($new_columns[$key])) {
+                    $new_columns[$key] = $title;
+                }
+            }
+        }
         return $new_columns;
     }
 
@@ -668,228 +680,8 @@ class CareToChina_Treatments_Plugin {
                     <?php echo esc_html($excerpt_display); ?>
                 </p>
 
-                <!-- Subtle Separator Divider -->
-                <div class="ctc-treat-divider"></div>
-
-                <!-- Bottom Meta Row: Price & Day Stay (100% Dynamic) -->
-                <div class="ctc-treat-meta-row">
-                    <div class="ctc-treat-meta-item ctc-treat-price-item">
-                        <i class="fas fa-tag ctc-icon-price"></i>
-                        <span class="ctc-treat-meta-text"><?php echo esc_html($price_text); ?></span>
-                    </div>
-
-                    <?php if (!empty($day_stay)) : ?>
-                        <div class="ctc-treat-meta-item ctc-treat-stay-item">
-                            <i class="fas fa-clock ctc-icon-stay"></i>
-                            <span class="ctc-treat-meta-text"><?php echo esc_html($day_stay); ?></span>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
             </div>
         </article>
-
-        <style>
-            .ctc-treatment-card {
-                position: relative !important;
-                background-color: #ffffff;
-                border: 1px solid rgba(226, 232, 240, 0.9);
-                border-radius: 12px !important;
-                box-shadow: 0px 4px 16px -2px rgba(15, 118, 110, 0.06), 0px 2px 6px -1px rgba(0, 0, 0, 0.03);
-                overflow: hidden !important;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                width: 100%;
-                box-sizing: border-box;
-                cursor: pointer !important;
-                transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-            }
-            .ctc-treatment-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0px 12px 24px -4px rgba(15, 118, 110, 0.14), 0px 4px 10px -2px rgba(0, 0, 0, 0.04) !important;
-                border-color: rgba(15, 118, 110, 0.35) !important;
-            }
-            .ctc-treat-card-overlay-link {
-                position: absolute !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                z-index: 2 !important;
-                display: block !important;
-                text-indent: -9999px !important;
-                outline: none !important;
-            }
-            .ctc-treat-img-box {
-                position: relative !important;
-                width: 100% !important;
-                height: 180px !important;
-                overflow: hidden !important;
-                background-color: #f1f5f9 !important;
-                border-radius: 12px 12px 0 0 !important;
-                z-index: 1 !important;
-            }
-            .ctc-treat-img-link {
-                display: block !important;
-                width: 100% !important;
-                height: 100% !important;
-                position: relative !important;
-                z-index: 3 !important;
-            }
-            .ctc-treat-img {
-                width: 100% !important;
-                height: 180px !important;
-                min-height: 180px !important;
-                max-height: 180px !important;
-                object-fit: cover !important;
-                object-position: center center !important;
-                border-radius: 12px 12px 0 0 !important;
-                display: block !important;
-                transition: transform 0.4s ease !important;
-            }
-            .ctc-treatment-card:hover .ctc-treat-img {
-                transform: scale(1.04);
-            }
-
-            /* Orange Save Badge (Top-Right) */
-            .ctc-treat-save-badge {
-                position: absolute !important;
-                top: 12px !important;
-                right: 12px !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                background: #ff9800 !important;
-                color: #ffffff !important;
-                font-family: 'Inter', -apple-system, sans-serif !important;
-                font-size: 11px !important;
-                font-weight: 700 !important;
-                letter-spacing: 0.2px !important;
-                padding: 4.5px 12px !important;
-                border-radius: 999px !important;
-                box-shadow: 0 3px 8px rgba(245, 158, 11, 0.35) !important;
-                z-index: 4 !important;
-                line-height: 1.2 !important;
-                pointer-events: none !important;
-            }
-
-            /* Card Body */
-            .ctc-treat-body {
-                position: relative !important;
-                z-index: 1 !important;
-                padding: 18px 20px 18px 20px;
-                display: flex;
-                flex-direction: column;
-                flex-grow: 1;
-                box-sizing: border-box;
-            }
-
-            /* Title */
-            .ctc-treat-title {
-                font-family: 'Manrope', 'Inter', -apple-system, sans-serif;
-                font-weight: 700;
-                font-size: 1.05rem;
-                line-height: 1.35;
-                margin: 0 0 8px 0;
-                letter-spacing: -0.2px;
-                position: relative !important;
-                z-index: 3 !important;
-            }
-            .ctc-treat-title a {
-                color: #0f172a;
-                text-decoration: none;
-                transition: color 0.2s ease;
-            }
-            .ctc-treat-title a:hover {
-                color: #0f766e;
-            }
-
-            /* Description */
-            .ctc-treat-desc {
-                font-family: 'Inter', -apple-system, sans-serif;
-                color: #64748b !important;
-                font-size: 12.5px;
-                line-height: 1.55;
-                margin: 0 0 16px 0;
-                min-height: 38px;
-            }
-
-            /* Divider */
-            .ctc-treat-divider {
-                width: 100%;
-                height: 1px;
-                background-color: #f1f5f9;
-                margin: 0 0 14px 0;
-            }
-
-            /* Bottom Meta Row */
-            .ctc-treat-meta-row {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                margin-top: auto;
-            }
-
-            .ctc-treat-meta-item {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                font-family: 'Inter', -apple-system, sans-serif;
-                font-size: 12.5px;
-                color: #475569;
-                white-space: nowrap;
-            }
-
-            .ctc-icon-price {
-                color: #f59e0b !important; /* Vibrant Orange / Amber */
-                font-size: 13px !important;
-            }
-            .ctc-icon-stay {
-                color: #0d9488 !important; /* Teal */
-                font-size: 13px !important;
-            }
-
-            .ctc-treat-meta-text {
-                font-size: 12.5px;
-                font-weight: 500;
-            }
-
-            /* Dark Mode Theme Support (Exact match to Dark Screenshot) */
-            html.dark-theme .ctc-treatment-card, body.dark-theme .ctc-treatment-card {
-                background-color: #172033 !important;
-                border-color: rgba(255, 255, 255, 0.08) !important;
-                box-shadow: 0px 8px 20px -4px rgba(0, 0, 0, 0.45) !important;
-            }
-            html.dark-theme .ctc-treatment-card:hover, body.dark-theme .ctc-treatment-card:hover {
-                border-color: rgba(45, 212, 191, 0.35) !important;
-                box-shadow: 0px 14px 28px -4px rgba(0, 0, 0, 0.6) !important;
-            }
-            html.dark-theme .ctc-treat-img-box, body.dark-theme .ctc-treat-img-box {
-                background-color: #0f172a !important;
-            }
-            html.dark-theme .ctc-treat-title a, body.dark-theme .ctc-treat-title a {
-                color: #f8fafc !important;
-            }
-            html.dark-theme .ctc-treat-title a:hover, body.dark-theme .ctc-treat-title a:hover {
-                color: #2dd4bf !important;
-            }
-            html.dark-theme .ctc-treat-desc, body.dark-theme .ctc-treat-desc {
-                color: #94a3b8 !important;
-            }
-            html.dark-theme .ctc-treat-divider, body.dark-theme .ctc-treat-divider {
-                background-color: #243048 !important;
-            }
-            html.dark-theme .ctc-treat-meta-item, body.dark-theme .ctc-treat-meta-item {
-                color: #cbd5e1 !important;
-            }
-            html.dark-theme .ctc-icon-stay, body.dark-theme .ctc-icon-stay {
-                color: #14b8a6 !important;
-            }
-        </style>
         <?php
     }
 

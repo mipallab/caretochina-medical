@@ -1196,10 +1196,16 @@ class CareToChina_Patient_Dashboard {
 
     public function get_patient_chat_html($booking_id) {
         global $wpdb;
-        $table_messages = $wpdb->prefix . 'caretochina_messages';
-
+        // Only run write update if there are unread coordinator messages
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $wpdb->query($wpdb->prepare("UPDATE {$wpdb->prefix}caretochina_messages SET is_read = %d WHERE booking_id = %d AND sender_type = %s", 1, $booking_id, 'coordinator'));
+        $has_unread = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = %d AND sender_type = %s AND is_read = %d",
+            $booking_id, 'coordinator', 0
+        ));
+        if ($has_unread > 0) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wpdb->query($wpdb->prepare("UPDATE {$wpdb->prefix}caretochina_messages SET is_read = 1 WHERE booking_id = %d AND sender_type = %s AND is_read = 0", $booking_id, 'coordinator'));
+        }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $messages = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = %d ORDER BY id ASC", $booking_id));

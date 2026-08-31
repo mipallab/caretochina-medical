@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('CARETOCHINA_PAYMENT_DB_VERSION')) {
-    define('CARETOCHINA_PAYMENT_DB_VERSION', '2.0.0');
+    define('CARETOCHINA_PAYMENT_DB_VERSION', '2.5.0');
 }
 
 class CareToChina_Booking_DB {
@@ -16,7 +16,7 @@ class CareToChina_Booking_DB {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
         $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}caretochina_pricing_plans");
 
-        // 2. BOOKINGS TABLE (WITH PACKAGE_ID & PAYMENT CACHE)
+        // 2. BOOKINGS TABLE (WITH OPTIMIZED COMPOSITE & FOREIGN LOOKUP INDEXES)
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         
         $sql_bookings = "CREATE TABLE $table_bookings (
@@ -56,11 +56,15 @@ class CareToChina_Booking_DB {
             KEY patient_id (patient_id),
             KEY is_guest (is_guest),
             KEY package_id (package_id),
+            KEY hospital_id (hospital_id),
+            KEY email (email),
+            KEY wc_order_id (wc_order_id),
             KEY status (status),
+            KEY status_created (status, created_at),
             KEY created_at (created_at)
         ) $charset_collate;";
 
-        // 3. MESSAGES TABLE (WITH MESSAGE TYPE, PAYMENT REQUEST & ATTACHMENT FIELDS)
+        // 3. MESSAGES TABLE (WITH COMPOSITE CHAT & SENDER INDEXES)
         $table_messages = $wpdb->prefix . 'caretochina_messages';
         $sql_messages = "CREATE TABLE $table_messages (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -79,6 +83,8 @@ class CareToChina_Booking_DB {
             KEY booking_id (booking_id),
             KEY sender_type (sender_type),
             KEY is_read (is_read),
+            KEY idx_booking_sender_read (booking_id, sender_type, is_read),
+            KEY idx_sender_read (sender_type, is_read),
             KEY created_at (created_at)
         ) $charset_collate;";
 
@@ -106,7 +112,8 @@ class CareToChina_Booking_DB {
             notes text,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
-            KEY booking_id (booking_id)
+            KEY booking_id (booking_id),
+            KEY wc_order_id (wc_order_id)
         ) $charset_collate;";
 
         // 6. PAYMENT REQUESTS TABLE (STAFF CHAT REQUESTS)
@@ -131,6 +138,7 @@ class CareToChina_Booking_DB {
             PRIMARY KEY  (id),
             UNIQUE KEY request_code (request_code),
             KEY chat_thread_booking_id (chat_thread_booking_id),
+            KEY converted_booking_id (converted_booking_id),
             KEY patient_id (patient_id),
             KEY package_id (package_id),
             KEY status (status)
@@ -143,46 +151,8 @@ class CareToChina_Booking_DB {
         dbDelta($sql_audit_logs);
         dbDelta($sql_payment_requests);
 
-        // Column migration for existing tables if package_id is missing or old columns remain
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-            // Check if package_id column exists
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $has_pkg = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_bookings LIKE %s", $wpdb->esc_like('package_id')));
-            if (!$has_pkg) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_bookings ADD COLUMN package_id bigint(20) DEFAULT 0 AFTER specialty, ADD KEY package_id (package_id)");
-            }
-            // Drop old pricing_plan_id column if present
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $has_old_plan = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_bookings LIKE %s", $wpdb->esc_like('pricing_plan_id')));
-            if ($has_old_plan) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_bookings DROP COLUMN pricing_plan_id");
-            }
-        }
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_payment_requests))) === $table_payment_requests) {
-            // Check if package_id column exists
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $has_pkg_req = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_payment_requests LIKE %s", $wpdb->esc_like('package_id')));
-            if (!$has_pkg_req) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_payment_requests ADD COLUMN package_id bigint(20) DEFAULT 0 AFTER pricing_type, ADD KEY package_id (package_id)");
-            }
-            // Drop old treatment_id / pricing_plan_id columns if present
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_payment_requests LIKE %s", $wpdb->esc_like('pricing_plan_id')))) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_payment_requests DROP COLUMN pricing_plan_id");
-            }
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$wpdb->prefix}caretochina_payment_requests LIKE %s", $wpdb->esc_like('treatment_id')))) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-                $wpdb->query("ALTER TABLE {$wpdb->prefix}caretochina_payment_requests DROP COLUMN treatment_id");
-            }
-        }
+        // Safe automatic index synchronization for existing installations
+        self::sync_missing_indexes();
 
         // Update DB version option
         update_option('caretochina_payment_db_version', CARETOCHINA_PAYMENT_DB_VERSION);
@@ -203,6 +173,69 @@ class CareToChina_Booking_DB {
             $wpdb->query("INSERT IGNORE INTO {$wpdb->prefix}caretochina_messages (id, booking_id, sender_type, sender_name, message, is_read, created_at) SELECT id, booking_id, sender_type, sender_name, message, is_read, created_at FROM {$wpdb->prefix}careyou_messages");
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
             $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}careyou_messages");
+        }
+    }
+
+    /**
+     * Helper to get list of index key names for a table
+     */
+    public static function get_table_indexes($table_name) {
+        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $indexes = $wpdb->get_col("SHOW INDEX FROM {$table_name}", 2);
+        return is_array($indexes) ? array_unique($indexes) : [];
+    }
+
+    /**
+     * Efficiently adds missing performance indexes without breaking existing data
+     */
+    public static function sync_missing_indexes() {
+        global $wpdb;
+        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
+        $table_messages = $wpdb->prefix . 'caretochina_messages';
+        $table_payment_requests = $wpdb->prefix . 'caretochina_payment_requests';
+
+        // 1. Indexes on Bookings table
+        $existing_indices_bookings = self::get_table_indexes($table_bookings);
+        if (!empty($existing_indices_bookings)) {
+            if (!in_array('email', $existing_indices_bookings, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_bookings} ADD KEY email (email)");
+            }
+            if (!in_array('wc_order_id', $existing_indices_bookings, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_bookings} ADD KEY wc_order_id (wc_order_id)");
+            }
+            if (!in_array('hospital_id', $existing_indices_bookings, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_bookings} ADD KEY hospital_id (hospital_id)");
+            }
+            if (!in_array('status_created', $existing_indices_bookings, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_bookings} ADD KEY status_created (status, created_at)");
+            }
+        }
+
+        // 2. Composite indexes on Messages table
+        $existing_indices_messages = self::get_table_indexes($table_messages);
+        if (!empty($existing_indices_messages)) {
+            if (!in_array('idx_booking_sender_read', $existing_indices_messages, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_messages} ADD KEY idx_booking_sender_read (booking_id, sender_type, is_read)");
+            }
+            if (!in_array('idx_sender_read', $existing_indices_messages, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_messages} ADD KEY idx_sender_read (sender_type, is_read)");
+            }
+        }
+
+        // 3. Indexes on Payment Requests table
+        $existing_indices_reqs = self::get_table_indexes($table_payment_requests);
+        if (!empty($existing_indices_reqs)) {
+            if (!in_array('converted_booking_id', $existing_indices_reqs, true)) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+                $wpdb->query("ALTER TABLE {$table_payment_requests} ADD KEY converted_booking_id (converted_booking_id)");
+            }
         }
     }
 }

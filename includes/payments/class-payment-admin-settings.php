@@ -159,21 +159,34 @@ class CareToChina_Payment_Admin_Settings {
             update_option('ctc_guest_token_expiry_days', $days);
         }
 
+        // WooCommerce Integration & Admin Visibility Controls
+        update_option('ctc_wc_hide_admin_bar_store', isset($_POST['ctc_wc_hide_admin_bar_store']) ? 1 : 0);
+        update_option('ctc_wc_redirect_frontend_pages', isset($_POST['ctc_wc_redirect_frontend_pages']) ? 1 : 0);
+        update_option('ctc_wc_custom_checkout_templates', isset($_POST['ctc_wc_custom_checkout_templates']) ? 1 : 0);
+        update_option('ctc_wc_headless_admin_menus', isset($_POST['ctc_wc_headless_admin_menus']) ? 1 : 0);
+
         // International Telephone Input Feature Toggle
         update_option('ctc_enable_intl_phone_flags', isset($_POST['ctc_enable_intl_phone_flags']) ? 1 : 0);
         if (isset($_POST['ctc_phone_selector_format'])) {
-            update_option('ctc_phone_selector_format', sanitize_text_field(wp_unslash($_POST['ctc_phone_selector_format'])));
+            $fmt = sanitize_text_field(wp_unslash($_POST['ctc_phone_selector_format']));
+            if (in_array($fmt, ['both', 'flag', 'code'])) {
+                update_option('ctc_phone_selector_format', $fmt);
+            }
         }
 
         // Data Safety / Uninstall Option
         update_option('ctc_delete_data_on_uninstall', isset($_POST['ctc_delete_data_on_uninstall']) ? 1 : 0);
 
-        add_action('admin_notices', function() {
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Payment, Security, Input & Google login settings saved successfully (secrets encrypted at rest).', 'caretochina-medical') . '</p></div>';
-        });
+        // Redirect back with success message
+        wp_safe_redirect(add_query_arg(['page' => 'caretochina-payment-settings', 'updated' => 'true'], admin_url('admin.php')));
+        exit;
     }
 
     public function render_settings_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
         $mode = self::get_mode();
         $currency = get_option('ctc_payment_currency', 'USD');
 
@@ -191,12 +204,12 @@ class CareToChina_Payment_Admin_Settings {
         $paypal_live_client = get_option('ctc_paypal_live_client_id', '');
         $paypal_live_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_paypal_live_client_secret', ''));
 
-        $google_enabled = intval(get_option('ctc_google_login_enabled', 1));
+        $google_enabled = intval(get_option('ctc_google_login_enabled', 0));
         $google_client_id = get_option('ctc_google_client_id', '');
         $google_client_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_google_client_secret', ''));
-        $google_redirect_uri = home_url('/?ctc_google_callback=1');
+        $google_redirect_uri = home_url('/?caretochina_oauth=google');
 
-        $rc_master_enabled = intval(get_option('ctc_recaptcha_master_enabled', 1));
+        $rc_master_enabled = intval(get_option('ctc_recaptcha_master_enabled', 0));
         $recaptcha_ver = get_option('ctc_recaptcha_version', 'v2');
         $rc_v2_site = get_option('ctc_recaptcha_v2_site_key', '');
         $rc_v2_sec_masked = CareToChina_Payment_Security::mask_secret(get_option('ctc_recaptcha_v2_secret_key', ''));
@@ -209,6 +222,11 @@ class CareToChina_Payment_Admin_Settings {
         $rc_guest_book = intval(get_option('ctc_recaptcha_enable_guest_booking', 0));
         $rc_hide_badge = intval(get_option('ctc_recaptcha_hide_badge', 0));
 
+        $wc_hide_admin_bar    = intval(get_option('ctc_wc_hide_admin_bar_store', 1));
+        $wc_redirect_frontend = intval(get_option('ctc_wc_redirect_frontend_pages', 1));
+        $wc_custom_templates  = intval(get_option('ctc_wc_custom_checkout_templates', 1));
+        $wc_headless_menus    = intval(get_option('ctc_wc_headless_admin_menus', 1));
+
         $intl_phone_enabled = intval(get_option('ctc_enable_intl_phone_flags', 1));
 
         $delete_on_uninstall = intval(get_option('ctc_delete_data_on_uninstall', 0));
@@ -219,7 +237,7 @@ class CareToChina_Payment_Admin_Settings {
         ?>
         <div class="wrap" style="max-width: 960px; font-family:'Manrope', sans-serif;">
             <h1 style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-credit-card" style="color:#0F766E;"></i> <?php esc_html_e('CareToChina Payment & Auth Settings', 'caretochina-medical'); ?></h1>
-            <p><?php esc_html_e('Configure Stripe, PayPal gateways, Google Sign-In, and Google reCAPTCHA protection. Secrets are automatically encrypted at rest in the database.', 'caretochina-medical'); ?></p>
+            <p><?php esc_html_e('Configure WooCommerce payment integration, Stripe, PayPal gateways, Google Sign-In, and Google reCAPTCHA protection.', 'caretochina-medical'); ?></p>
 
             <?php if ($constant_override) : ?>
                 <div class="notice notice-info inline" style="margin-bottom:20px;">
@@ -254,6 +272,73 @@ class CareToChina_Payment_Admin_Settings {
                                     <option value="CAD" <?php selected($currency, 'CAD'); ?>>CAD ($)</option>
                                     <option value="CNY" <?php selected($currency, 'CNY'); ?>>CNY (¥)</option>
                                 </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 style="margin-top:30px; border-bottom:1px solid #CBD5E1; padding-bottom:10px;"><i class="fa-solid fa-store" style="color:#0F766E; font-size:22px;"></i> <?php esc_html_e('WooCommerce & Medical Checkout Integration', 'caretochina-medical'); ?></h2>
+                <p class="description" style="margin-bottom:16px;"><?php esc_html_e('Control WooCommerce UI visibility, admin bar badges, storefront redirection, and custom medical checkout templates.', 'caretochina-medical'); ?></p>
+
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Admin Header Bar Cleanup', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" name="ctc_wc_hide_admin_bar_store" value="1" <?php checked($wc_hide_admin_bar, 1); ?> style="margin-top:2px;">
+                                    <span>
+                                        <?php esc_html_e('Hide "Visit Store", "Live" status badge, and WooCommerce activity panel from Admin Header', 'caretochina-medical'); ?>
+                                        <span class="description" style="display:block; margin-top:4px; font-weight:normal; color:#64748B;">
+                                            <?php esc_html_e('Removes the store visibility selector and storefront links from the WordPress top admin bar while WooCommerce operates seamlessly in the background.', 'caretochina-medical'); ?>
+                                        </span>
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Redirect WooCommerce Pages', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" name="ctc_wc_redirect_frontend_pages" value="1" <?php checked($wc_redirect_frontend, 1); ?> style="margin-top:2px;">
+                                    <span>
+                                        <?php esc_html_e('Redirect /shop, /cart, and /my-account to Patient Dashboard', 'caretochina-medical'); ?>
+                                        <span class="description" style="display:block; margin-top:4px; font-weight:normal; color:#64748B;">
+                                            <?php esc_html_e('When enabled, frontend users directly accessing native WooCommerce store or account URLs are redirected to the CareToChina Patient Dashboard.', 'caretochina-medical'); ?>
+                                        </span>
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Medical Checkout & Thank You Design', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" name="ctc_wc_custom_checkout_templates" value="1" <?php checked($wc_custom_templates, 1); ?> style="margin-top:2px;">
+                                    <span>
+                                        <?php esc_html_e('Enable Custom Medical Checkout and Thank You confirmation templates', 'caretochina-medical'); ?>
+                                        <span class="description" style="display:block; margin-top:4px; font-weight:normal; color:#64748B;">
+                                            <?php esc_html_e('Provides the branded CareToChina medical checkout layout and the Thank You page with direct "Go to Patient Dashboard" action and live coordinator support.', 'caretochina-medical'); ?>
+                                        </span>
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Headless Medical Mode (Side Menus)', 'caretochina-medical'); ?></th>
+                            <td>
+                                <label style="font-weight:600; display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" name="ctc_wc_headless_admin_menus" value="1" <?php checked($wc_headless_menus, 1); ?> style="margin-top:2px;">
+                                    <span>
+                                        <?php esc_html_e('Hide unused WooCommerce Products, Marketing, and Analytics admin side menus', 'caretochina-medical'); ?>
+                                        <span class="description" style="display:block; margin-top:4px; font-weight:normal; color:#64748B;">
+                                            <?php esc_html_e('Keeps the WordPress admin sidebar focused strictly on medical treatments and hospital management while orders are handled automatically.', 'caretochina-medical'); ?>
+                                        </span>
+                                    </span>
+                                </label>
                             </td>
                         </tr>
                     </tbody>

@@ -69,19 +69,11 @@ class CareToChina_Staff_Portal {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        $pending_bookings = 0;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $pending_bookings = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
-        }
+        $pending_bookings = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
 
-        $unread_messages = 0;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $unread_messages = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
-        }
+        $unread_messages = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d", 'patient', 0)));
 
         return $pending_bookings + $unread_messages;
     }
@@ -468,23 +460,15 @@ class CareToChina_Staff_Portal {
         $table_bookings = $wpdb->prefix . 'caretochina_bookings';
         $table_messages = $wpdb->prefix . 'caretochina_messages';
 
-        $pending_bookings_count = 0;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
-        }
+        $pending_bookings_count = intval($wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s", 'pending')));
 
-        $unread_messages_count = 0;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $unread_messages_count = intval($wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d",
-                'patient',
-                0
-            )));
-        }
+        $unread_messages_count = intval($wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE sender_type = %s AND is_read = %d",
+            'patient',
+            0
+        )));
 
         $chat_conversations = $this->get_chat_conversations(30);
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -1021,37 +1005,32 @@ class CareToChina_Staff_Portal {
 
         // 1. Pending Bookings (New Bookings requiring approval)
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 6));
-            if (!empty($pending_list)) {
-                foreach ($pending_list as $b) {
-                    $items[] = [
-                        'type'     => 'booking',
-                        'id'       => intval($b->id),
-                        'code'     => $b->booking_code,
-                        'name'     => $b->full_name,
-                        'title'    => /* translators: %s: dynamic value */
+        $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, hospital_name, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 6));
+        if (!empty($pending_list)) {
+            foreach ($pending_list as $b) {
+                $items[] = [
+                    'type'     => 'booking',
+                    'id'       => intval($b->id),
+                    'code'     => $b->booking_code,
+                    'name'     => $b->full_name,
+                    'title'    => /* translators: %s: dynamic value */
  sprintf(__('New Booking: #%s', 'caretochina-medical'), $b->booking_code),
-                        'subtitle' => $b->full_name . ' • ' . ($b->specialty ?: ($b->hospital_name ?: __('Medical Care', 'caretochina-medical'))),
-                        'time'     => human_time_diff(strtotime($b->created_at), current_time('timestamp')) . ' ' . __('ago', 'caretochina-medical'),
-                        'ts'       => strtotime($b->created_at)
-                    ];
-                }
+                    'subtitle' => $b->full_name . ' • ' . ($b->specialty ?: ($b->hospital_name ?: __('Medical Care', 'caretochina-medical'))),
+                    'time'     => human_time_diff(strtotime($b->created_at), current_time('timestamp')) . ' ' . __('ago', 'caretochina-medical'),
+                    'ts'       => strtotime($b->created_at)
+                ];
             }
         }
 
         // 2. Unread Messages from Patients
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $unread_msg_list = $wpdb->get_results($wpdb->prepare("
-                SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
-                FROM {$wpdb->prefix}caretochina_messages m 
-                JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
-                WHERE m.sender_type = %s AND m.is_read = %d 
-                ORDER BY m.id DESC LIMIT %d
-            ", 'patient', 0, 6));
+        $unread_msg_list = $wpdb->get_results($wpdb->prepare("
+            SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
+            FROM {$wpdb->prefix}caretochina_messages m 
+            JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+            WHERE m.sender_type = %s AND m.is_read = %d 
+            ORDER BY m.id DESC LIMIT %d
+        ", 'patient', 0, 6));
             if (!empty($unread_msg_list)) {
                 foreach ($unread_msg_list as $m) {
                     $items[] = [
@@ -1067,7 +1046,6 @@ class CareToChina_Staff_Portal {
                     ];
                 }
             }
-        }
 
         if (empty($items)) {
             return '<div style="padding:28px 16px; text-align:center; color:#94A3B8;"><i class="fa-regular fa-bell-slash" style="font-size:26px; margin-bottom:8px; display:block; color:#CBD5E1;"></i> ' . esc_html__('No new notifications', 'caretochina-medical') . '</div>';
@@ -1119,43 +1097,84 @@ class CareToChina_Staff_Portal {
 
     public function get_chat_conversations($limit = 50) {
         global $wpdb;
-        $table_bookings = $wpdb->prefix . 'caretochina_bookings';
-        $table_messages = $wpdb->prefix . 'caretochina_messages';
+        $limit = max(1, min(100, intval($limit)));
 
+        // 1. Fetch active bookings with clean index
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) !== $table_bookings) {
+        $bookings = $wpdb->get_results($wpdb->prepare(
+            "SELECT b.* 
+             FROM {$wpdb->prefix}caretochina_bookings b
+             WHERE b.status IN ('confirmed', 'completed', 'waiting')
+             ORDER BY b.id DESC
+             LIMIT %d",
+            $limit
+        ));
+
+        if (empty($bookings)) {
             return [];
         }
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $has_messages = ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages);
+        $booking_ids = wp_list_pluck($bookings, 'id');
+        $escaped_ids = implode(',', array_map('intval', $booking_ids));
 
-        if ($has_messages) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            return $wpdb->get_results($wpdb->prepare(
-                "SELECT b.*,
-                       m.message as last_msg_text,
-                       m.attachment_type as last_msg_att_type,
-                       m.attachment_name as last_msg_att_name,
-                       m.sender_type as last_msg_sender,
-                       m.message_type as last_msg_type,
-                       m.created_at as last_msg_time,
-                       (SELECT COUNT(*) FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = b.id AND sender_type = %s AND is_read = %d) as unread_count
-                FROM {$wpdb->prefix}caretochina_bookings b
-                LEFT JOIN {$wpdb->prefix}caretochina_messages m ON m.id = (
-                    SELECT id FROM {$wpdb->prefix}caretochina_messages WHERE booking_id = b.id ORDER BY id DESC LIMIT 1
-                )
-                WHERE b.status IN ('confirmed', 'completed', 'waiting')
-                ORDER BY COALESCE(m.created_at, b.created_at) DESC
-                LIMIT %d",
-                'patient',
-                0,
-                $limit
-            ));
-        } else {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            return $wpdb->get_results($wpdb->prepare("SELECT b.*, NULL as last_msg_text, NULL as last_msg_att_type, NULL as last_msg_att_name, NULL as last_msg_sender, NULL as last_msg_type, NULL as last_msg_time, 0 as unread_count FROM {$wpdb->prefix}caretochina_bookings b WHERE b.status IN ('confirmed', 'completed', 'waiting') ORDER BY b.id DESC LIMIT %d", $limit));
+        // 2. Fetch unread counts in one single batch query (using idx_booking_sender_read)
+        $unread_counts_map = [];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $unread_rows = $wpdb->get_results(
+            "SELECT booking_id, COUNT(*) as cnt 
+             FROM {$wpdb->prefix}caretochina_messages 
+             WHERE booking_id IN ($escaped_ids) AND sender_type = 'patient' AND is_read = 0 
+             GROUP BY booking_id"
+        );
+        if (!empty($unread_rows)) {
+            foreach ($unread_rows as $row) {
+                $unread_counts_map[intval($row->booking_id)] = intval($row->cnt);
+            }
         }
+
+        // 3. Fetch latest message per booking in one batch query
+        $latest_msgs_map = [];
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $latest_msg_ids = $wpdb->get_col(
+            "SELECT MAX(id) 
+             FROM {$wpdb->prefix}caretochina_messages 
+             WHERE booking_id IN ($escaped_ids) 
+             GROUP BY booking_id"
+        );
+        if (!empty($latest_msg_ids)) {
+            $msg_id_list = implode(',', array_map('intval', $latest_msg_ids));
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $msg_rows = $wpdb->get_results("SELECT id, booking_id, message, attachment_type, attachment_name, sender_type, message_type, created_at FROM {$wpdb->prefix}caretochina_messages WHERE id IN ($msg_id_list)");
+            if (!empty($msg_rows)) {
+                foreach ($msg_rows as $mr) {
+                    $latest_msgs_map[intval($mr->booking_id)] = $mr;
+                }
+            }
+        }
+
+        // 4. Map back to booking objects
+        foreach ($bookings as $b) {
+            $b_id = intval($b->id);
+            $b->unread_count = $unread_counts_map[$b_id] ?? 0;
+            if (isset($latest_msgs_map[$b_id])) {
+                $lm = $latest_msgs_map[$b_id];
+                $b->last_msg_text      = $lm->message;
+                $b->last_msg_att_type  = $lm->attachment_type;
+                $b->last_msg_att_name  = $lm->attachment_name;
+                $b->last_msg_sender    = $lm->sender_type;
+                $b->last_msg_type      = $lm->message_type;
+                $b->last_msg_time      = $lm->created_at;
+            } else {
+                $b->last_msg_text      = null;
+                $b->last_msg_att_type  = null;
+                $b->last_msg_att_name  = null;
+                $b->last_msg_sender    = null;
+                $b->last_msg_type      = null;
+                $b->last_msg_time      = null;
+            }
+        }
+
+        return $bookings;
     }
 
     public function generate_chat_patient_list_html($bookings, $active_id = 0) {
@@ -1915,9 +1934,8 @@ class CareToChina_Staff_Portal {
         
         // Fetch pending bookings list
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 5));
+        $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name, specialty, created_at FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 5));
+        if (!empty($pending_list)) {
             foreach ($pending_list as $item) {
                 $unread_items[] = [
                     'type' => 'booking',
@@ -1934,15 +1952,14 @@ class CareToChina_Staff_Portal {
 
         // Fetch unread messages list
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $unread_msg_list = $wpdb->get_results($wpdb->prepare("
-                SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
-                FROM {$wpdb->prefix}caretochina_messages m 
-                JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
-                WHERE m.sender_type = %s AND m.is_read = %d 
-                ORDER BY m.id DESC LIMIT %d
-            ", 'patient', 0, 5));
+        $unread_msg_list = $wpdb->get_results($wpdb->prepare("
+            SELECT m.id, m.booking_id, m.message, m.created_at, b.booking_code, b.full_name as patient_name 
+            FROM {$wpdb->prefix}caretochina_messages m 
+            JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+            WHERE m.sender_type = %s AND m.is_read = %d 
+            ORDER BY m.id DESC LIMIT %d
+        ", 'patient', 0, 5));
+        if (!empty($unread_msg_list)) {
             foreach ($unread_msg_list as $item) {
                 $unread_items[] = [
                     'type' => 'message',
@@ -2007,9 +2024,8 @@ class CareToChina_Staff_Portal {
 
             // 1. Fetch pending bookings
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_bookings))) === $table_bookings) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 3));
+            $pending_list = $wpdb->get_results($wpdb->prepare("SELECT id, booking_code, full_name FROM {$wpdb->prefix}caretochina_bookings WHERE status = %s ORDER BY id DESC LIMIT %d", 'pending', 3));
+            if (!empty($pending_list)) {
                 foreach ($pending_list as $item) {
                     $wp_admin_bar->add_node([
                         'id'     => 'staff-notif-booking-' . $item->id,
@@ -2022,15 +2038,14 @@ class CareToChina_Staff_Portal {
 
             // 2. Fetch unread patient messages
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $wpdb->esc_like($table_messages))) === $table_messages) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $unread_msg_list = $wpdb->get_results($wpdb->prepare("
-                    SELECT m.id, m.booking_id, m.message, b.booking_code, b.full_name as patient_name 
-                    FROM {$wpdb->prefix}caretochina_messages m 
-                    JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
-                    WHERE m.sender_type = %s AND m.is_read = %d 
-                    ORDER BY m.id DESC LIMIT %d
-                ", 'patient', 0, 3));
+            $unread_msg_list = $wpdb->get_results($wpdb->prepare("
+                SELECT m.id, m.booking_id, m.message, b.booking_code, b.full_name as patient_name 
+                FROM {$wpdb->prefix}caretochina_messages m 
+                JOIN {$wpdb->prefix}caretochina_bookings b ON m.booking_id = b.id 
+                WHERE m.sender_type = %s AND m.is_read = %d 
+                ORDER BY m.id DESC LIMIT %d
+            ", 'patient', 0, 3));
+            if (!empty($unread_msg_list)) {
                 foreach ($unread_msg_list as $item) {
                     $wp_admin_bar->add_node([
                         'id'     => 'staff-notif-msg-' . $item->id,
