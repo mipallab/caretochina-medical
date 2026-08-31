@@ -73,9 +73,32 @@ class CareToChina_WP_Rocket_Compat {
             wp_schedule_event(time(), 'daily', 'caretochina_daily_db_cleanup');
         }
 
-        // 8. Lightweight Nonce Refresh Endpoint for Cached Public Pages
+        // 8. Critical Font Preloading & Efficient Cache Lifetimes
+        add_action('wp_head', [$this, 'preload_critical_webfonts'], 1);
+        add_action('send_headers', [$this, 'set_static_asset_cache_headers']);
+
+        // 9. Lightweight Nonce Refresh Endpoint for Cached Public Pages
         add_action('wp_ajax_ctc_refresh_nonces', [$this, 'ajax_refresh_nonces']);
         add_action('wp_ajax_nopriv_ctc_refresh_nonces', [$this, 'ajax_refresh_nonces']);
+    }
+
+    /**
+     * Preload Critical Font Awesome Webfonts to eliminate render-blocking delay
+     */
+    public function preload_critical_webfonts() {
+        $font_url = CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/webfonts/fa-solid-900.woff2';
+        echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="font/woff2" crossorigin="anonymous">' . "\n";
+    }
+
+    /**
+     * Send Long-life Browser Cache Headers for Webfonts & Static Assets
+     */
+    public function set_static_asset_cache_headers() {
+        if (!headers_sent()) {
+            // Enable CORS for webfonts
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, OPTIONS');
+        }
     }
 
     /**
