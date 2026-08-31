@@ -243,15 +243,15 @@ class CareToChina_Patient_Dashboard {
                 <div class="ctc-dash-banner-actions">
                     <!-- Theme Toggle Button -->
                     <button type="button" class="ctc-hdr-btn ctc-hdr-btn-glass" onclick="window.appToggleTheme()" style="width:42px; height:42px; border-radius:50%; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;" title="<?php esc_html_e('Toggle Dark/Light Mode', 'caretochina-medical'); ?>">
-                        <i class="fa-solid fa-circle-half-stroke"></i>
+                        <i class="fas fa-adjust"></i>
                     </button>
                     <?php if ($active_booking) : ?>
                         <button type="button" class="ctc-hdr-btn ctc-hdr-btn-glass" onclick="appDash.switchTabDirect('messages')">
-                            <i class="fa-solid fa-headset"></i> <?php esc_html_e('Care Coordinator Chat', 'caretochina-medical'); ?>
+                            <i class="fas fa-headset"></i> <?php esc_html_e('Care Coordinator Chat', 'caretochina-medical'); ?>
                         </button>
                     <?php endif; ?>
                     <a href="<?php echo esc_url($logout_url); ?>" class="ctc-hdr-btn ctc-hdr-btn-glass">
-                        <i class="fa-solid fa-right-from-bracket"></i> <?php esc_html_e('Logout', 'caretochina-medical'); ?>
+                        <i class="fas fa-sign-out-alt"></i> <?php esc_html_e('Logout', 'caretochina-medical'); ?>
                     </a>
                 </div>
             </div>
@@ -279,7 +279,7 @@ class CareToChina_Patient_Dashboard {
                         <span id="patient-unread-msg-badge" class="ctc-tab-unread-badge" style="display:none; background:#EF4444; color:#FFF; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; margin-left:auto;"></span>
                     </button>
                     <button type="button" class="ctc-sidebar-tab tab-logout-item" onclick="appDash.switchTab(this, 'logout')">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span><?php esc_html_e('Log Out', 'caretochina-medical'); ?></span>
+                        <i class="fas fa-sign-out-alt"></i> <span><?php esc_html_e('Log Out', 'caretochina-medical'); ?></span>
                     </button>
                 </div>
 
@@ -870,12 +870,12 @@ class CareToChina_Patient_Dashboard {
                     <div class="ctc-dash-panel <?php echo ($active_tab === 'logout') ? 'active' : ''; ?>" id="dash-panel-logout" style="display:<?php echo ($active_tab === 'logout') ? 'block' : 'none'; ?>;">
                         <div class="ctc-panel-card ctc-logout-card">
                             <div class="ctc-logout-icon-wrap">
-                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <i class="fas fa-sign-out-alt"></i>
                             </div>
                             <h3 class="ctc-card-title" style="margin-bottom:10px;"><?php esc_html_e('Sign Out of Patient Account', 'caretochina-medical'); ?></h3>
                             <p class="ctc-logout-desc" style="margin-bottom:24px;"><?php esc_html_e('Are you sure you want to log out of your CareToChina patient portal?', 'caretochina-medical'); ?></p>
                             <a href="<?php echo esc_url($logout_url); ?>" class="ctc-solid-btn btn-danger-solid">
-                                <i class="fa-solid fa-right-from-bracket"></i> <?php esc_html_e('Log Out Now', 'caretochina-medical'); ?>
+                                <i class="fas fa-sign-out-alt"></i> <?php esc_html_e('Log Out Now', 'caretochina-medical'); ?>
                             </a>
                         </div>
                     </div>
@@ -1002,10 +1002,10 @@ class CareToChina_Patient_Dashboard {
                 <div class="ctc-guest-header-right">
                     <!-- Theme Toggle Button -->
                     <button type="button" class="ctc-hdr-btn ctc-hdr-btn-glass" onclick="window.appToggleTheme()" title="<?php esc_html_e('Toggle Dark/Light Mode', 'caretochina-medical'); ?>">
-                        <i class="fa-solid fa-circle-half-stroke"></i>
+                        <i class="fas fa-adjust"></i>
                     </button>
                     <a href="<?php echo esc_url($register_url); ?>" class="ctc-solid-btn btn-teal-primary ctc-guest-signin-btn">
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        <i class="fas fa-sign-in-alt"></i>
                         <span><?php esc_html_e('Sign In / Register', 'caretochina-medical'); ?></span>
                     </a>
                 </div>
@@ -1015,7 +1015,7 @@ class CareToChina_Patient_Dashboard {
             <div class="ctc-guest-auth-banner">
                 <div class="ctc-guest-auth-info">
                     <div class="ctc-guest-countdown-icon-box">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <i class="fas fa-history"></i>
                     </div>
                     <div class="ctc-guest-countdown-details">
                         <div class="ctc-guest-countdown-headline">

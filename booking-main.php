@@ -169,10 +169,16 @@ function caretochina_render_dashboard_button($atts = []) {
 
     ob_start();
     ?>
-    <a href="<?php echo esc_url($url); ?>" class="ctc-dash-btn elementor-button elementor-button-secondary elementor-size-sm <?php echo esc_attr($atts['class'] . ' ' . $extra_class); ?>">
-        <span class="elementor-button-content-wrapper" style="display:inline-flex; align-items:center; justify-content:center;">
+    <a href="<?php echo esc_url($url); ?>" class="ctc-dash-btn elementor-button elementor-button-secondary elementor-size-sm <?php echo esc_attr($atts['class'] . ' ' . $extra_class); ?>" aria-label="<?php echo esc_attr($label); ?>">
+        <span class="elementor-button-content-wrapper" style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
             <?php if ($display_mode !== 'text_only') : ?>
-                <i class="<?php echo $is_logged_in ? 'fas fa-user-circle' : 'fas fa-sign-in-alt'; ?> ctc-btn-icon" style="margin-right:8px; font-size:<?php echo $is_logged_in ? '16px' : '15px'; ?>;"></i>
+                <span class="ctc-btn-icon-wrap" style="display:inline-flex; align-items:center; justify-content:center; line-height:1; flex-shrink:0;">
+                    <?php if ($is_logged_in) : ?>
+                        <svg class="ctc-btn-svg" width="16" height="16" viewBox="0 0 512 512" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM256 128c39.7 0 72 32.3 72 72s-32.3 72-72 72s-72-32.3-72-72s32.3-72 72-72zm0 320c-55.7 0-105.7-24.8-139.7-64.2c1.7-41.4 35.1-74.8 76.8-74.8c12.2 0 23.9 3.5 33.9 9.7c8.9 5.5 19.3 8.3 29 8.3s20.1-2.8 29-8.3c10-6.2 21.7-9.7 33.9-9.7c41.7 0 75.1 33.4 76.8 74.8C361.7 423.2 311.7 448 256 448z"/></svg>
+                    <?php else : ?>
+                        <svg class="ctc-btn-svg" width="15" height="15" viewBox="0 0 512 512" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M217.9 105.9L340.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L217.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1L32 320c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM352 416l64 0c17.7 0 32-14.3 32-32l0-256c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0c53 0 96 43 96 96l0 256c0 53-43 96-96 96l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>
+                    <?php endif; ?>
+                </span>
             <?php endif; ?>
             <?php if ($display_mode !== 'icon_only') : ?>
                 <span class="elementor-button-text"><?php echo esc_html($label); ?></span>
@@ -197,8 +203,18 @@ function caretochina_render_dashboard_button($atts = []) {
             border: 1.5px solid #CCFBF1 !important;
             box-shadow: 0 4px 12px rgba(15, 118, 110, 0.12) !important;
         }
-        .ctc-dash-btn i, .ctc-dash-btn .ctc-btn-icon {
+        .ctc-dash-btn .ctc-btn-icon-wrap,
+        .ctc-dash-btn .ctc-btn-svg,
+        .ctc-dash-btn svg {
+            display: inline-flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: 15px !important;
+            height: 15px !important;
+            fill: #0F766E !important;
             color: #0F766E !important;
+            flex-shrink: 0 !important;
+            vertical-align: middle !important;
         }
         .ctc-dash-btn:hover {
             background-color: #0F766E !important;
@@ -207,7 +223,9 @@ function caretochina_render_dashboard_button($atts = []) {
             transform: translateY(-2px) !important;
             box-shadow: 0 6px 18px rgba(15, 118, 110, 0.25) !important;
         }
-        .ctc-dash-btn:hover i, .ctc-dash-btn:hover .ctc-btn-icon {
+        .ctc-dash-btn:hover .ctc-btn-svg,
+        .ctc-dash-btn:hover svg {
+            fill: #FFFFFF !important;
             color: #FFFFFF !important;
         }
 
@@ -216,8 +234,9 @@ function caretochina_render_dashboard_button($atts = []) {
             color: #0F766E !important;
             border-color: #CCFBF1 !important;
         }
-        html.dark-theme .ctc-dash-btn i, body.dark-theme .ctc-dash-btn i,
-        html.dark-theme .ctc-dash-btn .ctc-btn-icon, body.dark-theme .ctc-dash-btn .ctc-btn-icon {
+        html.dark-theme .ctc-dash-btn .ctc-btn-svg,
+        body.dark-theme .ctc-dash-btn .ctc-btn-svg {
+            fill: #0F766E !important;
             color: #0F766E !important;
         }
         html.dark-theme .ctc-dash-btn:hover, body.dark-theme .ctc-dash-btn:hover {
@@ -225,13 +244,14 @@ function caretochina_render_dashboard_button($atts = []) {
             color: #FFFFFF !important;
             border-color: #0F766E !important;
         }
-        html.dark-theme .ctc-dash-btn:hover i, body.dark-theme .ctc-dash-btn:hover i,
-        html.dark-theme .ctc-dash-btn:hover .ctc-btn-icon, body.dark-theme .ctc-dash-btn:hover .ctc-btn-icon {
+        html.dark-theme .ctc-dash-btn:hover .ctc-btn-svg,
+        body.dark-theme .ctc-dash-btn:hover .ctc-btn-svg {
+            fill: #FFFFFF !important;
             color: #FFFFFF !important;
         }
 
         /* DISPLAY MODE OVERRIDES */
-        .ctc-dash-btn.mode-icon_only .ctc-btn-icon {
+        .ctc-dash-btn.mode-icon_only .ctc-btn-icon-wrap {
             margin-right: 0 !important;
         }
         .ctc-dash-btn.mode-icon_only {
@@ -246,15 +266,36 @@ function caretochina_render_dashboard_button($atts = []) {
             .ctc-dash-btn .elementor-button-text {
                 display: none !important;
             }
-            .ctc-dash-btn .ctc-btn-icon {
+            .ctc-dash-btn .ctc-btn-icon-wrap {
                 margin-right: 0 !important;
-                font-size: 18px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                line-height: 1 !important;
             }
             .ctc-dash-btn {
-                padding: 10px 14px !important;
-                width: 44px !important;
-                height: 44px !important;
+                padding: 0 !important;
+                width: 42px !important;
+                height: 42px !important;
+                min-width: 42px !important;
                 border-radius: 50% !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            .ctc-dash-btn svg,
+            .ctc-dash-btn .ctc-btn-svg {
+                width: 16px !important;
+                height: 16px !important;
+                display: block !important;
+                margin: 0 auto !important;
+                fill: #0F766E !important;
+                color: #0F766E !important;
+            }
+            .ctc-dash-btn:hover svg,
+            .ctc-dash-btn:hover .ctc-btn-svg {
+                fill: #FFFFFF !important;
+                color: #FFFFFF !important;
             }
         }
     </style>
