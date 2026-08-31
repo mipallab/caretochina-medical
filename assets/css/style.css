@@ -605,7 +605,7 @@
   width: 100% !important;
   max-width: 580px !important;
   margin: 0 auto !important;
-  padding: 30px 16px !important;
+  padding: 45px 20px !important;
   box-sizing: border-box !important;
 }
 
@@ -613,11 +613,21 @@
   background: var(--cymb-bg-card, #FFFFFF) !important;
   border: 1px solid var(--cymb-border-color, #E2E8F0) !important;
   border-radius: 24px !important;
-  padding: 36px 32px !important;
+  padding: 40px 36px !important;
   box-shadow: var(--cymb-shadow-lg) !important;
   transition: var(--cymb-transition) !important;
   box-sizing: border-box !important;
   width: 100% !important;
+}
+
+/* ALL DEVICES: 1 COLUMN CLEAN VERTICAL STACK */
+.caretochina-auth-container .ctc-form-grid-2,
+.careyou-auth-container .ctc-form-grid-2 {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  gap: 18px !important;
+  margin-bottom: 0 !important;
 }
 
 .caretochina-auth-container .form-group,
@@ -631,9 +641,9 @@
 .careyou-auth-container .form-label {
   display: block !important;
   font-family: var(--cymb-font-heading, 'Manrope', sans-serif) !important;
-  font-size: 13.5px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
-  margin-bottom: 7px !important;
+  margin-bottom: 8px !important;
   color: var(--cymb-text-dark, #0F172A) !important;
   line-height: 1.3 !important;
 }
@@ -643,15 +653,15 @@
 .careyou-auth-container .form-input,
 .careyou-auth-container .form-select {
   width: 100% !important;
-  min-height: 48px !important;
-  height: 48px !important;
-  padding: 11px 16px !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  padding: 13px 18px !important;
   border-radius: 12px !important;
   border: 1.5px solid var(--cymb-border-color, #CBD5E1) !important;
   background: var(--cymb-bg-card, #FFFFFF) !important;
   color: var(--cymb-text-dark, #0F172A) !important;
   font-family: var(--cymb-font-body, 'Inter', sans-serif) !important;
-  font-size: 15px !important;
+  font-size: 15.5px !important;
   line-height: 1.4 !important;
   box-sizing: border-box !important;
   outline: none !important;
@@ -665,8 +675,8 @@
   -webkit-appearance: none !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
-  background-position: right 14px center !important;
-  padding-right: 38px !important;
+  background-position: right 16px center !important;
+  padding-right: 42px !important;
 }
 
 .caretochina-auth-container .form-input:focus,
@@ -675,6 +685,68 @@
 .careyou-auth-container .form-select:focus {
   border-color: #0F766E !important;
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+}
+
+/* ENLARGED FULL-WIDTH PHONE INPUT GROUP */
+.caretochina-auth-container .ctc-phone-group-wrapper,
+.careyou-auth-container .ctc-phone-group-wrapper,
+.ctc-phone-group-wrapper {
+  display: flex !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  border: 1.5px solid var(--cymb-border-color, #CBD5E1) !important;
+  border-radius: 12px !important;
+  background: var(--cymb-bg-card, #FFFFFF) !important;
+  overflow: hidden !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.caretochina-auth-container .ctc-phone-group-wrapper:focus-within,
+.careyou-auth-container .ctc-phone-group-wrapper:focus-within,
+.ctc-phone-group-wrapper:focus-within {
+  border-color: #0F766E !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+}
+
+.caretochina-auth-container .ctc-phone-group-wrapper .ctc-country-select,
+.careyou-auth-container .ctc-phone-group-wrapper .ctc-country-select,
+.ctc-phone-group-wrapper .ctc-country-select {
+  flex: 0 0 auto !important;
+  border: none !important;
+  border-right: 1.5px solid var(--cymb-border-color, #CBD5E1) !important;
+  border-radius: 0 !important;
+  background: var(--cymb-bg-light, #F8FAFC) !important;
+  color: var(--cymb-text-dark, #0F172A) !important;
+  font-size: 14.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  height: 100% !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 12px 10px !important;
+  min-width: 88px !important;
+}
+
+.caretochina-auth-container .ctc-phone-group-wrapper .ctc-phone-input,
+.careyou-auth-container .ctc-phone-group-wrapper .ctc-phone-input,
+.ctc-phone-group-wrapper .ctc-phone-input {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--cymb-text-dark, #0F172A) !important;
+  font-size: 15.5px !important;
+  padding: 13px 18px !important;
+  outline: none !important;
+  height: 100% !important;
+  min-height: 52px !important;
+  box-sizing: border-box !important;
 }
 
 .caretochina-auth-container .iti,
@@ -687,7 +759,8 @@
 .careyou-auth-container .iti input.form-input {
   width: 100% !important;
   padding-left: 92px !important;
-  height: 48px !important;
+  height: 52px !important;
+  min-height: 52px !important;
 }
 
 .caretochina-auth-container .iti__selected-country,
@@ -702,18 +775,18 @@
   border: 1px solid var(--cymb-border-color, #E2E8F0) !important;
   padding: 5px !important;
   border-radius: 14px !important;
-  margin-bottom: 24px !important;
+  margin-bottom: 26px !important;
   gap: 4px !important;
 }
 
 .auth-tab-btn {
   flex: 1 !important;
-  padding: 11px 16px !important;
+  padding: 12px 18px !important;
   border: none !important;
   border-radius: 10px !important;
   font-weight: 700 !important;
   font-family: var(--cymb-font-heading, 'Manrope', sans-serif) !important;
-  font-size: 14px !important;
+  font-size: 14.5px !important;
   cursor: pointer !important;
   transition: var(--cymb-transition) !important;
   background: transparent !important;
@@ -736,12 +809,12 @@
 
 .auth-header {
   text-align: center !important;
-  margin-bottom: 22px !important;
+  margin-bottom: 24px !important;
 }
 
 .auth-icon-badge {
-  width: 56px !important;
-  height: 56px !important;
+  width: 58px !important;
+  height: 58px !important;
   border-radius: 50% !important;
   background: var(--cymb-secondary-light, rgba(20, 184, 166, 0.15)) !important;
   color: var(--cymb-primary, #0F766E) !important;
@@ -756,7 +829,7 @@
   font-family: var(--cymb-font-heading, 'Manrope', sans-serif) !important;
   color: var(--cymb-text-dark, #0F172A) !important;
   margin: 0 0 6px 0 !important;
-  font-size: 22px !important;
+  font-size: 23px !important;
   font-weight: 700 !important;
 }
 
@@ -769,13 +842,13 @@
 
 .auth-submit-btn {
   width: 100% !important;
-  min-height: 50px !important;
-  padding: 14px 20px !important;
+  min-height: 54px !important;
+  padding: 15px 22px !important;
   border-radius: 12px !important;
   background: var(--cymb-primary, #0F766E) !important;
   color: #FFFFFF !important;
   font-family: var(--cymb-font-heading, 'Manrope', sans-serif) !important;
-  font-size: 15.5px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   border: none !important;
   cursor: pointer !important;
@@ -785,7 +858,7 @@
   gap: 10px !important;
   box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3) !important;
   transition: all 0.25s ease !important;
-  margin-top: 8px !important;
+  margin-top: 10px !important;
 }
 
 .auth-submit-btn:hover {
@@ -794,113 +867,108 @@
   box-shadow: 0 6px 18px rgba(15, 118, 110, 0.35) !important;
 }
 
-/* AUTH MOBILE PORTRAIT & LANDSCAPE OPTIMIZATION */
+/* RESPONSIVE MOBILE ADJUSTMENTS */
 @media (max-width: 576px) {
   .careyou-auth-container,
   .caretochina-auth-container {
-    padding: 12px 10px !important;
+    padding: 20px 12px !important;
     max-width: 100% !important;
   }
 
   .ctc-auth-card {
-    padding: 22px 16px !important;
-    border-radius: 18px !important;
+    padding: 26px 18px !important;
+    border-radius: 20px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
   }
 
   .auth-tab-bar {
-    margin-bottom: 18px !important;
+    margin-bottom: 20px !important;
     padding: 4px !important;
     border-radius: 12px !important;
   }
 
   .auth-tab-btn {
-    padding: 10px 8px !important;
-    font-size: 13px !important;
+    padding: 11px 10px !important;
+    font-size: 13.5px !important;
     gap: 6px !important;
   }
 
   .auth-header {
-    margin-bottom: 18px !important;
+    margin-bottom: 20px !important;
   }
 
   .auth-icon-badge {
-    width: 48px !important;
-    height: 48px !important;
-    font-size: 20px !important;
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 22px !important;
     margin-bottom: 10px !important;
   }
 
   .auth-title {
-    font-size: 19px !important;
+    font-size: 20px !important;
   }
 
   .auth-subtitle {
-    font-size: 13px !important;
+    font-size: 13.5px !important;
     line-height: 1.4 !important;
   }
 
   .caretochina-auth-container .ctc-form-grid-2,
   .careyou-auth-container .ctc-form-grid-2 {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    gap: 14px !important;
-    margin-bottom: 0 !important;
+    gap: 15px !important;
   }
 
   .caretochina-auth-container .form-group,
   .careyou-auth-container .form-group {
-    margin-bottom: 14px !important;
-    width: 100% !important;
+    margin-bottom: 15px !important;
   }
 
   .caretochina-auth-container .form-input,
   .caretochina-auth-container .form-select,
   .careyou-auth-container .form-input,
-  .careyou-auth-container .form-select {
-    min-height: 48px !important;
-    height: 48px !important;
-    padding: 11px 16px !important;
+  .careyou-auth-container .form-select,
+  .caretochina-auth-container .ctc-phone-group-wrapper,
+  .careyou-auth-container .ctc-phone-group-wrapper {
+    min-height: 50px !important;
+    height: 50px !important;
+    padding: 12px 16px !important;
     font-size: 15px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
+  }
+
+  .caretochina-auth-container .ctc-phone-group-wrapper .ctc-country-select,
+  .careyou-auth-container .ctc-phone-group-wrapper .ctc-country-select {
+    min-height: 50px !important;
+    height: 50px !important;
+    padding: 11px 8px !important;
+    font-size: 14px !important;
+  }
+
+  .caretochina-auth-container .ctc-phone-group-wrapper .ctc-phone-input,
+  .careyou-auth-container .ctc-phone-group-wrapper .ctc-phone-input {
+    min-height: 50px !important;
+    height: 50px !important;
+    padding: 12px 16px !important;
+    font-size: 15px !important;
   }
 
   .auth-submit-btn {
     padding: 14px 20px !important;
     font-size: 15.5px !important;
-    min-height: 50px !important;
+    min-height: 52px !important;
     border-radius: 12px !important;
-    width: 100% !important;
   }
 }
 
-/* Tablet / Landscape Breakpoint */
 @media (min-width: 577px) and (max-width: 768px) {
   .careyou-auth-container,
   .caretochina-auth-container {
-    padding: 16px 12px !important;
+    padding: 30px 16px !important;
     max-width: 520px !important;
   }
 
   .ctc-auth-card {
-    padding: 26px 20px !important;
-    border-radius: 20px !important;
-  }
-
-  .caretochina-auth-container .ctc-form-grid-2,
-  .careyou-auth-container .ctc-form-grid-2 {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    gap: 14px !important;
-  }
-
-  .caretochina-auth-container .form-group,
-  .careyou-auth-container .form-group {
-    margin-bottom: 14px !important;
-    width: 100% !important;
+    padding: 32px 26px !important;
+    border-radius: 22px !important;
   }
 }
 
