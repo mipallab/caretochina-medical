@@ -43,6 +43,10 @@ class CareToChina_Hero_Hospital_Slider {
         add_action('admin_init', [$this, 'handle_save_settings']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 
+        // Slide Meta Box for Image Resolution & Link
+        add_action('add_meta_boxes', [$this, 'register_slide_metaboxes']);
+        add_action('save_post_' . self::POST_TYPE, [$this, 'save_slide_meta'], 10, 2);
+
         // Front-end Shortcode
         add_shortcode('hero_hospital_slider', [$this, 'render_slider_shortcode']);
         add_shortcode('hero_hospitals_slider', [$this, 'render_slider_shortcode']);
@@ -52,8 +56,35 @@ class CareToChina_Hero_Hospital_Slider {
     }
 
     /**
+     * Get all available WordPress image sizes for dropdowns
+     */
+    public static function get_available_image_sizes() {
+        global $_wp_additional_image_sizes;
+        $sizes = [
+            'full'         => __('Full / Original Resolution (Uncompressed)', 'caretochina-medical'),
+            'large'        => __('Large (1024px max - Optimized for Desktop)', 'caretochina-medical'),
+            'medium_large' => __('Medium Large (768px max - Optimized for Tablet/Mobile)', 'caretochina-medical'),
+            'medium'       => __('Medium (300px max)', 'caretochina-medical'),
+            '1536x1536'    => __('2x High-Definition (1536px)', 'caretochina-medical'),
+            '2048x2048'    => __('Ultra High-Definition 2K (2048px)', 'caretochina-medical'),
+        ];
+
+        if (!empty($_wp_additional_image_sizes) && is_array($_wp_additional_image_sizes)) {
+            foreach ($_wp_additional_image_sizes as $name => $data) {
+                if (!isset($sizes[$name])) {
+                    $w = $data['width'] ?? 0;
+                    $h = $data['height'] ?? 0;
+                    $sizes[$name] = ucwords(str_replace(['_', '-'], ' ', $name)) . ($w && $h ? " ({$w}x{$h}px)" : '');
+                }
+            }
+        }
+
+        return $sizes;
+    }
+
+    /**
      * Register 'hero_hospital_slider' Custom Post Type
-     * Only supports 'thumbnail' (Featured Image) - No title, editor, description, or taxonomy.
+     * Supports 'thumbnail' (Featured Image)
      */
     public function register_cpt() {
         $labels = [
@@ -88,12 +119,114 @@ class CareToChina_Hero_Hospital_Slider {
             'hierarchical'       => false,
             'menu_position'      => 21,
             'menu_icon'          => 'dashicons-images-alt2',
-            // Strictly only thumbnail (featured image) supported
             'supports'           => ['thumbnail'],
             'show_in_rest'       => true,
         ];
 
         register_post_type(self::POST_TYPE, $args);
+    }
+
+    /**
+     * Register Slide Configuration Meta Box
+     */
+    public function register_slide_metaboxes() {
+        add_meta_box(
+            'ctc_hero_slide_meta_box',
+            __('Slide Image Resolution & Click Action', 'caretochina-medical'),
+            [$this, 'render_slide_metabox'],
+            self::POST_TYPE,
+            'normal',
+            'high'
+        );
+    }
+
+    /**
+     * Render Slide Meta Box on Post Edit Screen
+     */
+    public function render_slide_metabox($post) {
+        wp_nonce_field('save_ctc_slide_meta', 'ctc_slide_meta_nonce');
+
+        $saved_size   = get_post_meta($post->ID, '_ctc_slide_image_size', true) ?: 'default';
+        $saved_link   = get_post_meta($post->ID, '_ctc_slide_link_url', true) ?: '';
+        $saved_target = get_post_meta($post->ID, '_ctc_slide_link_target', true) ?: '_self';
+        $all_sizes    = self::get_available_image_sizes();
+        $db_settings  = self::get_settings();
+        $global_size  = $db_settings['default_image_size'] ?? 'full';
+        $global_label = $all_sizes[$global_size] ?? $global_size;
+        ?>
+        <div style="padding:10px 0;">
+            <table class="form-table" style="margin:0;">
+                <tr>
+                    <th scope="row" style="width:220px;">
+                        <label for="ctc_slide_image_size"><strong><?php esc_html_e('Image Resolution / Size', 'caretochina-medical'); ?></strong></label>
+                    </th>
+                    <td>
+                        <select name="ctc_slide_image_size" id="ctc_slide_image_size" style="min-width:320px;height:38px;font-size:14px;">
+                            <option value="default" <?php selected($saved_size, 'default'); ?>>
+                                <?php printf(esc_html__('Default (Global: %s)', 'caretochina-medical'), esc_html($global_label)); ?>
+                            </option>
+                            <?php foreach ($all_sizes as $size_key => $size_title): ?>
+                                <option value="<?php echo esc_attr($size_key); ?>" <?php selected($saved_size, $size_key); ?>>
+                                    <?php echo esc_html($size_title); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description" style="margin-top:6px;">
+                            <?php esc_html_e('Choose the exact image resolution to load for this slide. "Full / Original" delivers maximum visual crispness, while "Large / Medium Large" provides faster loading.', 'caretochina-medical'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="ctc_slide_link_url"><strong><?php esc_html_e('Slide Link URL (Optional)', 'caretochina-medical'); ?></strong></label>
+                    </th>
+                    <td>
+                        <input type="url" name="ctc_slide_link_url" id="ctc_slide_link_url" value="<?php echo esc_attr($saved_link); ?>" placeholder="https://caretochina.com/hospitals/" class="regular-text" style="width:100%;max-width:500px;height:38px;">
+                        <p class="description" style="margin-top:6px;">
+                            <?php esc_html_e('Optional URL to navigate to when a visitor clicks or taps on this slide.', 'caretochina-medical'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <strong><?php esc_html_e('Open Link in New Tab', 'caretochina-medical'); ?></strong>
+                    </th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="ctc_slide_link_target" value="_blank" <?php checked($saved_target, '_blank'); ?>>
+                            <?php esc_html_e('Open link in a new browser tab (_blank)', 'caretochina-medical'); ?>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <?php
+    }
+
+    /**
+     * Save Slide Meta Box Data
+     */
+    public function save_slide_meta($post_id, $post) {
+        if (!isset($_POST['ctc_slide_meta_nonce'])) {
+            return;
+        }
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ctc_slide_meta_nonce'])), 'save_ctc_slide_meta')) {
+            return;
+        }
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        $size   = sanitize_text_field($_POST['ctc_slide_image_size'] ?? 'default');
+        $link   = esc_url_raw($_POST['ctc_slide_link_url'] ?? '');
+        $target = (!empty($_POST['ctc_slide_link_target']) && $_POST['ctc_slide_link_target'] === '_blank') ? '_blank' : '_self';
+
+        update_post_meta($post_id, '_ctc_slide_image_size', $size);
+        update_post_meta($post_id, '_ctc_slide_link_url', $link);
+        update_post_meta($post_id, '_ctc_slide_link_target', $target);
     }
 
     /**
@@ -114,10 +247,11 @@ class CareToChina_Hero_Hospital_Slider {
      */
     public function register_admin_columns($columns) {
         $new_columns = [];
-        $new_columns['cb']          = $columns['cb'] ?? '<input type="checkbox" />';
-        $new_columns['slide_thumb'] = __('Slide Preview', 'caretochina-medical');
-        $new_columns['title']       = __('Slide Title / ID', 'caretochina-medical');
-        $new_columns['date']        = __('Published Date', 'caretochina-medical');
+        $new_columns['cb']               = $columns['cb'] ?? '<input type="checkbox" />';
+        $new_columns['slide_thumb']      = __('Slide Preview', 'caretochina-medical');
+        $new_columns['title']            = __('Slide Title / ID', 'caretochina-medical');
+        $new_columns['slide_resolution'] = __('Image Resolution', 'caretochina-medical');
+        $new_columns['date']             = __('Published Date', 'caretochina-medical');
         return $new_columns;
     }
 
@@ -133,6 +267,17 @@ class CareToChina_Hero_Hospital_Slider {
                 echo '</div>';
             } else {
                 echo '<span style="display:inline-block;padding:4px 10px;background:#fee2e2;color:#dc2626;border-radius:4px;font-size:12px;font-weight:600;">' . esc_html__('No Image Set', 'caretochina-medical') . '</span>';
+            }
+        } elseif ($column === 'slide_resolution') {
+            $saved_size  = get_post_meta($post_id, '_ctc_slide_image_size', true) ?: 'default';
+            $all_sizes   = self::get_available_image_sizes();
+            $db_settings = self::get_settings();
+            $global_size = $db_settings['default_image_size'] ?? 'full';
+
+            if ($saved_size === 'default') {
+                echo '<span style="display:inline-block;padding:3px 8px;background:#f1f5f9;color:#475569;border-radius:4px;font-size:12px;font-weight:600;">' . sprintf(esc_html__('Global (%s)', 'caretochina-medical'), esc_html($global_size)) . '</span>';
+            } else {
+                echo '<span style="display:inline-block;padding:3px 8px;background:#ccfbf1;color:#0f766e;border-radius:4px;font-size:12px;font-weight:700;">' . esc_html($saved_size) . '</span>';
             }
         }
     }
@@ -178,6 +323,7 @@ class CareToChina_Hero_Hospital_Slider {
             'transition_effect'  => 'slide', // 'slide' or 'fade'
             'speed'              => 600, // transition duration in ms
             'image_fit'          => 'cover', // 'cover', 'contain', 'fill'
+            'default_image_size' => 'full', // Default WP Image Size / Resolution
             'slider_height'      => '100vh', // e.g. '100vh', '100%', '600px', 'auto'
             'border_radius'      => '16px', // border radius
         ];
@@ -221,6 +367,9 @@ class CareToChina_Hero_Hospital_Slider {
             $slider_height = sanitize_text_field($input['slider_height']);
         }
 
+        $all_sizes = self::get_available_image_sizes();
+        $default_img_size = !empty($input['default_image_size']) && array_key_exists($input['default_image_size'], $all_sizes) ? sanitize_text_field($input['default_image_size']) : 'full';
+
         $sanitized = [
             'show_arrows'        => !empty($input['show_arrows']) ? 1 : 0,
             'show_dots'          => !empty($input['show_dots']) ? 1 : 0,
@@ -233,6 +382,7 @@ class CareToChina_Hero_Hospital_Slider {
             'transition_effect'  => in_array($input['transition_effect'] ?? 'slide', ['slide', 'fade'], true) ? sanitize_text_field($input['transition_effect']) : 'slide',
             'speed'              => max(200, min(3000, intval($input['speed'] ?? 600))),
             'image_fit'          => in_array($input['image_fit'] ?? 'cover', ['cover', 'contain', 'fill'], true) ? sanitize_text_field($input['image_fit']) : 'cover',
+            'default_image_size' => $default_img_size,
             'slider_height'      => $slider_height,
             'border_radius'      => sanitize_text_field($input['border_radius'] ?? '16px'),
         ];
@@ -253,6 +403,7 @@ class CareToChina_Hero_Hospital_Slider {
     public function render_settings_page() {
         $settings = self::get_settings();
         $is_updated = isset($_GET['updated']) && $_GET['updated'] === '1';
+        $all_sizes = self::get_available_image_sizes();
         ?>
         <div class="wrap ctc-admin-settings-wrap">
             <h1 class="wp-heading-inline" style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
@@ -298,7 +449,7 @@ class CareToChina_Hero_Hospital_Slider {
                                 <div class="ctc-toggle-item">
                                     <div class="ctc-toggle-info">
                                         <strong><?php esc_html_e('Bottom Dot Navigator (Pagination)', 'caretochina-medical'); ?></strong>
-                                        <span class="ctc-desc"><?php esc_html_e('Show or hide the slide indicator dots at the bottom of the carousel.', 'caretochina-medical'); ?></span>
+                                        <span class="ctc-desc"><?php esc_html_e('Show or hide the pagination dots indicator at the bottom of the slider.', 'caretochina-medical'); ?></span>
                                     </div>
                                     <label class="ctc-switch">
                                         <input type="checkbox" name="slider_settings[show_dots]" value="1" <?php checked($settings['show_dots'], 1); ?>>
@@ -307,31 +458,26 @@ class CareToChina_Hero_Hospital_Slider {
                                 </div>
                             </div>
 
-                            <!-- Dot Colors Configuration -->
-                            <div style="margin-top:20px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
-                                <h3 style="margin:0 0 12px 0;font-size:14px;color:#1e293b;display:flex;align-items:center;gap:6px;">
-                                    <i class="fas fa-palette" style="color:#2563eb;"></i> <?php esc_html_e('Dot Navigation Colors', 'caretochina-medical'); ?>
-                                </h3>
-                                <div class="ctc-field-grid" style="grid-template-columns:1fr 1fr;gap:16px;">
-                                    <!-- Active Dot Color -->
-                                    <div class="ctc-field-item">
-                                        <label for="dot_active_color"><strong><?php esc_html_e('Active Dot Color', 'caretochina-medical'); ?></strong></label>
-                                        <div style="display:flex;align-items:center;gap:8px;">
-                                            <input type="color" id="dot_active_color_picker" value="<?php echo esc_attr(strpos($settings['dot_active_color'], '#') === 0 && strlen($settings['dot_active_color']) === 7 ? $settings['dot_active_color'] : '#ffffff'); ?>" style="width:42px;height:38px;padding:2px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;" oninput="document.getElementById('dot_active_color').value=this.value;">
-                                            <input type="text" id="dot_active_color" name="slider_settings[dot_active_color]" value="<?php echo esc_attr($settings['dot_active_color']); ?>" placeholder="#ffffff or rgba(...)" class="regular-text" style="flex:1;height:38px;" oninput="if(this.value.startsWith('#') && this.value.length===7){document.getElementById('dot_active_color_picker').value=this.value;}">
-                                        </div>
-                                        <small><?php esc_html_e('Active dot / expanded pill color (Default: #ffffff)', 'caretochina-medical'); ?></small>
+                            <!-- Color Pickers for Pagination Dots -->
+                            <div class="ctc-field-grid" style="margin-top:18px;">
+                                <!-- Active Dot Color -->
+                                <div class="ctc-field-item">
+                                    <label for="dot_active_color"><strong><?php esc_html_e('Active Dot Color', 'caretochina-medical'); ?></strong></label>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <input type="color" id="dot_active_color_picker" value="<?php echo esc_attr(strpos($settings['dot_active_color'], '#') === 0 && strlen($settings['dot_active_color']) === 7 ? $settings['dot_active_color'] : '#ffffff'); ?>" style="width:42px;height:38px;padding:2px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;" oninput="document.getElementById('dot_active_color').value=this.value;">
+                                        <input type="text" id="dot_active_color" name="slider_settings[dot_active_color]" value="<?php echo esc_attr($settings['dot_active_color']); ?>" placeholder="#ffffff" class="regular-text" style="flex:1;height:38px;" oninput="if(this.value.startsWith('#') && this.value.length===7){document.getElementById('dot_active_color_picker').value=this.value;}">
                                     </div>
+                                    <small><?php esc_html_e('Color for the currently active slide dot (Default: #ffffff)', 'caretochina-medical'); ?></small>
+                                </div>
 
-                                    <!-- Inactive Dot Color -->
-                                    <div class="ctc-field-item">
-                                        <label for="dot_inactive_color"><strong><?php esc_html_e('Inactive Dot Color', 'caretochina-medical'); ?></strong></label>
-                                        <div style="display:flex;align-items:center;gap:8px;">
-                                            <input type="color" id="dot_inactive_color_picker" value="<?php echo esc_attr(strpos($settings['dot_inactive_color'], '#') === 0 && strlen($settings['dot_inactive_color']) === 7 ? $settings['dot_inactive_color'] : '#94a3b8'); ?>" style="width:42px;height:38px;padding:2px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;" oninput="document.getElementById('dot_inactive_color').value=this.value;">
-                                            <input type="text" id="dot_inactive_color" name="slider_settings[dot_inactive_color]" value="<?php echo esc_attr($settings['dot_inactive_color']); ?>" placeholder="rgba(255,255,255,0.6) or #94a3b8" class="regular-text" style="flex:1;height:38px;" oninput="if(this.value.startsWith('#') && this.value.length===7){document.getElementById('dot_inactive_color_picker').value=this.value;}">
-                                        </div>
-                                        <small><?php esc_html_e('Inactive dots color (Default: rgba(255, 255, 255, 0.6))', 'caretochina-medical'); ?></small>
+                                <!-- Inactive Dot Color -->
+                                <div class="ctc-field-item">
+                                    <label for="dot_inactive_color"><strong><?php esc_html_e('Inactive Dot Color', 'caretochina-medical'); ?></strong></label>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <input type="color" id="dot_inactive_color_picker" value="<?php echo esc_attr(strpos($settings['dot_inactive_color'], '#') === 0 && strlen($settings['dot_inactive_color']) === 7 ? $settings['dot_inactive_color'] : '#94a3b8'); ?>" style="width:42px;height:38px;padding:2px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;" oninput="document.getElementById('dot_inactive_color').value=this.value;">
+                                        <input type="text" id="dot_inactive_color" name="slider_settings[dot_inactive_color]" value="<?php echo esc_attr($settings['dot_inactive_color']); ?>" placeholder="rgba(255,255,255,0.6) or #94a3b8" class="regular-text" style="flex:1;height:38px;" oninput="if(this.value.startsWith('#') && this.value.length===7){document.getElementById('dot_inactive_color_picker').value=this.value;}">
                                     </div>
+                                    <small><?php esc_html_e('Inactive dots color (Default: rgba(255, 255, 255, 0.6))', 'caretochina-medical'); ?></small>
                                 </div>
                             </div>
                         </div>
@@ -410,10 +556,23 @@ class CareToChina_Hero_Hospital_Slider {
                         <!-- Section: Layout & Sizing -->
                         <div class="ctc-form-section">
                             <h2 class="ctc-section-title">
-                                <i class="fas fa-expand"></i> <?php esc_html_e('Layout, Fit & Dimensions', 'caretochina-medical'); ?>
+                                <i class="fas fa-expand"></i> <?php esc_html_e('Layout, Fit & Image Resolution', 'caretochina-medical'); ?>
                             </h2>
 
                             <div class="ctc-field-grid">
+                                <!-- Default Image Resolution -->
+                                <div class="ctc-field-item">
+                                    <label for="default_image_size"><strong><?php esc_html_e('Default Image Resolution / Size', 'caretochina-medical'); ?></strong></label>
+                                    <select id="default_image_size" name="slider_settings[default_image_size]" style="width:100%;height:38px;">
+                                        <?php foreach ($all_sizes as $size_key => $size_title): ?>
+                                            <option value="<?php echo esc_attr($size_key); ?>" <?php selected($settings['default_image_size'] ?? 'full', $size_key); ?>>
+                                                <?php echo esc_html($size_title); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small><?php esc_html_e('Global image resolution for all slides (can be individually overridden per slide in Edit Slide).', 'caretochina-medical'); ?></small>
+                                </div>
+
                                 <!-- Image Fit -->
                                 <div class="ctc-field-item">
                                     <label for="image_fit"><strong><?php esc_html_e('Image Fit Mode', 'caretochina-medical'); ?></strong></label>
@@ -485,7 +644,7 @@ class CareToChina_Hero_Hospital_Slider {
                         <h4><i class="fas fa-info-circle" style="color:#3b82f6;"></i> <?php esc_html_e('How it works:', 'caretochina-medical'); ?></h4>
                         <ol style="margin-left:18px;line-height:1.6;font-size:13px;color:#475569;">
                             <li><?php esc_html_e('Go to "Hero Slider" -> "Add Slide" to upload slide images.', 'caretochina-medical'); ?></li>
-                            <li><?php esc_html_e('Only the Featured Image is used — no text or title needed.', 'caretochina-medical'); ?></li>
+                            <li><?php esc_html_e('Select your desired Image Resolution (Full, Large, Medium Large) per slide or globally.', 'caretochina-medical'); ?></li>
                             <li><?php esc_html_e('Place the shortcode in any section to display the responsive carousel slider.', 'caretochina-medical'); ?></li>
                             <li><?php esc_html_e('Navigation arrows (< & >) and bottom dots can be toggled on/off here anytime.', 'caretochina-medical'); ?></li>
                         </ol>
@@ -555,6 +714,7 @@ class CareToChina_Hero_Hospital_Slider {
             'speed'              => $db_settings['speed'],
             'height'             => $db_settings['slider_height'],
             'fit'                => $db_settings['image_fit'],
+            'image_size'         => $db_settings['default_image_size'] ?? 'full',
             'radius'             => $db_settings['border_radius'],
             'class'              => '',
             'orderby'            => 'date',
@@ -625,6 +785,8 @@ class CareToChina_Hero_Hospital_Slider {
         }
         $style_attr = !empty($custom_styles) ? ' style="' . implode(' ', $custom_styles) . '"' : '';
 
+        $global_default_size = sanitize_text_field($atts['image_size']);
+
         ob_start();
         ?>
         <div id="<?php echo esc_attr($slider_id); ?>" 
@@ -636,20 +798,50 @@ class CareToChina_Hero_Hospital_Slider {
                 <div class="swiper-wrapper">
                     <?php
                     while ($query->have_posts()) : $query->the_post();
-                        $post_id = get_the_ID();
-                        $thumb_id = get_post_thumbnail_id($post_id);
-                        $img_src = wp_get_attachment_image_url($thumb_id, 'full');
-                        $img_alt = get_post_meta($thumb_id, '_wp_attachment_image_alt', true) ?: get_the_title();
-                        $srcset  = wp_get_attachment_image_srcset($thumb_id, 'full');
-                        $sizes   = wp_get_attachment_image_sizes($thumb_id, 'full') ?: '100vw';
+                        $post_id    = get_the_ID();
+                        $thumb_id   = get_post_thumbnail_id($post_id);
+                        
+                        // Per-slide image resolution or fallback to global default
+                        $slide_size = get_post_meta($post_id, '_ctc_slide_image_size', true);
+                        $final_size = (!empty($slide_size) && $slide_size !== 'default') ? $slide_size : $global_default_size;
+
+                        // Retrieve full image data (src, width, height)
+                        $img_data   = wp_get_attachment_image_src($thumb_id, $final_size);
+                        $img_src    = $img_data ? $img_data[0] : wp_get_attachment_image_url($thumb_id, 'full');
+                        $img_width  = $img_data ? $img_data[1] : '';
+                        $img_height = $img_data ? $img_data[2] : '';
+                        
+                        $img_alt    = get_post_meta($thumb_id, '_wp_attachment_image_alt', true) ?: get_the_title();
+                        $srcset     = wp_get_attachment_image_srcset($thumb_id, $final_size);
+                        $sizes      = wp_get_attachment_image_sizes($thumb_id, $final_size) ?: '100vw';
+
+                        // Slide Click URL & Target
+                        $slide_url    = get_post_meta($post_id, '_ctc_slide_link_url', true);
+                        $slide_target = get_post_meta($post_id, '_ctc_slide_link_target', true) ?: '_self';
                         ?>
                         <div class="swiper-slide ctc-hero-slide">
                             <div class="ctc-hero-slide-inner">
+                                <?php if (!empty($slide_url)): ?>
+                                    <a href="<?php echo esc_url($slide_url); ?>" 
+                                       target="<?php echo esc_attr($slide_target); ?>" 
+                                       <?php if ($slide_target === '_blank'): ?>rel="noopener noreferrer"<?php endif; ?>
+                                       class="ctc-hero-slide-link" 
+                                       style="display:block;width:100%;height:100%;text-decoration:none;">
+                                <?php endif; ?>
+
                                 <img src="<?php echo esc_url($img_src); ?>" 
                                      alt="<?php echo esc_attr($img_alt); ?>" 
+                                     <?php if (!empty($img_width) && !empty($img_height)): ?>
+                                         width="<?php echo esc_attr($img_width); ?>" 
+                                         height="<?php echo esc_attr($img_height); ?>" 
+                                     <?php endif; ?>
                                      <?php if ($srcset): ?>srcset="<?php echo esc_attr($srcset); ?>" sizes="<?php echo esc_attr($sizes); ?>"<?php endif; ?>
                                      class="ctc-hero-slide-img" 
                                      loading="lazy" />
+
+                                <?php if (!empty($slide_url)): ?>
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endwhile; wp_reset_postdata(); ?>
