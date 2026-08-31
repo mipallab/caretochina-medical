@@ -254,6 +254,19 @@ add_action('wp_head', function() {
             line-height: 1 !important;
             color: #0F766E !important;
         }
+        .ctc-dash-el-btn .ctc-btn-icon:before,
+        .ctc-dash-btn .ctc-btn-icon:before,
+        .ctc-dash-el-btn i:before,
+        .ctc-dash-btn i:before,
+        .ctc-dash-el-btn .fa-right-to-bracket:before,
+        .ctc-dash-btn .fa-right-to-bracket:before,
+        .ctc-dash-el-btn .fa-user-circle:before,
+        .ctc-dash-btn .fa-user-circle:before,
+        .ctc-dash-el-btn .fa-sign-in-alt:before,
+        .ctc-dash-btn .fa-sign-in-alt:before {
+            content: none !important;
+            display: none !important;
+        }
         .ctc-dash-el-btn svg,
         .ctc-dash-btn svg,
         .ctc-dash-el-btn .ctc-btn-svg,
@@ -261,10 +274,10 @@ add_action('wp_head', function() {
             display: inline-block !important;
             visibility: visible !important;
             opacity: 1 !important;
-            width: 16px !important;
-            height: 16px !important;
-            min-width: 16px !important;
-            min-height: 16px !important;
+            width: 15px !important;
+            height: 15px !important;
+            min-width: 15px !important;
+            min-height: 15px !important;
             fill: #0F766E !important;
             color: #0F766E !important;
             vertical-align: middle !important;
