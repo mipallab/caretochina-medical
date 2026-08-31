@@ -51,8 +51,10 @@ class CareToChina_LiteSpeed_Compat {
         add_filter('litespeed_media_lazy_img_exc', [$this, 'exclude_lazyload_images']);
 
         // Automatic Targeted Cache Purging on Post & Settings Changes
+        add_action('save_post_hospital', [$this, 'purge_cache_on_post_update'], 20, 2);
         add_action('save_post_medical_treatment', [$this, 'purge_cache_on_post_update'], 20, 2);
         add_action('save_post_service_package', [$this, 'purge_cache_on_post_update'], 20, 2);
+        add_action('update_option_caretochina_hospital_settings', [$this, 'purge_all_litespeed_cache']);
         add_action('update_option_caretochina_pricing_settings', [$this, 'purge_all_litespeed_cache']);
 
         // Cross-Origin Resource Sharing (CORS) header for webfonts

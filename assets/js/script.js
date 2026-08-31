@@ -6,25 +6,25 @@ function getBookingObj() {
   return (typeof caretochina_obj !== 'undefined') ? caretochina_obj : ((typeof careyou_obj !== 'undefined') ? careyou_obj : { hospitals: [], all_specialties: [], all_cities: [], ajax_url: '/wp-admin/admin-ajax.php', nonce: '' });
 }
 
-window.ctcFetchRecaptchaToken = function(action, formEl) {
-  return new Promise(function(resolve) {
+window.ctcFetchRecaptchaToken = function (action, formEl) {
+  return new Promise(function (resolve) {
     var apiObj = getBookingObj();
     var siteKey = apiObj.recaptcha_site_key || '';
     var v3TokenInput = formEl ? formEl.querySelector('.ctc-recaptcha-v3-token') : document.querySelector('.ctc-recaptcha-v3-token');
     if (v3TokenInput && v3TokenInput.getAttribute('data-sitekey')) {
       siteKey = v3TokenInput.getAttribute('data-sitekey');
     }
-    
+
     if (siteKey && typeof grecaptcha !== 'undefined' && grecaptcha.execute) {
-      grecaptcha.ready(function() {
+      grecaptcha.ready(function () {
         try {
-          grecaptcha.execute(siteKey, { action: action || 'submit' }).then(function(token) {
+          grecaptcha.execute(siteKey, { action: action || 'submit' }).then(function (token) {
             if (v3TokenInput) v3TokenInput.value = token;
             resolve(token);
-          }).catch(function() {
+          }).catch(function () {
             resolve('');
           });
-        } catch(e) {
+        } catch (e) {
           resolve('');
         }
       });
@@ -129,24 +129,28 @@ var CTC_Audio = (function () {
 
 window.appWizard = {
   currentStep: 1,
+  selectedHospitalId: 0,
+  selectedHospitalName: '',
   selectedPackageId: 0,
   selectedPackageName: '',
   selectedPackagePrice: 0.00,
   selectedPackageCurrency: 'USD',
 
   openScenario1() {
+    this.selectedHospitalId = 0;
+    this.selectedHospitalName = '';
     this.selectedPackageId = 0;
     this.selectedPackageName = '';
     this.selectedPackagePrice = 0.00;
 
-    // Reset hidden form inputs
+    // Clear form inputs
     jQuery('#wiz_hospital_id').val(0);
     jQuery('#wiz_hospital_name').val('');
     jQuery('#wiz_package_id').val(0);
     jQuery('#wiz_package_name').val('');
     jQuery('#wiz_package_price').val(0);
 
-    // Reset steps to Step 1 (Select Package)
+    // Reset steps
     this.currentStep = 1;
     this.renderPackages();
     this.showStep(1);
@@ -160,26 +164,49 @@ window.appWizard = {
     jQuery('#ctc-booking-modal').addClass('show');
   },
 
-  openScenario2(packageData) {
-    if (packageData && typeof packageData === 'object' && packageData.id) {
-      this.openScenarioFromPackage(packageData.id, packageData.name || '', packageData.price || 0);
-    } else {
-      this.openScenario1();
-    }
+  openScenario2(hospitalData) {
+    this.selectedHospitalId = (hospitalData && hospitalData.id) ? hospitalData.id : 0;
+    this.selectedHospitalName = (hospitalData && hospitalData.name) ? hospitalData.name : '';
+    this.selectedPackageId = 0;
+    this.selectedPackageName = '';
+    this.selectedPackagePrice = 0.00;
+
+    // Set selections
+    jQuery('#wiz_hospital_id').val(this.selectedHospitalId);
+    jQuery('#wiz_hospital_name').val(this.selectedHospitalName);
+    jQuery('#wiz_package_id').val(0);
+    jQuery('#wiz_package_name').val('');
+    jQuery('#wiz_package_price').val(0);
+
+    // Reset steps to Step 1 (Package Selection)
+    this.currentStep = 1;
+    this.renderPackages();
+    this.showStep(1);
+
+    // Reset form and steps indicator visibility
+    jQuery('#ctc-booking-wizard-form').show();
+    jQuery('.wizard-steps-indicator').show();
+    jQuery('#ctc-wizard-status').hide().empty();
+
+    jQuery('html, body').addClass('ctc-modal-open');
+    jQuery('#ctc-booking-modal').addClass('show');
   },
 
-  openScenarioFromPackage(packageId, packageName, packagePrice) {
+  openScenarioFromPackage(hospitalId, hospitalName, packageId, packageName, packagePrice) {
+    this.selectedHospitalId = hospitalId || 0;
+    this.selectedHospitalName = hospitalName || '';
     this.selectedPackageId = packageId || 0;
     this.selectedPackageName = packageName || '';
     this.selectedPackagePrice = packagePrice || 0.00;
 
-    jQuery('#wiz_hospital_id').val(0);
-    jQuery('#wiz_hospital_name').val('');
+    jQuery('#wiz_hospital_id').val(this.selectedHospitalId);
+    jQuery('#wiz_hospital_name').val(this.selectedHospitalName);
     jQuery('#wiz_package_id').val(this.selectedPackageId);
     jQuery('#wiz_package_name').val(this.selectedPackageName);
     jQuery('#wiz_package_price').val(this.selectedPackagePrice);
 
-    // Jump directly to Step 2 (Patient Details)
+    // Render packages so state is primed, then jump directly to Step 2 (Patient Details)
+    this.renderPackages();
     this.currentStep = 2;
     this.showStep(2);
 
@@ -189,23 +216,6 @@ window.appWizard = {
 
     jQuery('html, body').addClass('ctc-modal-open');
     jQuery('#ctc-booking-modal').addClass('show');
-  },
-
-  skipPackage() {
-    this.selectedPackageId = 0;
-    this.selectedPackageName = 'General Consultation (No Package Selected)';
-    this.selectedPackagePrice = 0.00;
-
-    jQuery('#wiz_hospital_id').val(0);
-    jQuery('#wiz_hospital_name').val('');
-    jQuery('#wiz_package_id').val(0);
-    jQuery('#wiz_package_name').val('');
-    jQuery('#wiz_package_price').val(0);
-
-    jQuery('.wiz-package-card').removeClass('selected');
-    jQuery('.wiz-pkg-radio').prop('checked', false);
-
-    this.showStep(2);
   },
 
   closeModal() {
@@ -229,12 +239,85 @@ window.appWizard = {
     });
   },
 
+  skipPackage() {
+    this.selectedPackageId = 0;
+    this.selectedPackageName = 'General Consultation (Custom Scope)';
+    this.selectedPackagePrice = 0.00;
+    jQuery('#wiz_package_id').val(0);
+    jQuery('#wiz_package_name').val('');
+    jQuery('#wiz_package_price').val(0);
+    jQuery('.wiz-package-card').removeClass('selected');
+    jQuery('.wiz-package-card input[type="radio"]').prop('checked', false);
+
+    this.showStep(2);
+  },
+
   nextStep(stepNum) {
+    if (stepNum === 2 && this.currentStep === 1) {
+      // Advance to Patient Details
+      this.showStep(2);
+      return;
+    }
     this.showStep(stepNum);
   },
 
+  skipHospital() {
+    this.skipPackage();
+  },
+
+  selectHospitalCard(element, id, name) {
+    jQuery('.hospital-select-card').removeClass('selected');
+    jQuery(element).addClass('selected');
+    this.selectedHospitalId = id;
+    this.selectedHospitalName = name;
+    jQuery('#wiz_hospital_id').val(id);
+    jQuery('#wiz_hospital_name').val(name);
+  },
+
+  renderHospitals() {
+    const listGrid = jQuery('#wiz-hospital-list-grid');
+    if (!listGrid.length) return;
+
+    listGrid.empty();
+    const searchVal = (jQuery('#wiz-hospital-search').val() || '').toLowerCase().trim();
+    const cityVal = jQuery('#wiz-hospital-city-filter').val();
+    const bookingObj = getBookingObj();
+
+    bookingObj.hospitals.forEach(h => {
+      if (searchVal && h.title.toLowerCase().indexOf(searchVal) === -1) return;
+      if (cityVal && cityVal !== '' && cityVal !== '0' && !h.cities.some(c => c.id == cityVal)) return;
+
+      const imgSrc = h.image_thumb || h.image;
+      const srcsetAttribute = h.image_srcset ? `srcset="${h.image_srcset}" sizes="70px"` : '';
+
+      const cityNames = (h.cities && Array.isArray(h.cities)) ? h.cities.map(c => c.name).filter(Boolean).join(', ') : '';
+      const metaText = [h.certification, h.rating].filter(Boolean).join(' • ');
+
+      const card = jQuery(`
+        <div class="hospital-select-card" onclick="appWizard.selectHospitalCard(this, ${h.id}, '${h.title.replace(/'/g, "\\'")}')">
+          <img src="${imgSrc}" ${srcsetAttribute} loading="lazy" alt="${h.title}" class="hospital-select-card-img">
+          <div class="hospital-select-card-info">
+            <h4 class="hospital-select-card-title">${h.title}</h4>
+            ${cityNames ? `<div class="hospital-select-card-city"><i class="fa-solid fa-map-marker-alt"></i> ${cityNames}</div>` : ''}
+            ${metaText ? `<div class="hospital-select-card-meta">${metaText}</div>` : ''}
+          </div>
+        </div>
+      `);
+
+      if (h.id === this.selectedHospitalId) {
+        card.addClass('selected');
+      }
+
+      listGrid.append(card);
+    });
+
+    if (listGrid.children().length === 0) {
+      listGrid.append('<div style="grid-column: span 2; text-align:center; padding:20px; color:#64748B; font-size:13px;">No hospitals matching criteria.</div>');
+    }
+  },
+
   /**
-   * Render Service Packages (Plan A, B, C, D) into Step 1 Grid
+   * Render Service Packages (Plan A, B, C, D) into Step 2 Grid
    */
   renderPackages() {
     var self = this;
@@ -259,8 +342,16 @@ window.appWizard = {
 
     grid.empty();
 
-    packages.forEach(function (pkg) {
-      var isChecked = (self.selectedPackageId == pkg.id);
+    packages.forEach(function (pkg, idx) {
+      var isChecked = (self.selectedPackageId == pkg.id) || (self.selectedPackageId === 0 && idx === 0);
+      if (isChecked && self.selectedPackageId === 0) {
+        self.selectedPackageId = pkg.id;
+        self.selectedPackageName = pkg.name;
+        self.selectedPackagePrice = pkg.price;
+        jQuery('#wiz_package_id').val(pkg.id);
+        jQuery('#wiz_package_name').val(pkg.name);
+        jQuery('#wiz_package_price').val(pkg.price);
+      }
 
       var cardHtml = `
         <div class="wiz-package-card ${isChecked ? 'selected' : ''}" onclick="appWizard.selectPackage(this, ${pkg.id}, '${pkg.name.replace(/'/g, "\\'")}', ${pkg.price})">
@@ -538,10 +629,28 @@ jQuery(document).ready(function ($) {
     filter.val('');
   }
 
+  // Search & filter listeners
+  $(document).on('keyup input', '#wiz-hospital-search', function () {
+    appWizard.renderHospitals();
+  });
+  $(document).on('keydown', '#wiz-hospital-search', function (e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+      e.preventDefault();
+      $(this).blur();
+    }
+  });
+  $(document).on('change', '#wiz-hospital-city-filter', function () {
+    appWizard.renderHospitals();
+  });
+
   // Modal open triggers
   $(document).on('click', 'a[href="#booking"], .ctc-trigger-booking, [id="booking"], .ctc-quote-btn, .ctc-sidebar-quote-btn', function (e) {
     e.preventDefault();
-    appWizard.openScenario1();
+    if (typeof apiObj.current_hospital !== 'undefined' && apiObj.current_hospital) {
+      appWizard.openScenario2(apiObj.current_hospital);
+    } else {
+      appWizard.openScenario1();
+    }
   });
 
   // Close modals on Close button, backdrop or Escape
@@ -615,7 +724,7 @@ jQuery(document).ready(function ($) {
     syncIntlPhoneValues(formEl);
 
     var rcAction = isUserLoggedIn() ? 'booking' : 'guest_booking';
-    window.ctcFetchRecaptchaToken(rcAction, formEl).then(function(token) {
+    window.ctcFetchRecaptchaToken(rcAction, formEl).then(function (token) {
       if (token) {
         var $rc = $(formEl).find('input[name="g-recaptcha-response"]');
         if ($rc.length) $rc.val(token);
@@ -823,7 +932,7 @@ jQuery(document).ready(function ($) {
   function scheduleNextPatientPoll(delay) {
     if (patientChatTimer) clearTimeout(patientChatTimer);
     if (!$('#patient-chat-box').length) return;
-    
+
     patientChatTimer = setTimeout(function () {
       if (document.hidden) {
         // In background tab, schedule lazy poll every 20s
@@ -1322,7 +1431,7 @@ jQuery(document).ready(function ($) {
     var box = $('#login-response-box');
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...');
 
-    window.ctcFetchRecaptchaToken('login', formEl).then(function(token) {
+    window.ctcFetchRecaptchaToken('login', formEl).then(function (token) {
       if (token) {
         var $rc = $(formEl).find('input[name="g-recaptcha-response"]');
         if ($rc.length) $rc.val(token);
@@ -1338,7 +1447,7 @@ jQuery(document).ready(function ($) {
           box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
           btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
         }
-      }).fail(function() {
+      }).fail(function () {
         box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again.</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-right-to-bracket"></i> Sign In to Account');
       });
@@ -1372,7 +1481,7 @@ jQuery(document).ready(function ($) {
 
     btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Creating Patient Account...');
 
-    window.ctcFetchRecaptchaToken('register', formEl).then(function(token) {
+    window.ctcFetchRecaptchaToken('register', formEl).then(function (token) {
       if (token) {
         var $rc = $(formEl).find('input[name="g-recaptcha-response"]');
         if ($rc.length) $rc.val(token);
@@ -1388,7 +1497,7 @@ jQuery(document).ready(function ($) {
           box.html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ' + res.data.message + '</span>');
           btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
         }
-      }).fail(function() {
+      }).fail(function () {
         box.show().html('<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Network error. Please try again.</span>');
         btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus"></i> Register Patient Account');
       });

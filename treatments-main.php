@@ -788,13 +788,9 @@ class CareToChina_Treatments_Plugin {
      */
     public function register_elementor_widgets($widgets_manager) {
         require_once __DIR__ . '/widgets/class-caretochina-treatments-grid-widget.php';
-        require_once __DIR__ . '/widgets/class-caretochina-pricing-widget.php';
 
         if (class_exists('CareToChina_Treatments_Grid_Widget')) {
             $widgets_manager->register(new \CareToChina_Treatments_Grid_Widget());
-        }
-        if (class_exists('CareToChina_Pricing_Widget')) {
-            $widgets_manager->register(new \CareToChina_Pricing_Widget());
         }
     }
 }
