@@ -26,6 +26,10 @@ class CareToChina_Hospitals_Grid_Widget extends Widget_Base {
         return ['hospital', 'grid', 'search', 'ajax', 'jci', 'caretochina-medical', 'card', 'pagination'];
     }
 
+    public function get_style_depends() {
+        return ['font-awesome', 'caretochina-booking-style'];
+    }
+
     protected function register_controls() {
         
         // ================= CONTENT TAB: LAYOUT & SEARCH =================

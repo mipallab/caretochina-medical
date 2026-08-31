@@ -26,6 +26,10 @@ class CareToChina_Single_Hospital_Widget extends Widget_Base {
         return ['single', 'hospital', 'layout', 'overview', 'contact', 'caretochina-medical'];
     }
 
+    public function get_style_depends() {
+        return ['font-awesome', 'caretochina-booking-style'];
+    }
+
     protected function register_controls() {
         
         $this->start_controls_section(

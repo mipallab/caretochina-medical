@@ -409,6 +409,8 @@ class CareToChina_Hospitals_Plugin {
         if (!wp_style_is('font-awesome', 'registered') && !wp_style_is('font-awesome', 'enqueued')) {
             wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
         }
+        wp_enqueue_style('font-awesome');
+        wp_enqueue_style('caretochina-booking-style', CARETOCHINA_MEDICAL_URL . 'assets/css/style.css', ['font-awesome'], CARETOCHINA_MEDICAL_VERSION);
 
         // Register Swiper JS and CSS from bundled vendor in footer
         if (!wp_style_is('swiper', 'registered')) {

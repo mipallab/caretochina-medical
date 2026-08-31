@@ -30,6 +30,10 @@ class CareToChina_Hospitals_Slider_Widget extends Widget_Base {
         return ['hospital', 'slider', 'carousel', 'swiper', 'caretochina-medical', 'jci', 'drag'];
     }
 
+    public function get_style_depends() {
+        return ['swiper', 'font-awesome', 'caretochina-booking-style'];
+    }
+
     protected function register_controls() {
         
         // ================= CONTENT TAB: SLIDER QUERY & SETTINGS =================

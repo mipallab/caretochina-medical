@@ -231,6 +231,7 @@ class CareToChina_LiteSpeed_Compat {
         }
 
         $items = [
+            'font-awesome',
             'caretochina-booking-style',
             'intl-tel-input',
         ];
@@ -257,6 +258,11 @@ class CareToChina_LiteSpeed_Compat {
 
         $selectors = [
             'dark-theme',
+            'fa',
+            'fas',
+            'far',
+            'fab',
+            'fa-',
             'ctc-',
             'cy-',
             'swiper',

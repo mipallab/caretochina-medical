@@ -596,6 +596,7 @@ class CareToChina_Treatments_Plugin {
             wp_register_style('font-awesome', CARETOCHINA_MEDICAL_URL . 'assets/vendor/font-awesome/css/all.min.css', [], '6.4.0');
         }
         wp_enqueue_style('font-awesome');
+        wp_enqueue_style('caretochina-booking-style', CARETOCHINA_MEDICAL_URL . 'assets/css/style.css', ['font-awesome'], CARETOCHINA_MEDICAL_VERSION);
     }
 
     /**

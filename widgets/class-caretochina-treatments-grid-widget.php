@@ -26,6 +26,10 @@ class CareToChina_Treatments_Grid_Widget extends Widget_Base {
         return ['treatment', 'medical', 'grid', 'search', 'ajax', 'caretochina-medical', 'card', 'pagination', 'therapy', 'surgery'];
     }
 
+    public function get_style_depends() {
+        return ['font-awesome', 'caretochina-booking-style'];
+    }
+
     protected function register_controls() {
         
         // ================= CONTENT TAB: LAYOUT & SEARCH =================
