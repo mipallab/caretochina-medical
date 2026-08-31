@@ -76,6 +76,7 @@ require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-setup-wizard.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/admin/class-hospital-settings.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-hero-hospital-slider.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-litespeed-compat.php';
+require_once CARETOCHINA_MEDICAL_PATH . 'includes/class-wp-rocket-compat.php';
 require_once CARETOCHINA_MEDICAL_PATH . 'includes/payments/loader.php';
 
 // Instantiate Core Services
@@ -88,6 +89,7 @@ CareToChina_Hospital_Settings::instance();
 CareToChina_Hero_Hospital_Slider::instance();
 CareToChina_Treatments_Plugin::instance();
 CareToChina_LiteSpeed_Compat::instance();
+CareToChina_WP_Rocket_Compat::instance();
 
 // Automatic DB Schema & Index Synchronization
 add_action('plugins_loaded', function() {
