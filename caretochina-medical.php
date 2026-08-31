@@ -227,5 +227,117 @@ add_action('wp_head', function() {
 // Mobile-First & Senior Accessibility Viewport Meta Tag Hook
 add_action('wp_head', function() {
     echo '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">' . "\n";
+    ?>
+    <style id="ctc-header-btn-critical-css">
+        .ctc-dash-el-btn,
+        .ctc-dash-btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .ctc-dash-el-btn .elementor-button-content-wrapper,
+        .ctc-dash-btn .elementor-button-content-wrapper {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .ctc-dash-el-btn .ctc-btn-icon,
+        .ctc-dash-btn .ctc-btn-icon,
+        .ctc-dash-el-btn .ctc-btn-icon-wrap,
+        .ctc-dash-btn .ctc-btn-icon-wrap {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-size: 16px !important;
+            line-height: 1 !important;
+            color: #0F766E !important;
+        }
+        .ctc-dash-el-btn svg,
+        .ctc-dash-btn svg,
+        .ctc-dash-el-btn .ctc-btn-svg,
+        .ctc-dash-btn .ctc-btn-svg {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: 16px !important;
+            height: 16px !important;
+            min-width: 16px !important;
+            min-height: 16px !important;
+            fill: #0F766E !important;
+            color: #0F766E !important;
+            vertical-align: middle !important;
+        }
+        .ctc-dash-el-btn:hover svg,
+        .ctc-dash-btn:hover svg {
+            fill: #FFFFFF !important;
+            color: #FFFFFF !important;
+        }
+        @media (max-width: 1200px) {
+            .ctc-dash-el-btn,
+            .ctc-dash-btn {
+                padding: 0 !important;
+                width: 42px !important;
+                height: 42px !important;
+                min-width: 42px !important;
+                min-height: 42px !important;
+                border-radius: 50% !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            .ctc-dash-el-btn .elementor-button-text,
+            .ctc-dash-btn .elementor-button-text {
+                display: none !important;
+            }
+            .ctc-dash-el-btn .ctc-btn-icon,
+            .ctc-dash-btn .ctc-btn-icon,
+            .ctc-dash-el-btn .ctc-btn-icon-wrap,
+            .ctc-dash-btn .ctc-btn-icon-wrap {
+                margin: 0 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+            .ctc-dash-el-btn svg,
+            .ctc-dash-btn svg {
+                display: block !important;
+                margin: 0 auto !important;
+                width: 17px !important;
+                height: 17px !important;
+            }
+        }
+    </style>
+    <script type="text/javascript">
+    (function() {
+        function injectHeaderIcons() {
+            var isUserLoggedIn = document.body && (document.body.classList.contains('logged-in') || document.body.getAttribute('data-logged-in') === '1');
+            var svgSignIn = '<svg width="15" height="15" viewBox="0 0 512 512" fill="currentColor" style="display:inline-block; vertical-align:middle; width:15px; height:15px;"><path d="M217.9 105.9L340.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L217.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1L32 320c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM352 416l64 0c17.7 0 32-14.3 32-32l0-256c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0c53 0 96 43 96 96l0 256c0 53-43 96-96 96l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>';
+            var svgUserCircle = '<svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor" style="display:inline-block; vertical-align:middle; width:16px; height:16px;"><path d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM256 128c39.7 0 72 32.3 72 72s-32.3 72-72 72s-72-32.3-72-72s32.3-72 72-72zm0 320c-55.7 0-105.7-24.8-139.7-64.2c1.7-41.4 35.1-74.8 76.8-74.8c12.2 0 23.9 3.5 33.9 9.7c8.9 5.5 19.3 8.3 29 8.3s20.1-2.8 29-8.3c10-6.2 21.7-9.7 33.9-9.7c41.7 0 75.1 33.4 76.8 74.8C361.7 423.2 311.7 448 256 448z"/></svg>';
+            var chosenSvg = isUserLoggedIn ? svgUserCircle : svgSignIn;
+            
+            var iconHolders = document.querySelectorAll('.ctc-dash-el-btn .ctc-btn-icon, .ctc-dash-btn .ctc-btn-icon, .ctc-dash-el-btn i.fa-right-to-bracket, .ctc-dash-btn i.fa-right-to-bracket, .ctc-dash-el-btn i.fa-user-circle, .ctc-dash-btn i.fa-user-circle');
+            for (var i = 0; i < iconHolders.length; i++) {
+                if (!iconHolders[i].querySelector('svg')) {
+                    iconHolders[i].innerHTML = chosenSvg;
+                    iconHolders[i].style.display = 'inline-flex';
+                    iconHolders[i].style.alignItems = 'center';
+                    iconHolders[i].style.justifyContent = 'center';
+                }
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', injectHeaderIcons);
+        } else {
+            injectHeaderIcons();
+        }
+        setTimeout(injectHeaderIcons, 300);
+        setTimeout(injectHeaderIcons, 1000);
+    })();
+    </script>
+    <?php
 }, 0);
 
